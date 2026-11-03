@@ -11,7 +11,7 @@ export async function semear(db: Db, inviteCode = process.env.INVITE_CODE) {
     await db.club.upsert({ where: { id: c.id }, update: { name: c.name, crestPath: c.crestPath }, create: c });
   }
   // o código só nasce aqui; depois quem manda é o admin (PUT /api/admin/convite)
-  if (inviteCode) await db.setting.upsert({ where: { key: 'inviteCode' }, update: {}, create: { key: 'inviteCode', value: inviteCode } });
+  if (inviteCode) await db.setting.upsert({ where: { key: 'inviteCode' }, update: {}, create: { key: 'inviteCode', value: inviteCode.trim().toUpperCase() } });
 }
 
 if (process.argv[1]?.endsWith('seed.ts')) {
