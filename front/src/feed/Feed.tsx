@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { api, type Me } from '../api/cliente';
+import { lerAviso } from '../aviso';
 import './feed.css';
 import { Link } from '../rotas';
 import { CardPost } from './CardPost';
@@ -17,7 +18,7 @@ export function Feed({ me }: { me: Me }) {
   const atual = useRef({ itens, proximo });
   atual.current = { itens, proximo };
   const [erroMais, setErroMais] = useState(false);
-  const [aviso, setAviso] = useState('');
+  const [aviso, setAviso] = useState(lerAviso);
   const ocupado = useRef(false);
   const fim = useRef<HTMLDivElement>(null);
 
@@ -55,6 +56,11 @@ export function Feed({ me }: { me: Me }) {
       guardado = { meId: me.id, ...atual.current, y: y.current };
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!aviso) return;
+    const t = setTimeout(() => setAviso(''), 3000);
+    return () => clearTimeout(t);
+  }, [aviso]);
 
   // rolagem infinita: o sentinela no fim da lista pede a próxima página (começa 600 px antes)
   useEffect(() => {
@@ -67,7 +73,6 @@ export function Feed({ me }: { me: Me }) {
   function apagado(id: string) {
     setItens((l) => l.filter((p) => p.id !== id));
     setAviso('Post apagado');
-    setTimeout(() => setAviso(''), 3000);
   }
 
   return (

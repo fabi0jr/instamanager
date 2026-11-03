@@ -12,6 +12,8 @@ import { PerfilClube } from './clube/PerfilClube';
 import { Galeria } from './galeria/Galeria';
 import { Feed } from './feed/Feed';
 import { PostPagina } from './feed/PostPagina';
+import { EditarPost } from './postar/EditarPost';
+import { Postar } from './postar/Postar';
 import { navegar, PUBLICAS, useRota } from './rotas';
 
 export function App() {
@@ -36,10 +38,12 @@ export function App() {
     <>
       <main>
         {caminho === '/' && <Feed me={me} />}
-        {caminho.startsWith('/p/') && params.id && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
+        {params.id && /^\/p\/[^/]+$/.test(caminho) && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
+        {params.id && caminho.endsWith('/editar') && <div className="post-pagina"><EditarPost id={params.id} /></div>}
         {params.id && /^\/c\/[^/]+$/.test(caminho) && <PerfilClube id={params.id} me={me} />}
         {caminho === '/clubes' && <ListaClubes />}
         {caminho === '/galeria' && <Galeria />}
+        {caminho === '/postar' && <Postar me={me} />}
         {caminho === '/perfil/senha' && <TrocarSenha />}
         {caminho === '/perfil' && <Perfil me={me} recarregar={recarregar} />}
       </main>
