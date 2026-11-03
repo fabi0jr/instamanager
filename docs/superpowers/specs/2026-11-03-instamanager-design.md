@@ -45,7 +45,7 @@ Qualquer funcionalidade que piore um desses pontos fica de fora.
 ## 4. Funcionalidades
 
 ### 4.1 Cadastro e login
-- **Cadastro:** código de convite + e-mail + senha + nome de exibição + escolha de um clube **livre** (só aparecem os clubes sem técnico) **ou "torcedor"** (sem clube). Foto de perfil é opcional.
+- **Cadastro:** código de convite + e-mail + senha + nome de exibição + escolha de um clube **livre** (só aparecem os clubes sem técnico) **ou "torcedor"** (sem clube). A foto de perfil fica fora do cadastro: a pessoa coloca depois, no perfil (decisão de 2026-11-03, na aprovação das telas de acesso).
 - **Código de convite:** um único código do grupo, que o Fabio manda no WhatsApp. O admin pode trocar o código. *(Minha call: código único e reutilizável, sem convite individual.)*
 - **Login:** só e-mail + senha. Sem Google.
 - **Recuperação de senha:** link por e-mail via **Resend**, no domínio fj-dev.tech, que já foi usado no Terrato.
