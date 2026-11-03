@@ -8,7 +8,7 @@ Fonte visual: Penpot, página **Perfis (D2-4)** (27 telas, com os nomes das tabe
 |---|---|
 | `/c/:clubeId` | Perfil do clube |
 | `/clubes` | Lista dos 20 clubes (para quem não tem clube, ver abaixo) |
-| `/post/:id` | Um post só: seta de voltar + o card de `feed.md` + folha de comentários. Abre pelas capas das grades |
+| `/p/:id` | Um post só: seta de voltar + o card de `feed.md` + folha de comentários. Abre pelas capas das grades |
 | `/perfil` | Perfil da pessoa |
 | `/perfil/senha` | Trocar senha |
 | `/galeria` | Galeria de prompts |
@@ -19,7 +19,7 @@ O item **Clube** da barra inferior leva a `/c/<meu clube>`; **quem não tem club
 ## Componentes novos
 
 - **Abas** (Posts, Histórico): duas colunas iguais, altura 48, rótulo em Inter 16 (ativo peso 600 em `--im-giz` com sublinhado de 3 px × 60 px centralizado, inativo peso 500 em `--im-giz-2`), borda inferior 1 px `--im-linha`. `role="tablist"`.
-- **Grade de capas:** 3 colunas, quadrados de 128 px, vão de 3 px (390 = 3 × 128 + 2 × 3), sem raio. Mostra a primeira imagem do post (`miniUrl`). Posts com mais de uma imagem levam o ícone `galeria` (16 px, giz) no canto superior direito. Toque abre `/post/:id` (no desktop, a grade tem colunas de 4 e vão de 3 px).
+- **Grade de capas:** 3 colunas, quadrados de 128 px, vão de 3 px (390 = 3 × 128 + 2 × 3), sem raio. Mostra a primeira imagem do post (`miniUrl`). Posts com mais de uma imagem levam o ícone `galeria` (16 px, giz) no canto superior direito. Toque abre `/p/:id` (no desktop, a grade tem colunas de 4 e vão de 3 px).
 - **Etiqueta “Vaga aberta”:** pílula de 28 px, sem fundo, borda 1,5 px e texto Inter 600 13 em `--im-amarelo`. (Na lista de clubes a versão de 22 px.)
 - **Linha de configuração:** altura 60 (72 com 2 linhas), ícone 24 em giz-2 à esquerda (16 px da borda), título Inter 500 16 em giz, subtítulo `legenda` 13 em giz-2, seta `seta` 20 px à direita quando abre algo, divisor de 1 px `--im-linha` que começa depois do ícone. Texto de estado em `--im-amarelo` quando é aviso (ex.: pedido pendente).
 - **Interruptor:** 52 × 32, raio total. Ligado: fundo `--im-vermelho`, botão giz de 24 px à direita. Desligado: fundo `--im-superficie-alta` com borda 1 px `--im-linha`, botão giz-2 à esquerda. `role="switch"` + `aria-checked`.
@@ -93,7 +93,7 @@ Título “Galeria” (Barlow Condensed 700 32), legenda “Imagens com o prompt
 
 | Tela (board) | O que mostra |
 |---|---|
-| `galeria-detalhe` | X para fechar à esquerda e “Imagem 1 de 3” (as imagens com prompt do mesmo post) no centro. Imagem inteira na proporção original (`object-fit: contain`, até 390 de largura). Linha com escudo 40, nome do clube em Barlow Condensed 700 20 e “por Lincoln · há 2 horas” (toque leva ao clube). Cartão `--im-superficie` com o rótulo “Prompt” (Barlow Condensed 600 18) e o texto completo em `corpo` 15 (rola dentro do cartão se for longo). Barra fixa embaixo: **Copiar prompt** (primário, 222 × 48, ícone `copiar`) e **Ver o post** (fantasma, 128 × 48, abre `/post/:id`) |
+| `galeria-detalhe` | X para fechar à esquerda e “Imagem 1 de 3” (as imagens com prompt do mesmo post) no centro. Imagem inteira na proporção original (`object-fit: contain`, até 390 de largura). Linha com escudo 40, nome do clube em Barlow Condensed 700 20 e “por Lincoln · há 2 horas” (toque leva ao clube). Cartão `--im-superficie` com o rótulo “Prompt” (Barlow Condensed 600 18) e o texto completo em `corpo` 15 (rola dentro do cartão se for longo). Barra fixa embaixo: **Copiar prompt** (primário, 222 × 48, ícone `copiar`) e **Ver o post** (fantasma, 128 × 48, abre `/p/:id`) |
 | `galeria-detalhe-copiado` | O botão vira “Prompt copiado” (fundo `--im-superficie-alta`, ícone `ok` em `--im-gramado`) por 2 s e aparece o aviso rápido “Prompt copiado para a área de transferência” (`role="status"`). Volta sozinho ao estado normal |
 | `galeria-detalhe-copia-falhou` | `navigator.clipboard` bloqueado: o texto fica selecionado, o cartão ganha borda giz 2 px e a frase em vermelho-texto ensina “Toque e segure no texto para copiar.” Nada de `alert()` |
 | `desktop-galeria-detalhe` | Janela de 1040 × 680 sobre fundo escurecido: imagem à esquerda (620 px), à direita escudo, clube, autor, o cartão do prompt, **Copiar prompt** (364 × 48) e **Ver o post**. Esc e X fecham; ← → trocam de imagem |
@@ -124,7 +124,7 @@ O `front/src/conta/Perfil.tsx` da IM-9 (branch `feat/IM-9-conta`) usa só os com
 - **Entra de novo:** interruptor de notificações (`pushEnabled`), linha do clube e “Trocar de clube” / “Pedir um clube” (estados pendente/recusado), linha de admin e o rótulo de grupo. Textos exatos nas tabelas acima.
 - **Senha:** o campo “Repetir” **não** entra no perfil (só no fluxo de nova senha por e-mail); aqui são “Senha atual” e “Nova senha”, como o Ponta já fez.
 - **BarraInferior provisória:** hoje (branch `feat/IM-9-conta`) ela só tem `aria-label`, ícones próprios e **esconde Clube para quem não tem clube**. Para igualar `feed.md`: rótulos visíveis de 12 px, Postar como pílula vermelha 48 × 32, inativo em `--im-giz-2`, ícones do board Icones, e **o item Clube sempre presente** (sem clube vai para `/clubes`).
-- **Rotas:** Ponta já usa `/c/:clubeId`, `/galeria`, `/perfil`. Acrescentar `/clubes`, `/perfil/senha`, `/post/:id` e `/galeria/:imagemId`.
+- **Rotas:** Ponta já usa `/c/:clubeId`, `/galeria`, `/perfil`. Acrescentar `/clubes`, `/perfil/senha`, `/p/:id` e `/galeria/:imagemId`.
 
 ## Pendências para aprovar
 
