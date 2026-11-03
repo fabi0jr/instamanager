@@ -1,5 +1,6 @@
-import { Controller, Get, NotFoundException, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { SessionGuard } from '../auth/session.guard.js';
+import { ApiError } from '../http.js';
 import { PrismaService } from '../prisma.service.js';
 
 const tecnicoDe = (u: { id: string; name: string } | null) => u && { id: u.id, nome: u.name };
@@ -30,7 +31,7 @@ export class ClubesController {
         tenures: { orderBy: { startedAt: 'desc' }, include: { user: { select: { id: true, name: true } } } },
       },
     });
-    if (!c) throw new NotFoundException({ codigo: 'NAO_ENCONTRADO', mensagem: 'Clube não encontrado.' });
+    if (!c) throw new ApiError(404, 'NAO_ENCONTRADO', 'Não encontramos o que você procurou.');
     return {
       id: c.id,
       nome: c.name,

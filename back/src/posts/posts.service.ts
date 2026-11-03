@@ -1,0 +1,180 @@
+import { Injectable } from '@nestjs/common';
+import type { Prisma } from '../generated/prisma/client.js';
+import { ApiError } from '../http.js';
+import type { UserComClube } from '../auth/auth.service.js';
+import { PrismaService } from '../prisma.service.js';
+import { codificarCursor, decodificarCursor, UUID } from './cursor.js';
+import { apagarImagem, dimensoesJpeg, ehJpeg, salvarImagem } from './imagens.js';
+import { PostsEventos } from './posts.eventos.js';
+
+const POR_PAGINA = 12;
+const POR_PAGINA_GALERIA = 24;
+const LEGENDA_MAX = 2200;
+const PROMPT_MAX = 4000;
+const MAX_IMAGENS = 10;
+
+type Arquivo = { buffer: Buffer };
+
+const incluir = (userId: string) =>
+  ({
+    club: true,
+    author: { select: { id: true, name: true } },
+    images: { orderBy: { position: 'asc' } },
+    _count: { select: { likes: true, comments: true } },
+    likes: { where: { userId }, select: { userId: true } },
+  }) satisfies Prisma.PostInclude;
+type PostCompleto = Prisma.PostGetPayload<{ include: ReturnType<typeof incluir> }>;
+
+const clubeMini = (c: { id: string; name: string; crestPath: string }) => ({ id: c.id, nome: c.name, escudoUrl: c.crestPath });
+const naoEncontrado = () => new ApiError(404, 'NAO_ENCONTRADO', 'Não encontramos o que você procurou.');
+const invalido = (mensagem: string, campo: string) => new ApiError(400, 'DADOS_INVALIDOS', mensagem, [campo]);
+
+function lerLegenda(v: unknown) {
+  if (typeof v !== 'string' || v.length > LEGENDA_MAX) throw invalido(`A legenda tem no máximo ${LEGENDA_MAX} caracteres.`, 'legenda');
+  return v;
+}
+
+/** `prompts`: lista (uma posição por imagem) de texto ≤ 4000 ou null. */
+function lerPrompts(v: unknown, n: number): (string | null)[] {
+  let lista: unknown = v;
+  if (typeof v === 'string') {
+    try {
+      lista = JSON.parse(v);
+    } catch {
+      throw invalido('prompts precisa ser uma lista JSON.', 'prompts');
+    }
+  }
+  if (!Array.isArray(lista) || lista.length !== n || lista.some((p) => p !== null && (typeof p !== 'string' || p.length > PROMPT_MAX)))
+    throw invalido(`Envie um prompt (texto ou null) para cada uma das ${n} imagens, com até ${PROMPT_MAX} caracteres.`, 'prompts');
+  return lista.map((p) => (p === '' ? null : (p as string | null)));
+}
+
+@Injectable()
+export class PostsService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventos: PostsEventos,
+  ) {}
+
+  private paraJson(p: PostCompleto, user: UserComClube) {
+    return {
+      id: p.id,
+      clube: clubeMini(p.club),
+      autor: { id: p.author.id, nome: p.author.name },
+      legenda: p.caption,
+      criadoEm: p.createdAt,
+      imagens: p.images.map((i) => ({ id: i.id, miniUrl: i.thumbPath, cheiaUrl: i.fullPath, largura: i.width, altura: i.height, prompt: i.prompt })),
+      curtidas: p._count.likes,
+      curtiu: p.likes.length > 0,
+      comentarios: p._count.comments,
+      podeEditar: this.podeEditar(p, user),
+    };
+  }
+
+  private podeEditar(p: { club: { coachId: string | null } }, user: UserComClube) {
+    return user.isAdmin || p.club.coachId === user.id;
+  }
+
+  private async buscar(id: string, user: UserComClube) {
+    const p = UUID.test(id) ? await this.prisma.post.findUnique({ where: { id }, include: incluir(user.id) }) : null;
+    if (!p) throw naoEncontrado();
+    return p;
+  }
+
+  async criar(user: UserComClube, corpo: { legenda?: unknown; prompts?: unknown }, cheia: Arquivo[], mini: Arquivo[]) {
+    if (!user.club) throw new ApiError(403, 'SEM_CLUBE', 'Só técnicos com clube podem postar.');
+    const n = cheia.length;
+    if (n < 1 || n > MAX_IMAGENS || mini.length !== n) throw invalido(`Envie de 1 a ${MAX_IMAGENS} imagens, com a cheia e a miniatura de cada uma.`, 'cheia');
+    const legenda = lerLegenda(corpo.legenda ?? '');
+    const prompts = lerPrompts(corpo.prompts ?? Array(n).fill(null), n);
+
+    // tudo é validado antes de gravar qualquer arquivo
+    const dims = cheia.map((a) => (ehJpeg(a.buffer) ? dimensoesJpeg(a.buffer) : null));
+    if (dims.some((d) => !d) || !mini.every((a) => ehJpeg(a.buffer)))
+      throw new ApiError(400, 'IMAGEM_INVALIDA', 'Não consegui ler uma das imagens. Envie JPEG.');
+
+    const gravados: string[] = [];
+    try {
+      const imagens: Prisma.PostImageCreateWithoutPostInput[] = [];
+      for (let i = 0; i < n; i++) {
+        const fullPath = await salvarImagem(cheia[i].buffer, 'posts');
+        gravados.push(fullPath);
+        const thumbPath = await salvarImagem(mini[i].buffer, 'posts');
+        gravados.push(thumbPath);
+        imagens.push({ position: i, fullPath, thumbPath, width: dims[i]!.largura, height: dims[i]!.altura, prompt: prompts[i] });
+      }
+      const criado = await this.prisma.post.create({
+        data: { clubId: user.club.id, authorId: user.id, caption: legenda, images: { create: imagens } },
+        include: incluir(user.id),
+      });
+      this.eventos.emit('posts.criado', criado.id);
+      return this.paraJson(criado, user);
+    } catch (e) {
+      await Promise.all(gravados.map(apagarImagem));
+      throw e;
+    }
+  }
+
+  async obter(id: string, user: UserComClube) {
+    return this.paraJson(await this.buscar(id, user), user);
+  }
+
+  async editar(id: string, user: UserComClube, corpo: { legenda?: unknown; prompts?: unknown }) {
+    const p = await this.buscar(id, user);
+    if (!this.podeEditar(p, user)) throw new ApiError(403, 'NAO_E_TECNICO', 'Só o técnico atual do clube edita este post.');
+    const legenda = corpo.legenda === undefined ? undefined : lerLegenda(corpo.legenda);
+    const prompts = corpo.prompts === undefined ? undefined : lerPrompts(corpo.prompts, p.images.length);
+    await this.prisma.$transaction([
+      this.prisma.post.update({ where: { id }, data: { caption: legenda } }),
+      ...(prompts ?? []).map((prompt, i) => this.prisma.postImage.update({ where: { id: p.images[i].id }, data: { prompt } })),
+    ]);
+    return this.obter(id, user);
+  }
+
+  async apagar(id: string, user: UserComClube) {
+    const p = await this.buscar(id, user);
+    if (!this.podeEditar(p, user)) throw new ApiError(403, 'NAO_E_TECNICO', 'Só o técnico atual do clube apaga este post.');
+    await this.prisma.post.delete({ where: { id } }); // imagens, curtidas e comentários vão em cascata
+    await Promise.all(p.images.flatMap((i) => [apagarImagem(i.fullPath), apagarImagem(i.thumbPath)]));
+  }
+
+  async feed(user: UserComClube, antes?: string, clube?: string) {
+    const c = decodificarCursor(antes);
+    const posts = await this.prisma.post.findMany({
+      where: {
+        ...(clube && { clubId: clube }),
+        ...(c && { OR: [{ createdAt: { lt: c.criadoEm } }, { createdAt: c.criadoEm, id: { lt: c.id } }] }),
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: POR_PAGINA + 1,
+      include: incluir(user.id),
+    });
+    const pagina = posts.slice(0, POR_PAGINA);
+    const ultimo = pagina.at(-1);
+    return {
+      itens: pagina.map((p) => this.paraJson(p, user)),
+      proximo: posts.length > POR_PAGINA && ultimo ? codificarCursor(ultimo.createdAt, ultimo.id) : null,
+    };
+  }
+
+  /** Só imagens com prompt; cursor = criadoEm do post | id da imagem. */
+  async galeria(antes?: string, clube?: string) {
+    const c = decodificarCursor(antes);
+    const imagens = await this.prisma.postImage.findMany({
+      where: {
+        prompt: { not: null },
+        ...(clube && { post: { clubId: clube } }),
+        ...(c && { OR: [{ post: { createdAt: { lt: c.criadoEm } } }, { post: { createdAt: c.criadoEm }, id: { lt: c.id } }] }),
+      },
+      orderBy: [{ post: { createdAt: 'desc' } }, { id: 'desc' }],
+      take: POR_PAGINA_GALERIA + 1,
+      include: { post: { select: { createdAt: true, club: true } } },
+    });
+    const pagina = imagens.slice(0, POR_PAGINA_GALERIA);
+    const ultima = pagina.at(-1);
+    return {
+      itens: pagina.map((i) => ({ imagemId: i.id, postId: i.postId, miniUrl: i.thumbPath, cheiaUrl: i.fullPath, prompt: i.prompt, clube: clubeMini(i.post.club) })),
+      proximo: imagens.length > POR_PAGINA_GALERIA && ultima ? codificarCursor(ultima.post.createdAt, ultima.id) : null,
+    };
+  }
+}
