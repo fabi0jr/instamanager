@@ -25,6 +25,11 @@ export function EditarPost({ id }: { id: string }) {
         setPost(p);
         setLegenda(p.legenda);
         setPrompts(p.imagens.map((i) => i.prompt ?? ''));
+        if (!p.podeEditar) {
+          // torcedor ou ex-técnico: o bloqueio aparece já ao abrir, não só ao salvar
+          setSemPermissao(true);
+          setAviso('Você não é mais técnico deste clube. Só o técnico atual e o admin editam.');
+        }
       },
       () => setPost('erro'),
     );

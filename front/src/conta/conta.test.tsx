@@ -215,7 +215,7 @@ test('400 DADOS_INVALIDOS no entrar mostra o erro no campo, não "confira a cone
   expect(await screen.findByText('Digite seu e-mail.')).toBeTruthy();
   expect(screen.getByText('Digite sua senha.')).toBeTruthy();
   expect(screen.queryByText(/Confira a conexão/)).toBeNull();
-  expect(document.activeElement).toBe(screen.getByLabelText('E-mail'));
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('E-mail'))); // o foco entra num efeito
 });
 
 test('400 DADOS_INVALIDOS no esqueci mostra o erro no campo e-mail', async () => {

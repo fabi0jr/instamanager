@@ -25,3 +25,6 @@
 .progresso-txt { display: flex; justify-content: space-between; } .progresso-txt .numero { font: 600 16px var(--im-fonte-display); }
 
 .postar #leg, .postar #legenda { min-height: 120px; }
+
+.quadro.add { display: grid; place-items: center; border: 2px dashed var(--im-linha); background: none; color: var(--im-giz-2); font: 500 14px var(--im-fonte-texto); cursor: pointer; text-align: center; }
+.postar:has(#arquivos-postar:focus-visible) label[for='arquivos-postar'] { outline: 2px solid var(--im-giz); outline-offset: 2px; }

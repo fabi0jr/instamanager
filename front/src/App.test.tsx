@@ -69,3 +69,14 @@ test('barra: Postar usa o ícone novo-post (quadrado com +) e a lateral tem a ma
   expect(nav.querySelector('a[href="/postar"] svg path')?.getAttribute('d')).toContain('M5 3h14');
   expect(nav.querySelector('.marca-lateral')?.textContent).toBe('InstaManager');
 });
+
+test('em /postar e /p/:id/editar a barra fica só no desktop (não cobre o botão fixo no celular)', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (u: string) => new Response(JSON.stringify(u === '/api/me' ? { ...me, clube: { id: 'palmeiras', nome: 'Palmeiras', escudoUrl: '' } } : { itens: [], proximo: null }))));
+  history.pushState(null, '', '/postar');
+  render(<App />);
+  expect((await screen.findByRole('navigation', { name: 'Principal' })).className).toContain('so-desktop');
+  cleanup();
+  history.pushState(null, '', '/galeria');
+  render(<App />);
+  expect((await screen.findByRole('navigation', { name: 'Principal' })).className).not.toContain('so-desktop');
+});

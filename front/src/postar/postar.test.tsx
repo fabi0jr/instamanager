@@ -184,3 +184,21 @@ test('remover imagem solta a URL da prévia', async () => {
   clica('Remover imagem 1');
   expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:x');
 });
+
+test('com imagens escolhidas aparece o quadro "Adicionar" e some ao chegar em 10', async () => {
+  render(<Postar me={tecnico} />);
+  expect(screen.queryByText('+ Adicionar')).toBeNull();
+  escolher('a.jpg');
+  const quadro = await screen.findByText('+ Adicionar');
+  expect(quadro.getAttribute('for')).toBe(screen.getByLabelText('Escolher imagens').id);
+  escolher(...Array.from({ length: 9 }, (_, i) => `b${i}.jpg`));
+  await waitFor(() => expect(screen.getAllByRole('button', { name: /^Remover imagem/ })).toHaveLength(10));
+  expect(screen.queryByText('+ Adicionar')).toBeNull();
+});
+
+test('editar: quem não pode editar vê o bloqueio já ao abrir', async () => {
+  fetchFalso({ 'GET /posts/p1': { ...postExistente, podeEditar: false } });
+  render(<EditarPost id="p1" />);
+  expect(await screen.findByText(/Você não é mais técnico deste clube/)).toBeTruthy();
+  expect((screen.getByRole('button', { name: 'Salvar alterações' }) as HTMLButtonElement).disabled).toBe(true);
+});

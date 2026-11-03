@@ -186,15 +186,16 @@ export function Postar({ me }: { me: Me }) {
                 <button type="button" className="x" aria-label={`Remover imagem ${n + 1}`} onClick={() => remover(i.id)}>✕</button>
               </div>
             ))}
+            {itens.length > 0 && itens.length < MAX && (
+              <label role="listitem" htmlFor="arquivos-postar" className="quadro add">+ Adicionar</label>
+            )}
           </div>
           {itens.filter((i) => i.erro).map((i) => <Aviso key={i.id}>{i.erro}</Aviso>)}
           <p aria-live="polite" className="giz2">{itens.length > 0 && `${itens.length} de ${MAX} imagens. A primeira é a capa e define o formato do post no feed.`}</p>
           {itens.length < MAX && (
-            <label className="botao secundario">
-              Escolher imagens
-              <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple className="sr" aria-label="Escolher imagens" onChange={escolher} />
-            </label>
+            <input id="arquivos-postar" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple className="sr" aria-label="Escolher imagens" onChange={escolher} />
           )}
+          {itens.length === 0 && <label htmlFor="arquivos-postar" className="botao secundario">Escolher imagens</label>}
           <div className="acao-fixa">
             <Botao disabled={prontas.length === 0 || preparando > 0} onClick={() => setPasso(2)}>
               {preparando > 0 ? `Preparando ${itens.length - preparando} de ${itens.length}…` : 'Continuar'}

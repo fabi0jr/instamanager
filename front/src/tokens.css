@@ -94,3 +94,7 @@ main { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
   .topo-feed { display: none; }
 }
 @media (min-width: 1100px) { .barra-inferior .marca-lateral { justify-content: flex-start; padding: 0 var(--im-e3); } .barra-inferior .marca-lateral span { display: inline; } }
+
+.barra-inferior.so-desktop { display: none; } main.tela-cheia { padding-bottom: 0; }
+@media (min-width: 768px) { .barra-inferior.so-desktop { display: flex; } }
+@media (min-width: 1100px) { .barra-inferior.so-desktop { display: flex; } }
