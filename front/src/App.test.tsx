@@ -1,10 +1,13 @@
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { App } from './App';
 
 const me = { id: '1', nome: 'Lincoln', email: 'l@x.com', avatarUrl: null, isAdmin: false, pushEnabled: false, clube: null };
+// aparelho que já passou pela tela de instalar/avisos (senão o 1º acesso logado abre /instalar; ver instalar/instalar.test.tsx)
+beforeEach(() => localStorage.setItem('im:instalar-visto', '1'));
 afterEach(() => {
   cleanup();
+  localStorage.clear();
   vi.unstubAllGlobals();
 });
 

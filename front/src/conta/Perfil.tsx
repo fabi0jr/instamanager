@@ -5,6 +5,8 @@ import { Escudo } from '../feed/Escudo';
 import { Folha } from '../feed/Folha';
 import { IcCamera, IcSeta } from '../feed/icones';
 import { sigla } from '../feed/siglas';
+import { ehIOS, instalado } from '../instalar/plataforma';
+import { ativarPush, cancelarInscricaoAoSair, desativarPush, estadoPush } from '../instalar/push';
 import { comprimir, ErroImagem } from '../postar/comprimir';
 import { Link, navegar } from '../rotas';
 import '../feed/feed.css';
@@ -34,6 +36,7 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
   const [erroNome, setErroNome] = useState('');
   const [ok, setOk] = useState('');
   const [push, setPush] = useState(me.pushEnabled);
+  const [mudando, setMudando] = useState<boolean | null>(null); // o que a pessoa acabou de pedir, até a resposta chegar
   const [trocas, setTrocas] = useState<Troca[]>([]);
   const [nomes, setNomes] = useState<Record<string, string>>({});
   const nomeEnvio = useEnvio();
@@ -43,6 +46,9 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
   useEffect(() => {
     api<Troca[]>('/trocas/minhas').then(setTrocas, () => {});
   }, []);
+  const estado = estadoPush(push, ehIOS(), instalado());
+  const ligado = mudando ?? estado === 'ligado';
+  const subAvisos = estado === 'negado' ? 'Bloqueado neste aparelho. Toque para ver como liberar.' : estado === 'ios-sem-instalar' ? 'No iPhone, instale o app para receber avisos.' : estado === 'sem-suporte' ? 'Este aparelho não recebe avisos do navegador.' : 'Avisos de post novo e comentário';
   const pendente = trocas.find((t) => t.status === 'PENDENTE');
   const recusada = trocas[0]?.status === 'RECUSADA' ? trocas[0] : null;
   useEffect(() => {
@@ -87,20 +93,29 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
     });
   }
 
+  // Interruptor de Notificações: liga/desliga de verdade (permissão, inscrição e pushEnabled; ver instalar/push.ts).
+  // Bloqueado, iPhone sem instalar ou sem suporte: o toque leva a /avisos, que explica o motivo e como resolver.
   async function alternarPush() {
-    const novo = !push;
-    setPush(novo);
+    if (estado !== 'ligado' && estado !== 'desligado') return navegar('/avisos');
+    const ligar = estado === 'desligado';
+    setMudando(ligar);
     try {
-      // shortcut: só grava a preferência; a permissão do navegador e a inscrição vêm na Task 13
-      await api<Me>('/me', { method: 'PATCH', body: JSON.stringify({ pushEnabled: novo }) });
+      if (ligar) {
+        if ((await ativarPush()) !== 'ok') return navegar('/avisos');
+      } else {
+        await desativarPush();
+      }
+      setPush(ligar);
       recarregar();
     } catch {
-      setPush(!novo);
-      setOk('Não deu para salvar. Tente de novo.');
+      setOk(ligar ? 'Não deu para ativar. Tente de novo.' : 'Não deu para desligar. Tente de novo.');
+    } finally {
+      setMudando(null);
     }
   }
 
   async function sair() {
+    await cancelarInscricaoAoSair(); // antes de perder a sessão: a rota de push exige estar logada
     await api('/auth/sair', { method: 'POST' }).catch(() => {});
     recarregar();
     navegar('/entrar');
@@ -132,8 +147,8 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
       <Linha titulo="Senha" sub="Trocar a senha" para="/perfil/senha" />
 
       <p className="grupo giz2">Avisos</p>
-      <Linha titulo="Notificações" sub="Avisos de post novo e comentário">
-        <button type="button" role="switch" aria-checked={push} aria-label="Notificações" className={`interruptor ${push ? 'ligado' : ''}`} onClick={alternarPush}><span /></button>
+      <Linha titulo="Notificações" sub={subAvisos} tom={estado === 'ligado' || estado === 'desligado' ? undefined : 'aviso'}>
+        <button type="button" role="switch" aria-checked={ligado} aria-label="Notificações" disabled={mudando !== null} className={`interruptor ${ligado ? 'ligado' : ''}`} onClick={alternarPush}><span /></button>
       </Linha>
 
       <p className="grupo giz2">Clube</p>

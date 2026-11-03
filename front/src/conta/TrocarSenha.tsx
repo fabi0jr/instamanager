@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { api, ErroApi, type Me } from '../api/cliente';
+import { reinscreverSePreciso } from '../instalar/push';
 import { Link } from '../rotas';
 import { Aviso, Botao, Campo, useEnvio, useFocoNoErro } from './ui';
 
 // /perfil/senha
-export function TrocarSenha() {
+// pushEnabled: como estava antes da troca. O servidor apaga as inscrições de push na troca, e este aparelho reassina se estava ligado.
+export function TrocarSenha({ pushEnabled = false }: { pushEnabled?: boolean }) {
   const [atual, setAtual] = useState('');
   const [nova, setNova] = useState('');
   const [erros, setErros] = useState<{ atual?: string; nova?: string }>({});
@@ -20,6 +22,7 @@ export function TrocarSenha() {
     enviar(
       async () => {
         await api<Me>('/me', { method: 'PATCH', body: JSON.stringify({ senhaAtual: atual, senhaNova: nova }) });
+        await reinscreverSePreciso(pushEnabled);
         setPronto(true);
       },
       (erro: ErroApi) => {

@@ -152,18 +152,6 @@ test('perfil: foto recusada pelo servidor mostra o aviso', async () => {
   expect((await screen.findByRole('alert')).textContent).toContain('Não deu para ler essa imagem. Escolha outra foto.');
 });
 
-test('perfil: interruptor de notificações grava na hora e desfaz se falhar', async () => {
-  const chamadas = fetchFalso({ 'GET /trocas/minhas': [], 'PATCH /me': { status: 500 } });
-  render(<Perfil me={me} recarregar={() => {}} />);
-  const chave = screen.getByRole('switch', { name: 'Notificações' });
-  expect(chave.getAttribute('aria-checked')).toBe('false');
-  fireEvent.click(chave);
-  expect(chave.getAttribute('aria-checked')).toBe('true'); // otimista
-  await waitFor(() => expect(chave.getAttribute('aria-checked')).toBe('false'));
-  expect(JSON.parse(chamadas.find((c) => c.chave === 'PATCH /me')!.body as string)).toEqual({ pushEnabled: true });
-  expect(screen.getByRole('status').textContent).toBe('Não deu para salvar. Tente de novo.');
-});
-
 test('perfil do técnico: clube, Trocar de clube → /trocar; admin só para admin', async () => {
   const clube = { id: 'palmeiras', nome: 'Palmeiras', escudoUrl: '/escudos/palmeiras.svg' };
   fetchFalso({ 'GET /trocas/minhas': [] });

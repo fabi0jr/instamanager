@@ -12,6 +12,9 @@ import { ListaClubes } from './clube/ListaClubes';
 import { PerfilClube } from './clube/PerfilClube';
 import { Galeria } from './galeria/Galeria';
 import { Feed } from './feed/Feed';
+import { proximaTela } from './instalar/fluxo';
+import { Instalar } from './instalar/Instalar';
+import { lerVolta } from './instalar/volta';
 import { PostPagina } from './feed/PostPagina';
 import { EditarPost } from './postar/EditarPost';
 import { Postar } from './postar/Postar';
@@ -23,9 +26,20 @@ export function App() {
   const { caminho, params } = useRota();
   const publica = PUBLICAS.includes(caminho);
 
-  // logada numa tela de acesso (acabou de entrar): vai para o feed
+  // logada: 1) volta à rota de entrada guardada (link de push aberto deslogado); 2) sai da tela de acesso para o feed;
+  // 3) primeira vez neste aparelho, o feed abre antes em /instalar ou /avisos (uma vez; "Agora não" guarda)
   useEffect(() => {
-    if (me && publica && caminho !== '/nova-senha') navegar('/');
+    if (!me) return;
+    const volta = lerVolta();
+    if (volta) {
+      if (volta !== location.pathname + location.search) navegar(volta);
+      return;
+    }
+    if (publica && caminho !== '/nova-senha') return navegar('/');
+    if (caminho === '/') {
+      const tela = proximaTela();
+      if (tela) navegar(tela);
+    }
   }, [me, publica, caminho]);
 
   if (carregando) return <div className="carregando" role="status" aria-label="Carregando" />;
@@ -48,10 +62,11 @@ export function App() {
         {caminho === '/clubes' && <ListaClubes />}
         {caminho === '/galeria' && <Galeria />}
         {caminho === '/postar' && <Postar me={me} />}
-        {caminho === '/perfil/senha' && <TrocarSenha />}
+        {caminho === '/perfil/senha' && <TrocarSenha pushEnabled={me.pushEnabled} />}
         {caminho === '/perfil' && <Perfil me={me} recarregar={recarregar} />}
         {caminho === '/trocar' && <Trocar me={me} />}
         {(caminho === '/admin' || caminho.startsWith('/admin/')) && <Admin me={me} caminho={caminho} />}
+        {(caminho === '/instalar' || caminho === '/avisos') && <Instalar caminho={caminho} recarregar={recarregar} />}
       </main>
       <BarraInferior clubeId={me.clube?.id} soDesktop={telaCheia} />
     </>
