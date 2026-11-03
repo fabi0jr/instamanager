@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { api, type Me } from '../api/cliente';
 import { lerAviso } from '../aviso';
 import './feed.css';
@@ -39,10 +39,21 @@ export function Feed({ me }: { me: Me }) {
     }
   }, []);
   useEffect(() => {
-    if (volta) requestAnimationFrame(() => window.scrollTo(0, volta.y));
-    else carregar(null);
+    if (!volta) carregar(null);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A rolagem é anotada enquanto a pessoa rola: ao sair da tela o navegador já pode ter zerado/limitado o scrollY,
+  // então ler window.scrollY só na saída devolve 0. A restauração roda antes da pintura, com a lista já no DOM.
+  const y = useRef(volta?.y ?? 0);
+  useEffect(() => {
+    const anotar = () => (y.current = window.scrollY);
+    addEventListener('scroll', anotar, { passive: true });
+    return () => removeEventListener('scroll', anotar);
+  }, []);
+  useLayoutEffect(() => {
+    if (volta) window.scrollTo(0, volta.y);
     return () => {
-      guardado = { meId: me.id, ...atual.current, y: window.scrollY };
+      guardado = { meId: me.id, ...atual.current, y: y.current };
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
