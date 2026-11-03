@@ -1,0 +1,53 @@
+.feed, .post-pagina { max-width: 470px; margin: 0 auto; }
+.topo-feed { height: 56px; display: flex; align-items: center; gap: var(--im-e2); padding: 0 var(--im-e4); border-bottom: 1px solid var(--im-linha); font: 800 28px var(--im-fonte-display); }
+.giz2 { color: var(--im-giz-2); } .giz3 { color: var(--im-giz-3); } .mini { font-size: 12px; } .erro-txt { color: var(--im-vermelho-texto); }
+.card { border-bottom: 1px solid var(--im-linha); padding-bottom: var(--im-e3); }
+.cabecalho { display: flex; align-items: center; justify-content: space-between; min-height: 64px; padding: 0 var(--im-e4); }
+.cabecalho button, .acoes button, .folha-topo button, .comentario > button { background: none; border: 0; color: var(--im-giz); display: grid; place-items: center; cursor: pointer; }
+.clube-link { display: flex; align-items: center; gap: var(--im-e3); color: var(--im-giz); text-decoration: none; }
+.clube-link img { border-radius: 50%; background: var(--im-superficie-alta); }
+.clube-link > span { display: flex; flex-direction: column; }
+.nome-clube { font: 700 20px/24px var(--im-fonte-display); }
+.legenda-s { font-size: 13px; line-height: 18px; }
+.carrossel-moldura { position: relative; }
+.carrossel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; width: 100%; background: var(--im-superficie-alta); scrollbar-width: none; }
+.carrossel img { flex: 0 0 100%; width: 100%; height: 100%; object-fit: contain; scroll-snap-align: center; }
+.contador { position: absolute; top: 10px; right: 10px; padding: 2px 10px; border-radius: 999px; background: rgb(14 15 17 / .72); font: 500 12px/16px var(--im-fonte-texto); }
+.ver-prompt { position: absolute; left: 10px; bottom: 10px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; background: rgb(14 15 17 / .72); color: var(--im-giz); font: 500 12px var(--im-fonte-texto); cursor: pointer; }
+.pontos { display: flex; justify-content: center; gap: 6px; padding-top: 10px; }
+.pontos span { width: 6px; height: 6px; border-radius: 50%; background: var(--im-giz-3); } .pontos .ativo { background: var(--im-giz); }
+.acoes { display: flex; padding: 0 var(--im-e3); } .acoes button { width: 44px; height: 44px; }
+.acoes .curtido { color: var(--im-vermelho); }
+.acoes .curtido svg { animation: pop 180ms; } @keyframes pop { 50% { transform: scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { .acoes .curtido svg { animation: none; } }
+.curtidas { padding: 0 var(--im-e4); font: 600 16px/20px var(--im-fonte-display); letter-spacing: .2px; }
+.aviso-card { margin: 0; padding: 0 var(--im-e4); font-size: 13px; }
+.legenda-post { margin: var(--im-e1) 0 0; padding: 0 var(--im-e4); white-space: pre-line; } .legenda-post strong { font-weight: 600; }
+.legenda-post.corta { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ver-coment { margin-left: var(--im-e4); font-size: 13px; text-decoration: none; }
+.card-esq { height: 480px; margin: var(--im-e4); }
+.fim-lista { text-align: center; font-size: 13px; padding: var(--im-e6); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(72px + env(safe-area-inset-bottom)); background: var(--im-superficie-alta); padding: var(--im-e3) var(--im-e4); border-radius: var(--im-r-btn); }
+.feed .caixa-info, .post-pagina .caixa-info { margin: var(--im-e4); }
+.veu { position: fixed; inset: 0; background: rgb(0 0 0 / .6); display: flex; align-items: flex-end; justify-content: center; z-index: 10; }
+.folha { width: 100%; max-width: 470px; max-height: 90dvh; overflow: auto; background: var(--im-superficie); border-radius: var(--im-r-folha) var(--im-r-folha) 0 0; padding: var(--im-e4); display: flex; flex-direction: column; gap: var(--im-e3); padding-bottom: calc(var(--im-e4) + env(safe-area-inset-bottom)); }
+.folha.alta { height: 80dvh; }
+.folha textarea { width: 100%; min-height: 80px; background: var(--im-superficie-alta); color: var(--im-giz); border: 1px solid var(--im-linha); border-radius: var(--im-r-btn); padding: var(--im-e3); font: inherit; }
+.folha label { display: flex; flex-direction: column; gap: var(--im-e1); font-size: 13px; color: var(--im-giz-2); }
+.item-folha { min-height: 48px; background: none; border: 0; color: var(--im-giz); text-align: left; font: 500 16px var(--im-fonte-texto); cursor: pointer; } .item-folha.perigo { color: var(--im-vermelho-texto); }
+.alca { width: 40px; height: 4px; border-radius: 2px; background: var(--im-linha); margin: 0 auto; }
+.folha-topo { display: flex; justify-content: space-between; align-items: center; } .folha-topo h2 { font-size: 24px; }
+.comentarios-lista { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: var(--im-e4); }
+.comentario { display: flex; gap: var(--im-e3); align-items: flex-start; } .comentario .corpo { flex: 1; } .comentario p { margin: 0; }
+.av32 { width: 32px; height: 32px; flex: none; border-radius: 50%; object-fit: cover; background: var(--im-superficie-alta); border: 1px solid var(--im-linha); display: grid; place-items: center; font: 700 13px var(--im-fonte-display); }
+.pilula { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--im-superficie-alta); border: 1px solid var(--im-linha); font: 600 13px var(--im-fonte-display); letter-spacing: .4px; }
+.comentar { display: flex; align-items: center; gap: var(--im-e2); min-height: 76px; }
+.comentar textarea { flex: 1; min-height: 44px; max-height: 120px; border-radius: 22px; }
+.comentar button { min-height: 44px; background: none; border: 0; color: var(--im-giz-3); font: 600 15px var(--im-fonte-texto); cursor: pointer; } .comentar button.ativo { color: var(--im-vermelho-texto); }
+@media (min-width: 768px) { .veu { align-items: center; } .folha, .folha.alta { border-radius: var(--im-r-folha); max-width: 390px; height: auto; max-height: 660px; } .folha.alta { height: 660px; } }
+
+.legenda-bloco { padding: 0 var(--im-e4); display: flex; flex-direction: column; align-items: flex-start; } .legenda-bloco .legenda-post { padding: 0; }
+.carrossel:focus-visible { outline: 2px solid var(--im-giz); outline-offset: -2px; }
+.seta { display: none; position: absolute; top: calc(50% - 18px); width: 36px; height: 36px; min-width: 36px; min-height: 36px; padding: 0; border: 0; border-radius: 50%; background: rgb(14 15 17 / .72); color: var(--im-giz); font-size: 24px; line-height: 1; cursor: pointer; }
+.seta.esq { left: 8px; } .seta.dir { right: 8px; }
+@media (min-width: 768px) { .carrossel-moldura:hover .seta, .carrossel-moldura:focus-within .seta { display: block; } }
