@@ -1,0 +1,7 @@
+{
+  "name": "instamanager",
+  "private": true,
+  "scripts": {
+    "test": "pnpm -r test && pnpm --filter back test:e2e"
+  }
+}
