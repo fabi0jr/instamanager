@@ -1,4 +1,3 @@
-import { isIP } from 'node:net';
 import { Body, Controller, Delete, Get, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
 import { type AuthedRequest, SessionGuard } from '../auth/session.guard.js';
 import { ApiError } from '../http.js';
@@ -6,10 +5,13 @@ import { PrismaService } from '../prisma.service.js';
 
 const invalido = (campo: string) => new ApiError(400, 'DADOS_INVALIDOS', 'Confira os dados da inscrição.', [campo]);
 
-/**
- * O servidor faz POST nesse endereço, então só vale https com nome de domínio público (nada de localhost, IP ou rede interna).
- * shortcut: não resolve o DNS; um domínio apontado para IP interno passaria. Aceitável para 30 amigos; trocar por allowlist dos serviços de push se abrir o cadastro.
- */
+// O servidor faz POST nesse endereço, então só vale https em serviço de push conhecido (allowlist):
+// FCM (Chrome/Android/Brave/Samsung), Mozilla (Firefox), Apple (Safari/iOS) e Windows (Edge). Fecha SSRF de vez:
+// localhost, IP, rede interna e hostname com ponto final ("fcm.googleapis.com.") não passam.
+// shortcut: navegador novo com outro serviço de push precisa entrar aqui; ver o erro 400 no front e acrescentar.
+const SERVICOS_EXATOS = new Set(['fcm.googleapis.com', 'updates.push.services.mozilla.com', 'web.push.apple.com']);
+const SERVICOS_SUFIXO = ['.notify.windows.com', '.push.services.mozilla.com'];
+
 function lerEndpoint(v: unknown): string {
   if (typeof v !== 'string' || v.length > 2048) throw invalido('endpoint');
   let u: URL;
@@ -18,9 +20,9 @@ function lerEndpoint(v: unknown): string {
   } catch {
     throw invalido('endpoint');
   }
-  const host = u.hostname.toLowerCase().replace(/^\[|\]$/g, '');
-  const interno = host === 'localhost' || !host.includes('.') || isIP(host) !== 0 || /\.(local|localhost|internal|lan|home)$/.test(host);
-  if (u.protocol !== 'https:' || interno) throw invalido('endpoint');
+  const host = u.hostname.toLowerCase();
+  const permitido = SERVICOS_EXATOS.has(host) || SERVICOS_SUFIXO.some((s) => host.endsWith(s));
+  if (u.protocol !== 'https:' || u.port || u.username || u.password || !permitido) throw invalido('endpoint');
   return v;
 }
 

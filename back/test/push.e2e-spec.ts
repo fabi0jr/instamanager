@@ -27,7 +27,7 @@ describe('push (e2e, web-push mockado)', () => {
   const novo = async (clubeId: string | null, nome: string): Promise<U> => {
     const u = await cadastrarUsuario(post, prisma, clubeId, nome);
     ids.push(u.id);
-    const endpoint = `https://push.exemplo.test/${randomUUID()}`;
+    const endpoint = `https://fcm.googleapis.com/fcm/send/${randomUUID()}`;
     await com('post', '/api/push/inscricao', u).send({ endpoint, keys: { p256dh: 'chave-p256dh', auth: 'chave-auth' } }).expect(204);
     return { ...u, endpoint };
   };
@@ -75,7 +75,7 @@ describe('push (e2e, web-push mockado)', () => {
     });
 
     it('POST /inscricao é upsert por endpoint e valida o corpo (https, domínio, chaves)', async () => {
-      const endpoint = `https://push.exemplo.test/${randomUUID()}`;
+      const endpoint = `https://fcm.googleapis.com/fcm/send/${randomUUID()}`;
       const corpo = { endpoint, keys: { p256dh: 'a', auth: 'b' } };
       await com('post', '/api/push/inscricao', ligado).send(corpo).expect(204);
       await com('post', '/api/push/inscricao', ligado).send({ ...corpo, keys: { p256dh: 'c', auth: 'd' } }).expect(204);
@@ -86,8 +86,29 @@ describe('push (e2e, web-push mockado)', () => {
       await com('post', '/api/push/inscricao', admin).send(corpo).expect(204);
       expect((await prisma.pushSubscription.findUniqueOrThrow({ where: { endpoint } })).userId).toBe(admin.id);
 
-      // o servidor chama esse endereço: nada de http, localhost, IP ou rede interna
-      for (const ruim of ['http://push.exemplo.test/x', 'https://localhost/x', 'https://127.0.0.1/x', 'https://[::1]/x', 'https://servidor-interno/x', 'https://intranet.local/x', 'nao-e-url', '']) {
+      // o servidor chama esse endereço: só https em serviço de push conhecido
+      for (const bom of ['https://updates.push.services.mozilla.com/wpush/v2/x', 'https://web.push.apple.com/x', 'https://wns2-par02p.notify.windows.com/x']) {
+        await com('post', '/api/push/inscricao', ligado).send({ endpoint: bom, keys: { p256dh: 'a', auth: 'b' } }).expect(204);
+        await prisma.pushSubscription.deleteMany({ where: { endpoint: bom } });
+      }
+      const ruins = [
+        'http://fcm.googleapis.com/x', // sem https
+        'https://localhost/x',
+        'https://localhost./x',
+        'https://127.0.0.1/x',
+        'https://[::1]/x',
+        'https://servidor-interno/x',
+        'https://fcm.googleapis.com./x', // ponto final
+        'https://fcm.googleapis.com.evil.test/x',
+        'https://evil.test/fcm.googleapis.com',
+        'https://fcm.googleapis.com@evil.test/x',
+        'https://usuario:senha@fcm.googleapis.com/x',
+        'https://fcm.googleapis.com:8443/x',
+        'https://push.exemplo.test/x', // domínio fora da lista
+        'nao-e-url',
+        '',
+      ];
+      for (const ruim of ruins) {
         await com('post', '/api/push/inscricao', ligado).send({ endpoint: ruim, keys: { p256dh: 'a', auth: 'b' } }).expect(400);
       }
       await com('post', '/api/push/inscricao', ligado).send({ endpoint, keys: { p256dh: 'a' } }).expect(400);
@@ -95,7 +116,7 @@ describe('push (e2e, web-push mockado)', () => {
     });
 
     it('DELETE /inscricao apaga só a inscrição da própria pessoa', async () => {
-      const endpoint = `https://push.exemplo.test/${randomUUID()}`;
+      const endpoint = `https://fcm.googleapis.com/fcm/send/${randomUUID()}`;
       await com('post', '/api/push/inscricao', ligado).send({ endpoint, keys: { p256dh: 'a', auth: 'b' } }).expect(204);
       await com('delete', '/api/push/inscricao', desligado).send({ endpoint }).expect(204);
       expect(await prisma.pushSubscription.count({ where: { endpoint } })).toBe(1);
@@ -134,7 +155,7 @@ describe('push (e2e, web-push mockado)', () => {
     });
 
     it('inscrição vencida (410) é apagada e as outras continuam recebendo (Review Focus 4)', async () => {
-      const velha = `https://push.exemplo.test/${randomUUID()}`;
+      const velha = `https://fcm.googleapis.com/fcm/send/${randomUUID()}`;
       await com('post', '/api/push/inscricao', ligado).send({ endpoint: velha, keys: { p256dh: 'a', auth: 'b' } }).expect(204);
       enviar.mockImplementation(async (s) => {
         if ((s as { endpoint: string }).endpoint === velha) throw Object.assign(new Error('Gone'), { statusCode: 410 });
