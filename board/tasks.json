@@ -228,6 +228,27 @@
           "de": "dev",
           "para": "revisao",
           "nota": "correção 68bbf8c"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.438Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "limiter.apagar do PATCH /me zera em qualquer PATCH; só deve zerar na troca de senha"
+        },
+        {
+          "quando": "2026-11-03T20:01:07.296Z",
+          "quem": "PO",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "correção 57b80ad"
+        },
+        {
+          "quando": "2026-11-03T20:01:07.319Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "correção 57b80ad"
         }
       ]
     },
@@ -391,8 +412,8 @@
         "IM-1",
         "IM-17"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.231Z",
@@ -403,6 +424,25 @@
           "quando": "2026-11-03T19:33:58.202Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.581Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:59:21.603Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.624Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     },
@@ -746,7 +786,7 @@
         "IM-17"
       ],
       "responsavel": null,
-      "coluna": "backlog",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.441Z",
@@ -757,6 +797,41 @@
           "quando": "2026-11-03T19:33:58.411Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.460Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": "aprovado pelo Fabio; foto saiu do cadastro"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.482Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "aprovado pelo Fabio"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.506Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "aprovado pelo Fabio"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.528Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "aprovado pelo Fabio"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.557Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "aprovado pelo Fabio; foto saiu do cadastro"
         }
       ]
     },
@@ -774,8 +849,8 @@
       "depende": [
         "IM-17"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Prancheta",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.461Z",
@@ -786,6 +861,25 @@
           "quando": "2026-11-03T19:33:58.432Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.647Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:59:21.670Z",
+          "quem": "PO",
+          "nota": "atribuída a Prancheta"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.695Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     },
