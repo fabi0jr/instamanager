@@ -169,3 +169,43 @@ test('perfil: IMAGEM_INVALIDA mostra a mensagem', async () => {
   fireEvent.change(screen.getByLabelText('Trocar foto'), { target: { files: [new File(['x'], 'f.jpg')] } });
   expect((await screen.findAllByRole('alert'))[0].textContent).toContain('Essa imagem não serve');
 });
+
+test('400 DADOS_INVALIDOS no entrar mostra o erro no campo, não "confira a conexão"', async () => {
+  fetchFalso({ 'POST /auth/entrar': { status: 400, corpo: { codigo: 'DADOS_INVALIDOS', mensagem: 'x', campos: ['email', 'senha'] } } });
+  render(<Entrar aoEntrar={() => {}} />);
+  clica('Entrar');
+  expect(await screen.findByText('Digite seu e-mail.')).toBeTruthy();
+  expect(screen.getByText('Digite sua senha.')).toBeTruthy();
+  expect(screen.queryByText(/Confira a conexão/)).toBeNull();
+  expect(document.activeElement).toBe(screen.getByLabelText('E-mail'));
+});
+
+test('400 DADOS_INVALIDOS no esqueci mostra o erro no campo e-mail', async () => {
+  fetchFalso({ 'POST /auth/esqueci': { status: 400, corpo: { codigo: 'DADOS_INVALIDOS', mensagem: 'x', campos: ['email'] } } });
+  render(<Esqueci />);
+  clica('Enviar link');
+  expect(await screen.findByText('Digite seu e-mail.')).toBeTruthy();
+});
+
+test('lista de clubes: o foco acompanha as setas (roving tabindex)', async () => {
+  fetchFalso({ 'GET /clubes?livres=1': livres });
+  await ateOClube();
+  const radios = screen.getAllByRole('radio');
+  expect(radios.map((r) => r.getAttribute('tabindex'))).toEqual(['0', '-1', '-1']);
+  fireEvent.keyDown(screen.getByRole('radiogroup'), { key: 'ArrowDown' });
+  expect(document.activeElement).toBe(radios[0]);
+  expect(radios.map((r) => r.getAttribute('tabindex'))).toEqual(['0', '-1', '-1']);
+  fireEvent.keyDown(screen.getByRole('radiogroup'), { key: 'ArrowDown' });
+  expect(document.activeElement).toBe(radios[1]);
+  expect(radios.map((r) => r.getAttribute('tabindex'))).toEqual(['-1', '0', '-1']);
+});
+
+test('aviso de clube ocupado some ao voltar ao passo 2', async () => {
+  fetchFalso({ 'GET /clubes?livres=1': livres, 'POST /auth/cadastro': { status: 409, corpo: { codigo: 'CLUBE_OCUPADO', mensagem: 'x' } } });
+  await ateOClube();
+  fireEvent.click(screen.getByRole('radio', { name: 'Palmeiras' }));
+  clica('Criar conta');
+  await screen.findByRole('alert');
+  clica('‹ Voltar');
+  expect(screen.queryByRole('alert')).toBeNull();
+});

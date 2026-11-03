@@ -48,3 +48,15 @@ test('/nova-senha abre a NovaSenha com ou sem sessão', async () => {
   render(<App />);
   expect(await screen.findByRole('heading', { name: 'Nova senha' })).toBeTruthy();
 });
+
+test('sessão que expira numa chamada qualquer leva para /entrar', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (u: string) => (u === '/api/me' ? new Response(JSON.stringify(me)) : new Response(JSON.stringify({ itens: [], proximo: null })))));
+  history.pushState(null, '', '/perfil');
+  render(<App />);
+  await screen.findByRole('navigation');
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ codigo: 'NAO_AUTENTICADO' }), { status: 401 })));
+  const { api } = await import('./api/cliente');
+  await api('/posts').catch(() => {});
+  expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeTruthy();
+  expect(location.pathname).toBe('/entrar');
+});

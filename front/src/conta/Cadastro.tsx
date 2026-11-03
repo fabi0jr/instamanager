@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, type Me } from '../api/cliente';
 import { Link } from '../rotas';
-import { Alerta, Aviso, Botao, Campo, useEnvio, useFocoNoErro } from './ui';
+import { Alerta, Aviso, Botao, Campo, errosDosCampos, useEnvio, useFocoNoErro } from './ui';
 
 type ClubeLivre = { id: string; nome: string; escudoUrl: string };
 const TORCEDOR = '__torcedor__';
@@ -61,7 +61,11 @@ export function Cadastro({ aoEntrar }: { aoEntrar: () => void }) {
         aoEntrar();
       },
       (erro) => {
-        if (erro.codigo === 'CONVITE_INVALIDO') {
+        const campos = errosDosCampos(erro, { email: 'Esse e-mail parece incompleto. Confira o @ e o domínio.', senha: 'Use pelo menos 8 caracteres.' });
+        if (campos) {
+          setErros(campos);
+          setPasso(campos.convite ? 1 : 2);
+        } else if (erro.codigo === 'CONVITE_INVALIDO') {
           setErros({ convite: 'Esse código não vale. Confira com quem te convidou.' });
           setPasso(1);
         } else if (erro.codigo === 'EMAIL_EM_USO') {
@@ -84,12 +88,14 @@ export function Cadastro({ aoEntrar }: { aoEntrar: () => void }) {
     const delta = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1 : 0;
     if (!delta || !opcoes.length) return;
     e.preventDefault();
-    setEscolha(opcoes[(i + delta + opcoes.length) % opcoes.length].id);
+    const novo = (i + delta + opcoes.length) % opcoes.length;
+    setEscolha(opcoes[novo].id);
+    e.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]')[novo]?.focus(); // o foco acompanha a escolha
   }
 
   return (
     <div className="tela cartao largo">
-      {passo > 1 && <button type="button" className="link" onClick={() => { setErros({}); setPasso(passo - 1); }} disabled={enviando}>‹ Voltar</button>}
+      {passo > 1 && <button type="button" className="link" onClick={() => { setErros({}); setAviso(''); setPasso(passo - 1); }} disabled={enviando}>‹ Voltar</button>}
       <nav aria-label={`Passo ${passo} de 3`}>
         <div className="passos" aria-hidden="true">{[1, 2, 3].map((n) => <span key={n} className={n <= passo ? 'feito' : ''} />)}</div>
         <p>Passo {passo} de 3</p>

@@ -21,3 +21,21 @@ test('api() sem corpo JSON no erro ainda lança ErroApi', async () => {
   vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>', { status: 502 })));
   await expect(api('/x')).rejects.toMatchObject({ status: 502, codigo: 'ERRO_DESCONHECIDO' });
 });
+
+test('api() guarda os campos do 400 DADOS_INVALIDOS no ErroApi', async () => {
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ codigo: 'DADOS_INVALIDOS', mensagem: 'x', campos: ['email', 'senha'] }), { status: 400 })));
+  const erro = (await api('/auth/entrar', { method: 'POST' }).catch((e) => e)) as ErroApi;
+  expect(erro.campos).toEqual(['email', 'senha']);
+});
+
+test('401 NAO_AUTENTICADO avisa o app (sessão expirada); credenciais erradas não', async () => {
+  const aviso = vi.fn();
+  addEventListener('sessao-expirada', aviso);
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ codigo: 'CREDENCIAIS_INVALIDAS' }), { status: 401 })));
+  await api('/auth/entrar').catch(() => {});
+  expect(aviso).not.toHaveBeenCalled();
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ codigo: 'NAO_AUTENTICADO' }), { status: 401 })));
+  await api('/posts').catch(() => {});
+  expect(aviso).toHaveBeenCalledTimes(1);
+  removeEventListener('sessao-expirada', aviso);
+});

@@ -1,13 +1,15 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { api } from '../api/cliente';
 import { Link } from '../rotas';
-import { Aviso, Botao, Campo, useEnvio } from './ui';
+import { Aviso, Botao, Campo, errosDosCampos, useEnvio, useFocoNoErro } from './ui';
 
 export function Esqueci() {
   const [email, setEmail] = useState('');
   const [enviado, setEnviado] = useState(false);
   const [espera, setEspera] = useState(0);
   const { enviando, aviso, bloqueado, enviar } = useEnvio();
+  const [erros, setErros] = useState<Record<string, string>>({});
+  useFocoNoErro(erros);
 
   useEffect(() => {
     if (espera <= 0) return;
@@ -17,11 +19,19 @@ export function Esqueci() {
 
   function mandar(e?: FormEvent) {
     e?.preventDefault();
-    enviar(async () => {
-      await api('/auth/esqueci', { method: 'POST', body: JSON.stringify({ email }) });
-      setEnviado(true);
-      setEspera(60);
-    });
+    setErros({});
+    enviar(
+      async () => {
+        await api('/auth/esqueci', { method: 'POST', body: JSON.stringify({ email }) });
+        setEnviado(true);
+        setEspera(60);
+      },
+      (erro) => {
+        const campos = errosDosCampos(erro);
+        if (campos) setErros(campos);
+        return !!campos;
+      },
+    );
   }
 
   if (enviado)
@@ -43,7 +53,7 @@ export function Esqueci() {
       <p>Digite seu e-mail. Se ele existir, enviamos um link para criar uma senha nova. O link vale 1 hora.</p>
       <form onSubmit={mandar} noValidate>
         <Aviso>{aviso}</Aviso>
-        <Campo rotulo="E-mail" type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={enviando} />
+        <Campo rotulo="E-mail" type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={enviando} erro={erros.email} />
         <div className="acao-fixa">
           <Botao type="submit" carregando={enviando ? 'Enviando…' : undefined} disabled={bloqueado}>Enviar link</Botao>
         </div>
