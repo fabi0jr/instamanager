@@ -160,6 +160,17 @@ describe('auth (e2e)', () => {
       await errada().expect(429);
     }, 30_000);
 
+    it('trocar a senha apaga as inscrições de push da conta; trocar só o nome não', async () => {
+      const { d, cookie } = await logar();
+      const userId = (await prisma.user.findUniqueOrThrow({ where: { email: d.email } })).id;
+      const endpoint = `https://fcm.googleapis.com/fcm/send/${userId}`;
+      await prisma.pushSubscription.create({ data: { userId, endpoint, p256dh: 'a', auth: 'b' } });
+      await patch(cookie, { nome: 'Só o nome' }).expect(200);
+      expect(await prisma.pushSubscription.count({ where: { userId } })).toBe(1);
+      await patch(cookie, { senhaAtual: d.senha, senhaNova: 'nova-senha-123' }).expect(200);
+      expect(await prisma.pushSubscription.count({ where: { userId } })).toBe(0);
+    });
+
     it('troca nome e pushEnabled; trocar a senha derruba as outras sessões e mantém a atual', async () => {
       const { d, cookie } = await logar();
       const outra = (await post('/api/auth/entrar', { email: d.email, senha: d.senha }).expect(200)).headers['set-cookie'] as unknown as string[];

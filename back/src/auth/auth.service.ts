@@ -158,7 +158,13 @@ export class AuthService implements OnModuleInit {
     const [atualizado] = await this.prisma.$transaction([
       this.prisma.user.update({ where: { id: user.id }, data: { name: d.nome, pushEnabled: d.pushEnabled, passwordHash }, include: { club: true } }),
       // trocar a senha derruba as outras sessões; a atual continua
-      ...(passwordHash ? [this.prisma.session.deleteMany({ where: { userId: user.id, id: { not: sessaoId } } })] : []),
+      ...(passwordHash
+        ? [
+            this.prisma.session.deleteMany({ where: { userId: user.id, id: { not: sessaoId } } }),
+            // sessões caíram: os aparelhos também deixam de receber push (o atual se inscreve de novo)
+            this.prisma.pushSubscription.deleteMany({ where: { userId: user.id } }),
+          ]
+        : []),
     ]);
     return atualizado;
   }
