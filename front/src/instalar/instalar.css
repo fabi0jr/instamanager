@@ -1,0 +1,13 @@
+/* Só o que falta além de conta.css. Valores de tokens.css. */
+.tela.instalar { align-items: flex-start; }
+@media (min-width: 768px) { .tela.instalar { margin-top: var(--im-e12); min-height: 0; } }
+.passos-instalar { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--im-e3); width: 100%; }
+.passos-instalar li { display: flex; align-items: center; gap: var(--im-e3); padding: var(--im-e4); background: var(--im-superficie); border-radius: var(--im-r-midia); }
+.passos-instalar li > span:nth-child(2) { flex: 1; display: flex; flex-direction: column; gap: var(--im-e1); }
+.passos-instalar small { color: var(--im-giz-2); font-size: 13px; line-height: 18px; }
+.passos-instalar .n { font: 800 32px/32px var(--im-fonte-display); min-width: 24px; }
+.ex-ios { display: inline-flex; align-items: center; gap: var(--im-e2); padding: var(--im-e2) var(--im-e3); background: var(--im-superficie-alta); border-radius: var(--im-r-btn); font-size: 14px; }
+.itens-soltos { margin: 0; padding-left: var(--im-e5); display: flex; flex-direction: column; gap: var(--im-e1); }
+.ok-grande { color: var(--im-gramado); }
+.alerta-ambar { color: var(--im-amarelo); }
+.acao-fixa.duas { display: flex; flex-direction: column; gap: var(--im-e3); width: 100%; }

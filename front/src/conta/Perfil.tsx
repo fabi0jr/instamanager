@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { api, ErroApi, type Me } from '../api/cliente';
+import { cancelarInscricaoAoSair, reinscreverSePreciso } from '../instalar/push';
 import { comprimir, ErroImagem } from '../postar/comprimir';
 import { Aviso, Botao, Campo, useEnvio, useFocoNoErro } from './ui';
 
@@ -61,6 +62,7 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
         setAtual('');
         setNova('');
         setOk('Senha trocada. Você saiu dos outros aparelhos.');
+        await reinscreverSePreciso(me.pushEnabled); // o servidor apagou as inscrições de push, inclusive a deste aparelho
         recarregar();
       },
       (erro: ErroApi) => {
@@ -72,6 +74,7 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
   }
 
   async function sair() {
+    await cancelarInscricaoAoSair(); // antes de perder a sessão: a rota de push exige estar logada
     await api('/auth/sair', { method: 'POST' }).catch(() => {});
     recarregar();
   }

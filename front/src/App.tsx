@@ -7,6 +7,9 @@ import { Esqueci } from './conta/Esqueci';
 import { NovaSenha } from './conta/NovaSenha';
 import { Perfil } from './conta/Perfil';
 import { Feed } from './feed/Feed';
+import { proximaTela } from './instalar/fluxo';
+import { Instalar } from './instalar/Instalar';
+import { lerVolta } from './instalar/volta';
 import { PostPagina } from './feed/PostPagina';
 import { EditarPost } from './postar/EditarPost';
 import { Postar } from './postar/Postar';
@@ -17,9 +20,20 @@ export function App() {
   const { caminho, params } = useRota();
   const publica = PUBLICAS.includes(caminho);
 
-  // logada numa tela de acesso (acabou de entrar): vai para o feed
+  // logada: 1) volta à rota de entrada guardada (link de push aberto deslogado); 2) sai da tela de acesso para o feed;
+  // 3) primeira vez neste aparelho, o feed abre antes em /instalar ou /avisos (uma vez; "Agora não" guarda)
   useEffect(() => {
-    if (me && publica && caminho !== '/nova-senha') navegar('/');
+    if (!me) return;
+    const volta = lerVolta();
+    if (volta) {
+      if (volta !== location.pathname + location.search) navegar(volta);
+      return;
+    }
+    if (publica && caminho !== '/nova-senha') return navegar('/');
+    if (caminho === '/') {
+      const tela = proximaTela();
+      if (tela) navegar(tela);
+    }
   }, [me, publica, caminho]);
 
   if (carregando) return <div className="carregando" role="status" aria-label="Carregando" />;
@@ -38,6 +52,7 @@ export function App() {
         {params.id && caminho.endsWith('/editar') && <div className="post-pagina"><EditarPost id={params.id} /></div>}
         {caminho === '/postar' && <Postar me={me} />}
         {caminho === '/perfil' && <Perfil me={me} recarregar={recarregar} />}
+        {(caminho === '/instalar' || caminho === '/avisos') && <Instalar caminho={caminho} recarregar={recarregar} />}
       </main>
       <BarraInferior clubeId={me.clube?.id} />
     </>
