@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>InstaManager — quadro</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=Public+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root { --musgo:#24382B; --folha:#4C7A3C; --liquen:#E4E9E1; --etiqueta:#F3F1DE; --barbante:#C8C39A; --terra:#5A4636; --polen:#C9C26B; --tinta:#1B1F1C; --erro:#9B3D2E; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--liquen); color:var(--tinta); font:15px/1.45 'Public Sans',sans-serif; }
+  header { display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; padding:20px 24px 12px; }
+  h1 { font:400 34px/1 'IM Fell English',serif; color:var(--musgo); margin:0; }
+  .meta { font:12px 'IBM Plex Mono',monospace; color:var(--terra); }
+  .filtros { margin-left:auto; display:flex; gap:6px; flex-wrap:wrap; }
+  .filtros button { font:600 12px 'Public Sans'; border:1px solid var(--barbante); background:transparent; color:var(--terra); border-radius:4px; padding:5px 10px; cursor:pointer; }
+  .filtros button[aria-pressed="true"] { background:var(--musgo); color:var(--etiqueta); border-color:var(--musgo); }
+  main { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(220px,1fr); gap:12px; padding:8px 24px 32px; overflow-x:auto; min-height:calc(100vh - 80px); }
+  .col { background:rgba(255,255,255,.35); border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:8px; }
+  .col h2 { font:600 12px 'Public Sans'; letter-spacing:.06em; text-transform:uppercase; color:var(--terra); margin:2px 4px 6px; display:flex; justify-content:space-between; }
+  .col.correcao h2 { color:var(--erro); }
+  .card { position:relative; text-align:left; width:100%; background:var(--etiqueta); border:1px solid var(--barbante); border-radius:4px 12px 12px 4px; padding:10px 12px 10px 26px; cursor:pointer; font:inherit; color:inherit; }
+  .card::before { content:""; position:absolute; left:9px; top:14px; width:8px; height:8px; border-radius:50%; background:var(--liquen); border:1px solid #a9a37a; }
+  .card:hover { border-color:var(--terra); }
+  .card:focus-visible, .filtros button:focus-visible { outline:2px solid var(--musgo); outline-offset:2px; }
+  .card .id { font:11px 'IBM Plex Mono',monospace; color:var(--terra); }
+  .card .t { display:block; font-weight:600; margin:2px 0 6px; }
+  .tags { display:flex; gap:6px; flex-wrap:wrap; font:11px 'IBM Plex Mono',monospace; }
+  .tags span { background:var(--liquen); border-radius:3px; padding:1px 6px; }
+  .tags .alta { background:var(--polen); }
+  .vazio { font-size:13px; color:var(--terra); opacity:.7; padding:6px 4px; }
+  dialog { border:1px solid var(--barbante); border-radius:8px; background:var(--etiqueta); color:var(--tinta); max-width:640px; width:calc(100% - 32px); padding:24px; }
+  dialog::backdrop { background:rgba(27,31,28,.35); }
+  dialog h3 { font:400 26px/1.15 'IM Fell English',serif; color:var(--musgo); margin:4px 0 12px; }
+  dialog h4 { font:600 12px 'Public Sans'; text-transform:uppercase; letter-spacing:.06em; color:var(--terra); margin:18px 0 6px; }
+  dialog ul { margin:0; padding-left:18px; }
+  .hist li { font-size:13px; margin-bottom:4px; }
+  .hist time { font:11px 'IBM Plex Mono',monospace; color:var(--terra); margin-right:6px; }
+  dialog .fechar { float:right; font:600 13px 'Public Sans'; background:var(--musgo); color:var(--etiqueta); border:0; border-radius:4px; padding:6px 12px; cursor:pointer; }
+  .aviso { margin:0 24px; padding:10px 12px; border-radius:6px; background:#f3dcd6; color:var(--erro); font-size:13px; }
+  @media (max-width:600px) { header, main { padding-left:16px; padding-right:16px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>terrato · quadro</h1>
+  <span class="meta" id="meta">carregando…</span>
+  <div class="filtros" id="filtros" role="group" aria-label="Filtrar por tipo"></div>
+</header>
+<div id="aviso"></div>
+<main id="quadro"></main>
+<dialog id="det"></dialog>
+
+<script>
+const COLUNAS = [['backlog','Backlog'],['pronto','Pronto p/ dev'],['dev','Em dev'],['revisao','Revisão'],['qa','QA'],['correcao','Correção'],['concluido','Concluído']];
+const TIPOS = ['todos','design','front','back','qa','infra'];
+let filtro = 'todos', dados = { tarefas: [] };
+
+const el = (tag, props = {}, ...filhos) => { const e = Object.assign(document.createElement(tag), props); e.append(...filhos); return e; };
+const data = (iso) => new Date(iso).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+
+function filtros() {
+  const f = document.getElementById('filtros'); f.replaceChildren();
+  for (const t of TIPOS) {
+    const b = el('button', { textContent: t, type: 'button' });
+    b.setAttribute('aria-pressed', String(t === filtro));
+    b.onclick = () => { filtro = t; filtros(); render(); };
+    f.append(b);
+  }
+}
+
+function render() {
+  const q = document.getElementById('quadro'); q.replaceChildren();
+  const ts = dados.tarefas.filter(t => filtro === 'todos' || t.tipo === filtro);
+  for (const [id, nome] of COLUNAS) {
+    const da = ts.filter(t => t.coluna === id);
+    const col = el('section', { className: `col ${id}` }, el('h2', {}, el('span', { textContent: nome }), el('span', { textContent: da.length })));
+    if (!da.length) col.append(el('div', { className: 'vazio', textContent: 'nada aqui' }));
+    for (const t of da) {
+      const c = el('button', { className: 'card', type: 'button' },
+        el('span', { className: 'id', textContent: t.id }),
+        el('span', { className: 't', textContent: t.titulo }),
+        el('div', { className: 'tags' },
+          el('span', { textContent: t.tipo }),
+          el('span', { className: t.prioridade, textContent: t.prioridade }),
+          ...(t.responsavel ? [el('span', { textContent: '@' + t.responsavel })] : [])));
+      c.onclick = () => detalhe(t);
+      col.append(c);
+    }
+    q.append(col);
+  }
+  const feitas = dados.tarefas.filter(t => t.coluna === 'concluido').length;
+  document.getElementById('meta').textContent = `${feitas}/${dados.tarefas.length} concluídas · atualizado ${new Date().toLocaleTimeString('pt-BR')}`;
+}
+
+function detalhe(t) {
+  const d = document.getElementById('det');
+  const fechar = el('button', { className: 'fechar', textContent: 'Fechar', type: 'button' }); fechar.onclick = () => d.close();
+  d.replaceChildren(fechar,
+    el('span', { className: 'meta', textContent: `${t.id} · ${t.tipo} · ${t.prioridade} · ${t.responsavel ? '@' + t.responsavel : 'sem responsável'}` }),
+    el('h3', { textContent: t.titulo }),
+    ...(t.descricao ? [el('p', { textContent: t.descricao })] : []),
+    el('h4', { textContent: 'Critérios de pronto' }), el('ul', {}, ...t.criterios.map(c => el('li', { textContent: c }))),
+    ...(t.depende.length ? [el('h4', { textContent: 'Depende de' }), el('p', { textContent: t.depende.join(', ') })] : []),
+    el('h4', { textContent: 'Histórico' }),
+    el('ul', { className: 'hist' }, ...[...t.historico].reverse().map(h => el('li', {},
+      el('time', { textContent: data(h.quando) }),
+      `${h.quem}: ${h.para ? `${h.de} → ${h.para}` : ''}${h.para && h.nota ? ' — ' : ''}${h.nota || ''}`))));
+  d.showModal();
+}
+
+async function carregar() {
+  const aviso = document.getElementById('aviso');
+  try {
+    const r = await fetch('tasks.json', { cache: 'no-store' });
+    dados = r.status === 404 ? { tarefas: [] } : await r.json();
+    aviso.replaceChildren();
+    if (!document.getElementById('det').open) render();
+  } catch (e) {
+    aviso.replaceChildren(el('p', { className: 'aviso', textContent: `Não consegui ler tasks.json (${e.message}). Abra pelo servidor: cd board && python3 -m http.server 8765` }));
+  }
+}
+filtros(); carregar(); setInterval(carregar, 4000);
+</script>
+</body>
+</html>
