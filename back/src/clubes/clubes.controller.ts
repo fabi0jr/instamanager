@@ -1,4 +1,5 @@
-import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param, Query, UseGuards } from '@nestjs/common';
+import { SessionGuard } from '../auth/session.guard.js';
 import { PrismaService } from '../prisma.service.js';
 
 const tecnicoDe = (u: { id: string; name: string } | null) => u && { id: u.id, nome: u.name };
@@ -19,8 +20,8 @@ export class ClubesController {
       .map((c) => ({ id: c.id, nome: c.name, escudoUrl: c.crestPath, tecnico: tecnicoDe(c.coach) }));
   }
 
-  // TODO(IM-3): @UseGuards(SessionGuard) quando a IM-3 estiver na main
   @Get(':id')
+  @UseGuards(SessionGuard)
   async perfil(@Param('id') id: string) {
     const c = await this.prisma.club.findUnique({
       where: { id },

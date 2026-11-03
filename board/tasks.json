@@ -1,4 +1,974 @@
 {
-  "proximoId": 1,
-  "tarefas": []
+  "proximoId": 23,
+  "tarefas": [
+    {
+      "id": "IM-1",
+      "titulo": "Fundação do repo, quadro e fluxo",
+      "tipo": "infra",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "node --test board/board.test.mjs passa",
+        "pnpm test na raiz passa (exemplos do Nest e fumaça do App)"
+      ],
+      "depende": [],
+      "responsavel": "Volante",
+      "coluna": "concluido",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.080Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.524Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:33:58.544Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.570Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:34:48.643Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "entregue 3db73dc, testes ok"
+        },
+        {
+          "quando": "2026-11-03T19:36:06.161Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "tarefa sem tela: revisão+testes"
+        },
+        {
+          "quando": "2026-11-03T19:36:06.180Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "tarefa sem tela: revisão+testes"
+        }
+      ]
+    },
+    {
+      "id": "IM-2",
+      "titulo": "Banco e contrato da API",
+      "tipo": "back",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "seed cria 20 clubes sem técnico",
+        "segundo técnico no mesmo clube dá P2002 (coachId único)",
+        "docs/api.md com rotas, corpos e códigos de erro das Tasks 3 a 7"
+      ],
+      "depende": [
+        "IM-1"
+      ],
+      "responsavel": "Volante",
+      "coluna": "concluido",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.104Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.062Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T19:36:06.201Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:36:06.221Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-03T19:36:06.244Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:40:50.537Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:41:53.388Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR reprovou: (1) db.e2e-spec.ts afterAll updateMany sem where + teste exige todos coachId null; (2) seed.ts loadEnvFile sem existsSync"
+        },
+        {
+          "quando": "2026-11-03T19:42:56.286Z",
+          "quem": "PO",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "correção 8eb67c0"
+        },
+        {
+          "quando": "2026-11-03T19:42:56.308Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "correção 8eb67c0"
+        },
+        {
+          "quando": "2026-11-03T19:43:39.517Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "tarefa sem tela: revisão+testes"
+        },
+        {
+          "quando": "2026-11-03T19:43:39.538Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "tarefa sem tela: revisão+testes"
+        }
+      ]
+    },
+    {
+      "id": "IM-3",
+      "titulo": "Auth: cadastro com convite, login, sessão e recuperação",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "convite errado → 400 CONVITE_INVALIDO",
+        "cadastro cria tenure aberta; clubeId null vira torcedor",
+        "cadastros simultâneos no mesmo clube: um 201 e um 409 CLUBE_OCUPADO, só 1 usuário",
+        "e-mail repetido → 409 EMAIL_EM_USO; ADMIN_EMAIL vira isAdmin",
+        "token de recuperação vencido (>1h) ou reutilizado → 400",
+        "PATCH /api/me com senha atual errada → 400"
+      ],
+      "depende": [
+        "IM-2"
+      ],
+      "responsavel": "Volante",
+      "coluna": "revisao",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.126Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.084Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T19:49:30.356Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:49:30.377Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-03T19:49:30.397Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:53:26.793Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "entregue c6e0cb7"
+        },
+        {
+          "quando": "2026-11-03T19:54:50.637Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR pediu: TRUST_PROXY no .env.example/api.md; tirar COOKIE_SECRET do api.md; apagar sobras do rate-limit (apagar/esquecer + teste); corrigir comentário do password.ts"
+        },
+        {
+          "quando": "2026-11-03T19:56:54.865Z",
+          "quem": "PO",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "correção 68bbf8c"
+        },
+        {
+          "quando": "2026-11-03T19:56:54.886Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "correção 68bbf8c"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.438Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "limiter.apagar do PATCH /me zera em qualquer PATCH; só deve zerar na troca de senha"
+        },
+        {
+          "quando": "2026-11-03T20:01:07.296Z",
+          "quem": "PO",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "correção 57b80ad"
+        },
+        {
+          "quando": "2026-11-03T20:01:07.319Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "correção 57b80ad"
+        }
+      ]
+    },
+    {
+      "id": "IM-4",
+      "titulo": "Clubes e perfil do clube",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "livres=1 omite clube com técnico",
+        "histórico mostra tenure fechada com fim e aberta com fim null"
+      ],
+      "depende": [
+        "IM-2"
+      ],
+      "responsavel": "Volante",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.146Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.108Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T19:53:26.814Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:53:26.836Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-03T19:53:26.858Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-5",
+      "titulo": "Posts, imagens, feed e galeria (back)",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ehJpeg aceita FF D8 FF e recusa PNG e buffer vazio",
+        "torcedor postando → 403 SEM_CLUBE; 11 imagens → 400",
+        "PNG renomeado → 400 IMAGEM_INVALIDA, nada gravado",
+        "arquivo > 3 MB → 413",
+        "feed pagina 12 por cursor (13 posts → 12 + 1)",
+        "ex-técnico PATCH → 403 NAO_E_TECNICO; novo técnico → 200",
+        "admin apaga post de outro → 204 e arquivos removidos",
+        "galeria só traz imagens com prompt"
+      ],
+      "depende": [
+        "IM-3"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.168Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.132Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-6",
+      "titulo": "Curtidas, comentários, trocas e admin (back)",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "curtir duas vezes conta 1",
+        "comentário de 1001 caracteres → 400",
+        "aprovar ASSUMIR move tenure e coachId",
+        "aprovar ASSUMIR com clube ocupado → 409 e pedido segue PENDENTE",
+        "aprovar SAIR vira torcedor e posts ficam no clube",
+        "segundo pedido pendente → 409; não-admin em /api/admin → 403",
+        "PUT convite invalida o código antigo"
+      ],
+      "depende": [
+        "IM-5"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.189Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.156Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-7",
+      "titulo": "Push (back)",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "post novo não envia ao autor e respeita pushEnabled",
+        "comentário do próprio técnico não envia",
+        "resposta 410 apaga a inscrição e as outras seguem",
+        "erro 500 de um endpoint não derruba os demais"
+      ],
+      "depende": [
+        "IM-6"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.209Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.178Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-8",
+      "titulo": "Base do front: shell, API, PWA",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "rota /p/abc → params.id = abc",
+        "rota privada sem sessão mostra Entrar",
+        "api() com 409 lança ErroApi com código",
+        "nginx -t ok em container"
+      ],
+      "depende": [
+        "IM-1",
+        "IM-17"
+      ],
+      "responsavel": "Ponta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.231Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.202Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.581Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:59:21.603Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.624Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-9",
+      "titulo": "Telas de conta (front)",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "cadastro mostra só clubes livres + torcedor",
+        "409 CLUBE_OCUPADO mostra mensagem e recarrega a lista",
+        "convite inválido mostra erro no campo",
+        "perfil salva nome, foto e senha"
+      ],
+      "depende": [
+        "IM-3",
+        "IM-4",
+        "IM-8",
+        "IM-18"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.252Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.229Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-10",
+      "titulo": "Feed e card de post (front)",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "feed carrega a próxima página no fim",
+        "curtir atualiza na hora e desfaz se a API falhar",
+        "card usa miniUrl e lazy, nunca cheiaUrl",
+        "comentário mostra tag do clube",
+        "editar e apagar só aparecem com podeEditar"
+      ],
+      "depende": [
+        "IM-5",
+        "IM-6",
+        "IM-8",
+        "IM-19"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.272Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.253Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-11",
+      "titulo": "Novo post com compressão no celular (front)",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "4000×3000 com ladoMax 1600 → 1600×1200",
+        "imagem menor que ladoMax não aumenta",
+        "arquivo ilegível → ErroImagem",
+        "torcedor em /postar vê \"Só técnicos postam\"",
+        "publicar envia cheia[] e mini[] na ordem dos prompts"
+      ],
+      "depende": [
+        "IM-5",
+        "IM-8",
+        "IM-20"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.294Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.276Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-12",
+      "titulo": "Perfil do clube e galeria de prompts (front)",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "perfil mostra técnico atual e histórico com \"até hoje\"",
+        "clube sem técnico mostra \"Vaga aberta\"",
+        "copiar prompt chama clipboard com texto exato",
+        "filtro por clube refaz a busca com ?clube="
+      ],
+      "depende": [
+        "IM-4",
+        "IM-5",
+        "IM-8",
+        "IM-21"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.314Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.298Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-13",
+      "titulo": "Instalar o app e ativar push (front)",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "iPhone fora da tela inicial vê passo a passo, sem pedir permissão",
+        "instalado: ativar chama requestPermission e envia inscrição",
+        "permissão negada mostra como liberar",
+        "desligar no perfil apaga inscrição e põe pushEnabled false"
+      ],
+      "depende": [
+        "IM-7",
+        "IM-8",
+        "IM-22"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.335Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.318Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-14",
+      "titulo": "Trocas de time e admin (front)",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "pedido pendente mostra status e bloqueia novo pedido",
+        "ASSUMIR lista só clubes livres",
+        "admin aprova → item sai da lista",
+        "409 na aprovação → \"Clube ocupado, recuse ou espere\"",
+        "trocar convite mostra o código novo",
+        "não-admin em /admin volta ao feed"
+      ],
+      "depende": [
+        "IM-6",
+        "IM-8",
+        "IM-22"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.356Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.341Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-15",
+      "titulo": "QA ponta a ponta",
+      "tipo": "qa",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "roteiro de 7 passos no portal em celular: cadastro, post com 3 fotos, feed e comentário, galeria, troca, ex-técnico sem editar, recuperação de senha",
+        "bugs viram cards em correcao; tudo aprovado"
+      ],
+      "depende": [
+        "IM-9",
+        "IM-10",
+        "IM-11",
+        "IM-12",
+        "IM-13",
+        "IM-14"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.379Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.366Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-16",
+      "titulo": "Deploy (VPS e push)",
+      "tipo": "infra",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "docker-compose.prod.yml e workflows criados (CI)",
+        "Fabio cria repo e .env da VPS (portão)",
+        "push e deploy com /api/health → 200 (portão)",
+        "backup inclui dump e volume uploads (portão)",
+        "iPhone e Android recebem push de um post"
+      ],
+      "depende": [
+        "IM-15"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.400Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.388Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-17",
+      "titulo": "D1: Fundamentos visuais (Penpot)",
+      "tipo": "design",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "página Fundamentos no Penpot: logo, paleta escura, tipografia, tokens, ícones e componentes base",
+        "docs/design/fundamentos.md com tokens em CSS",
+        "aprovação do Fabio (portão)"
+      ],
+      "depende": [],
+      "responsavel": "Prancheta",
+      "coluna": "concluido",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.421Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.593Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:33:58.614Z",
+          "quem": "PO",
+          "nota": "atribuída a Prancheta"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.637Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:56:50.644Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "design aprovado pelo Fabio"
+        },
+        {
+          "quando": "2026-11-03T19:56:50.666Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "design aprovado pelo Fabio"
+        },
+        {
+          "quando": "2026-11-03T19:56:50.688Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "design aprovado pelo Fabio"
+        }
+      ]
+    },
+    {
+      "id": "IM-18",
+      "titulo": "D2 grupo 1: Entrar, cadastro, esqueci e nova senha",
+      "tipo": "design",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "telas em 390 px com variação desktop simples",
+        "docs/design/conta.md com handoff",
+        "aprovação do Fabio do grupo (portão)"
+      ],
+      "depende": [
+        "IM-17"
+      ],
+      "responsavel": null,
+      "coluna": "concluido",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.441Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.411Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.460Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": "aprovado pelo Fabio; foto saiu do cadastro"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.482Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "aprovado pelo Fabio"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.506Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "aprovado pelo Fabio"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.528Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "aprovado pelo Fabio"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.557Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "aprovado pelo Fabio; foto saiu do cadastro"
+        }
+      ]
+    },
+    {
+      "id": "IM-19",
+      "titulo": "D2 grupo 2: Feed, card e barra inferior",
+      "tipo": "design",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "telas em 390 px com variação desktop simples",
+        "docs/design/feed.md com handoff",
+        "aprovação do Fabio do grupo (portão)"
+      ],
+      "depende": [
+        "IM-17"
+      ],
+      "responsavel": "Prancheta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.461Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.432Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.647Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T19:59:21.670Z",
+          "quem": "PO",
+          "nota": "atribuída a Prancheta"
+        },
+        {
+          "quando": "2026-11-03T19:59:21.695Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-20",
+      "titulo": "D2 grupo 3: Novo post",
+      "tipo": "design",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "telas em 390 px com variação desktop simples",
+        "docs/design/postar.md com handoff",
+        "aprovação do Fabio do grupo (portão)"
+      ],
+      "depende": [
+        "IM-17"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.483Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.456Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-21",
+      "titulo": "D2 grupo 4: Perfil do clube, perfil da pessoa e galeria",
+      "tipo": "design",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "telas em 390 px com variação desktop simples",
+        "docs/design/clube-galeria.md com handoff",
+        "aprovação do Fabio do grupo (portão)"
+      ],
+      "depende": [
+        "IM-17"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.505Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.479Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    },
+    {
+      "id": "IM-22",
+      "titulo": "D2 grupo 5: Instalar app, pedir troca e admin",
+      "tipo": "design",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "telas em 390 px com variação desktop simples",
+        "docs/design/instalar-trocas-admin.md com handoff",
+        "aprovação do Fabio do grupo (portão)"
+      ],
+      "depende": [
+        "IM-17"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-03T19:33:49.525Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T19:33:58.502Z",
+          "quem": "PO",
+          "nota": "editado: depende"
+        }
+      ]
+    }
+  ]
 }

@@ -1,15 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import type { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { AppModule } from '../src/app.module.js';
-import { PrismaService } from '../src/prisma.service.js';
+import type { PrismaService } from '../src/prisma.service.js';
+import { convite, criarApp, novoEmail } from './helpers.js';
 
 // Clubes só deste arquivo (os e2e rodam em paralelo): cruzeiro e internacional.
 describe('clubes (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let cookie: string[];
   const ids: string[] = [];
+  const emails: string[] = [];
   const criarUsuario = async (name: string) => {
     const u = await prisma.user.create({ data: { email: `teste-${randomUUID()}@exemplo.com`, passwordHash: 'x', name } });
     ids.push(u.id);
@@ -17,16 +18,18 @@ describe('clubes (e2e)', () => {
   };
 
   beforeAll(async () => {
-    const modulo = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    app = modulo.createNestApplication();
-    app.setGlobalPrefix('api');
-    await app.init();
-    prisma = app.get(PrismaService);
+    const c = await criarApp();
+    ({ app, prisma } = c);
     await prisma.club.upsert({ where: { id: 'cruzeiro' }, update: {}, create: { id: 'cruzeiro', name: 'Cruzeiro', crestPath: '/escudos/cruzeiro.svg' } });
     await prisma.club.upsert({ where: { id: 'internacional' }, update: {}, create: { id: 'internacional', name: 'Internacional', crestPath: '/escudos/internacional.svg' } });
+    // torcedor só para ter sessão nas rotas 🔒
+    const email = novoEmail();
+    emails.push(email);
+    const res = await c.post('/api/auth/cadastro', { convite: await convite(prisma), email, senha: 'senha-boa-123', nome: 'Torcedor', clubeId: null }).expect(201);
+    cookie = res.headers['set-cookie'] as unknown as string[];
   });
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { id: { in: ids } } }); // solta o coachId e apaga as tenures
+    await prisma.user.deleteMany({ where: { OR: [{ id: { in: ids } }, { email: { in: emails } }] } }); // solta o coachId e apaga as tenures
     await app.close();
   });
 
@@ -58,7 +61,7 @@ describe('clubes (e2e)', () => {
     await prisma.coachTenure.create({ data: { clubId: 'internacional', userId: atual.id, startedAt: new Date('2026-02-10T12:00:00Z') } });
     await prisma.club.update({ where: { id: 'internacional' }, data: { coachId: atual.id } });
 
-    const res = await request(app.getHttpServer()).get('/api/clubes/internacional').expect(200);
+    const res = await request(app.getHttpServer()).get('/api/clubes/internacional').set('Cookie', cookie).expect(200);
     expect(res.body).toEqual({
       id: 'internacional',
       nome: 'Internacional',
@@ -71,8 +74,13 @@ describe('clubes (e2e)', () => {
     });
   });
 
+  it('perfil sem sessão → 401 NAO_AUTENTICADO; a lista continua pública', async () => {
+    const res = await request(app.getHttpServer()).get('/api/clubes/internacional').expect(401);
+    expect(res.body.codigo).toBe('NAO_AUTENTICADO');
+  });
+
   it('clube inexistente → 404 NAO_ENCONTRADO', async () => {
-    const res = await request(app.getHttpServer()).get('/api/clubes/nao-existe').expect(404);
+    const res = await request(app.getHttpServer()).get('/api/clubes/nao-existe').set('Cookie', cookie).expect(404);
     expect(res.body.codigo).toBe('NAO_ENCONTRADO');
   });
 });
