@@ -1,0 +1,58 @@
+import { Body, Controller, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { AdminGuard, SessionGuard } from '../auth/session.guard.js';
+import { ApiError } from '../http.js';
+import { PrismaService } from '../prisma.service.js';
+import { TrocasService } from '../trocas/trocas.service.js';
+
+@Controller('admin')
+@UseGuards(SessionGuard, AdminGuard)
+export class AdminController {
+  constructor(
+    private readonly trocas: TrocasService,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  @Get('trocas')
+  listar(@Query('status') status?: string) {
+    return this.trocas.listar(status);
+  }
+
+  @Post('trocas/:id/aprovar')
+  @HttpCode(204)
+  async aprovar(@Param('id') id: string) {
+    await this.trocas.aprovar(id);
+  }
+
+  @Post('trocas/:id/recusar')
+  @HttpCode(204)
+  async recusar(@Param('id') id: string) {
+    await this.trocas.recusar(id);
+  }
+
+  @Get('convite')
+  async convite() {
+    return { codigo: (await this.prisma.setting.findUnique({ where: { key: 'inviteCode' } }))?.value ?? null };
+  }
+
+  @Put('convite')
+  async trocarConvite(@Body() body: unknown) {
+    const bruto = typeof body === 'object' && body ? (body as { codigo?: unknown }).codigo : undefined;
+    const codigo = typeof bruto === 'string' ? bruto.trim() : '';
+    if (codigo.length < 4 || codigo.length > 64) throw new ApiError(400, 'DADOS_INVALIDOS', 'O código precisa ter de 4 a 64 caracteres.', ['codigo']);
+    await this.prisma.setting.upsert({ where: { key: 'inviteCode' }, update: { value: codigo }, create: { key: 'inviteCode', value: codigo } });
+    return { codigo };
+  }
+
+  @Post('clubes/:id/remover-tecnico')
+  @HttpCode(204)
+  async removerTecnico(@Param('id') id: string) {
+    const clube = await this.prisma.club.findUnique({ where: { id } });
+    if (!clube) throw new ApiError(404, 'NAO_ENCONTRADO', 'Não encontramos o que você procurou.');
+    const coachId = clube.coachId;
+    if (!coachId) return; // já está vago
+    await this.prisma.$transaction([
+      this.prisma.coachTenure.updateMany({ where: { clubId: id, userId: coachId, endedAt: null }, data: { endedAt: new Date() } }),
+      this.prisma.club.updateMany({ where: { id, coachId }, data: { coachId: null } }),
+    ]);
+  }
+}
