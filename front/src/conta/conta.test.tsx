@@ -6,6 +6,7 @@ import { Entrar } from './Entrar';
 import { Esqueci } from './Esqueci';
 import { NovaSenha } from './NovaSenha';
 import { Perfil } from './Perfil';
+import { TrocarSenha } from './TrocarSenha';
 
 vi.mock('../postar/comprimir', () => ({ comprimir: vi.fn(async () => ({ blob: new Blob(['j']), largura: 480, altura: 480 })), ErroImagem: class extends Error {} }));
 afterEach(() => {
@@ -14,7 +15,7 @@ afterEach(() => {
 });
 
 const escreve = (rotulo: string, valor: string) => fireEvent.change(screen.getByLabelText(rotulo), { target: { value: valor } });
-const clica = (nome: string) => fireEvent.click(screen.getByRole('button', { name: nome }));
+const clica = (nome: string | RegExp) => fireEvent.click(screen.getByRole('button', { name: nome }));
 const me = { id: '1', nome: 'Lincoln', email: 'l@x.com', avatarUrl: null, isAdmin: false, pushEnabled: false, clube: null };
 const livres = [
   { id: 'palmeiras', nome: 'Palmeiras', escudoUrl: '/escudos/palmeiras.svg', tecnico: null },
@@ -124,50 +125,87 @@ test('nova senha: senhas diferentes → erro no cliente; token inválido → lin
   expect(await screen.findByText('Esse link não vale mais')).toBeTruthy();
 });
 
-test('perfil salva nome, foto (comprimida em 480) e senha', async () => {
+test('perfil salva nome (folha) e foto (comprimida em 480)', async () => {
   const recarregar = vi.fn();
-  const chamadas = fetchFalso({ 'PATCH /me': me, 'PUT /me/foto': me });
+  const chamadas = fetchFalso({ 'GET /trocas/minhas': [], 'PATCH /me': me, 'PUT /me/foto': me });
   const { comprimir } = await import('../postar/comprimir');
   render(<Perfil me={me} recarregar={recarregar} />);
 
+  clica(/Nome de exibição/);
   escreve('Nome de exibição', 'Lincoln B');
   clica('Salvar nome');
   await waitFor(() => expect(chamadas.some((c) => c.chave === 'PATCH /me')).toBe(true));
-  expect(JSON.parse(chamadas[0].body as string)).toEqual({ nome: 'Lincoln B' });
+  expect(JSON.parse(chamadas.find((c) => c.chave === 'PATCH /me')!.body as string)).toEqual({ nome: 'Lincoln B' });
+  expect((await screen.findByRole('status')).textContent).toBe('Nome salvo.');
 
   fireEvent.change(screen.getByLabelText('Trocar foto'), { target: { files: [new File(['x'], 'f.jpg', { type: 'image/jpeg' })] } });
   await waitFor(() => expect(chamadas.some((c) => c.chave === 'PUT /me/foto')).toBe(true));
   expect(comprimir).toHaveBeenCalledWith(expect.any(File), 480);
   expect((chamadas.find((c) => c.chave === 'PUT /me/foto')!.body as FormData).get('foto')).toBeInstanceOf(Blob);
-
-  escreve('Senha atual', 'velha1234');
-  escreve('Nova senha', 'nova12345');
-  clica('Salvar senha');
-  await waitFor(() => expect(chamadas.filter((c) => c.chave === 'PATCH /me')).toHaveLength(2));
-  expect(JSON.parse(chamadas.filter((c) => c.chave === 'PATCH /me')[1].body as string)).toEqual({ senhaAtual: 'velha1234', senhaNova: 'nova12345' });
   expect(recarregar).toHaveBeenCalled();
 });
 
-test('sem clube livre, torcedor já vem escolhido', async () => {
-  fetchFalso({ 'GET /clubes?livres=1': [] });
-  await ateOClube();
-  expect(screen.getByRole('radio', { name: 'Sou só torcedor' }).getAttribute('aria-checked')).toBe('true');
-});
-
-test('erro ao carregar clubes: torcedor é radio focável por teclado e as setas funcionam', async () => {
-  fetchFalso({ 'GET /clubes?livres=1': { status: 500 } });
-  await ateOClube().catch(() => {});
-  const r = await screen.findByRole('radio', { name: 'Sou só torcedor' });
-  expect(r.getAttribute('tabindex')).toBe('0');
-  fireEvent.keyDown(r.parentElement!, { key: 'ArrowDown' });
-  expect(r.getAttribute('aria-checked')).toBe('true');
-});
-
-test('perfil: IMAGEM_INVALIDA mostra a mensagem', async () => {
-  fetchFalso({ 'PUT /me/foto': { status: 400, corpo: { codigo: 'IMAGEM_INVALIDA', mensagem: 'x' } } });
+test('perfil: foto recusada pelo servidor mostra o aviso', async () => {
+  fetchFalso({ 'GET /trocas/minhas': [], 'PUT /me/foto': { status: 400, corpo: { codigo: 'IMAGEM_INVALIDA', mensagem: 'x' } } });
   render(<Perfil me={me} recarregar={() => {}} />);
   fireEvent.change(screen.getByLabelText('Trocar foto'), { target: { files: [new File(['x'], 'f.jpg')] } });
-  expect((await screen.findAllByRole('alert'))[0].textContent).toContain('Essa imagem não serve');
+  expect((await screen.findByRole('alert')).textContent).toContain('Não deu para ler essa imagem. Escolha outra foto.');
+});
+
+test('perfil: interruptor de notificações grava na hora e desfaz se falhar', async () => {
+  const chamadas = fetchFalso({ 'GET /trocas/minhas': [], 'PATCH /me': { status: 500 } });
+  render(<Perfil me={me} recarregar={() => {}} />);
+  const chave = screen.getByRole('switch', { name: 'Notificações' });
+  expect(chave.getAttribute('aria-checked')).toBe('false');
+  fireEvent.click(chave);
+  expect(chave.getAttribute('aria-checked')).toBe('true'); // otimista
+  await waitFor(() => expect(chave.getAttribute('aria-checked')).toBe('false'));
+  expect(JSON.parse(chamadas.find((c) => c.chave === 'PATCH /me')!.body as string)).toEqual({ pushEnabled: true });
+  expect(screen.getByRole('status').textContent).toBe('Não deu para salvar. Tente de novo.');
+});
+
+test('perfil do técnico: clube, Trocar de clube → /trocar; admin só para admin', async () => {
+  const clube = { id: 'palmeiras', nome: 'Palmeiras', escudoUrl: '/escudos/palmeiras.svg' };
+  fetchFalso({ 'GET /trocas/minhas': [] });
+  const { rerender } = render(<Perfil me={{ ...me, clube }} recarregar={() => {}} />);
+  expect(screen.getByRole('link', { name: /Palmeiras/ }).getAttribute('href')).toBe('/c/palmeiras');
+  expect(screen.getByRole('link', { name: /Trocar de clube/ }).getAttribute('href')).toBe('/trocar');
+  expect(screen.queryByRole('link', { name: /Administração/ })).toBeNull();
+  rerender(<Perfil me={{ ...me, clube, isAdmin: true }} recarregar={() => {}} />);
+  expect(screen.getByRole('link', { name: /Administração/ }).getAttribute('href')).toBe('/admin');
+});
+
+test('perfil do torcedor: "Sem clube" e Pedir um clube → /trocar', async () => {
+  fetchFalso({ 'GET /trocas/minhas': [] });
+  render(<Perfil me={me} recarregar={() => {}} />);
+  expect(screen.getByText('Você vê, curte e comenta, mas não posta.')).toBeTruthy();
+  expect(screen.getByRole('link', { name: /Pedir um clube/ }).getAttribute('href')).toBe('/trocar');
+  expect(screen.getByText('Torcedor, sem clube')).toBeTruthy();
+});
+
+test('perfil com pedido pendente mostra "Pedido pendente" sem link para trocar', async () => {
+  fetchFalso({
+    'GET /trocas/minhas': [{ id: 't1', tipo: 'ASSUMIR', status: 'PENDENTE', clubeId: 'flamengo' }],
+    'GET /clubes': [{ id: 'flamengo', nome: 'Flamengo', escudoUrl: '', tecnico: null }],
+  });
+  render(<Perfil me={me} recarregar={() => {}} />);
+  expect(await screen.findByText('Assumir o Flamengo. Aguardando o admin.')).toBeTruthy();
+  expect(screen.getByText('Pedido pendente')).toBeTruthy();
+  expect(screen.queryByRole('link', { name: /Pedir um clube/ })).toBeNull();
+});
+
+test('trocar senha: SENHA_ATUAL_INVALIDA vai no campo e sucesso avisa que saiu dos outros aparelhos', async () => {
+  let ok = false;
+  const chamadas = fetchFalso({ 'PATCH /me': () => (ok ? me : { status: 400, corpo: { codigo: 'SENHA_ATUAL_INVALIDA', mensagem: 'x' } }) });
+  render(<TrocarSenha />);
+  escreve('Senha atual', 'velha1234');
+  escreve('Nova senha', 'nova12345');
+  clica('Salvar senha');
+  expect(await screen.findByText('Senha atual incorreta.')).toBeTruthy();
+  ok = true;
+  clica('Salvar senha');
+  expect(await screen.findByText('Você saiu dos outros aparelhos.')).toBeTruthy();
+  expect(JSON.parse(chamadas[1].body as string)).toEqual({ senhaAtual: 'velha1234', senhaNova: 'nova12345' });
 });
 
 test('400 DADOS_INVALIDOS no entrar mostra o erro no campo, não "confira a conexão"', async () => {

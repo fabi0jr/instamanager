@@ -1,27 +1,67 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import { api, ErroApi, type Me } from '../api/cliente';
+import { data } from '../clube/PerfilClube';
+import { Escudo } from '../feed/Escudo';
+import { Folha } from '../feed/Folha';
+import { IcCamera, IcSeta } from '../feed/icones';
+import { sigla } from '../feed/siglas';
 import { comprimir, ErroImagem } from '../postar/comprimir';
+import { Link, navegar } from '../rotas';
+import '../feed/feed.css';
 import { Aviso, Botao, Campo, useEnvio, useFocoNoErro } from './ui';
 
-// Sem handoff de design para o Perfil (grupo 4): usa só os componentes de fundamentos.md.
+type Troca = { id: string; tipo: 'SAIR' | 'ASSUMIR'; status: string; clubeId: string | null; decididoEm?: string | null };
+
+function Linha({ titulo, sub, para, aoClicar, tom, children }: { titulo: string; sub?: string; para?: string; aoClicar?: () => void; tom?: 'aviso' | 'suave'; children?: ReactNode }) {
+  const corpo = (
+    <>
+      <span className="linha-txt">
+        <span className={`linha-titulo ${tom === 'suave' ? 'giz2' : ''}`}>{titulo}</span>
+        {sub && <span className={`legenda-s ${tom === 'aviso' ? 'amarelo' : 'giz2'}`}>{sub}</span>}
+      </span>
+      {children ?? (para || aoClicar ? <IcSeta /> : null)}
+    </>
+  );
+  if (para) return <Link para={para} className="linha">{corpo}</Link>;
+  if (aoClicar) return <button type="button" className="linha" onClick={aoClicar}>{corpo}</button>;
+  return <div className="linha">{corpo}</div>;
+}
+
+// Layout de docs/design/perfis.md. A lógica de nome, foto e sair vem da IM-9; a senha mora em /perfil/senha.
 export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
   const [nome, setNome] = useState(me.nome);
-  const [atual, setAtual] = useState('');
-  const [nova, setNova] = useState('');
-  const [erros, setErros] = useState<{ nome?: string; atual?: string; nova?: string }>({});
+  const [nomeAberto, setNomeAberto] = useState(false);
+  const [erroNome, setErroNome] = useState('');
   const [ok, setOk] = useState('');
+  const [push, setPush] = useState(me.pushEnabled);
+  const [trocas, setTrocas] = useState<Troca[]>([]);
+  const [nomes, setNomes] = useState<Record<string, string>>({});
   const nomeEnvio = useEnvio();
   const fotoEnvio = useEnvio();
-  const senhaEnvio = useEnvio();
-  useFocoNoErro(erros);
+  useFocoNoErro(erroNome);
+
+  useEffect(() => {
+    api<Troca[]>('/trocas/minhas').then(setTrocas, () => {});
+  }, []);
+  const pendente = trocas.find((t) => t.status === 'PENDENTE');
+  const recusada = trocas[0]?.status === 'RECUSADA' ? trocas[0] : null;
+  useEffect(() => {
+    if (pendente?.clubeId) api<{ id: string; nome: string }[]>('/clubes').then((l) => setNomes(Object.fromEntries(l.map((c) => [c.id, c.nome]))), () => {});
+  }, [pendente?.clubeId]);
+
+  useEffect(() => {
+    if (!ok) return;
+    const t = setTimeout(() => setOk(''), 3000);
+    return () => clearTimeout(t);
+  }, [ok]);
 
   function salvarNome(e: FormEvent) {
     e.preventDefault();
-    setOk('');
-    if (!nome.trim() || nome.trim().length > 60) return setErros({ nome: 'Digite um nome de até 60 letras.' });
-    setErros({});
+    if (!nome.trim() || nome.trim().length > 60) return setErroNome('Digite um nome de até 60 letras.');
+    setErroNome('');
     nomeEnvio.enviar(async () => {
       await api<Me>('/me', { method: 'PATCH', body: JSON.stringify({ nome: nome.trim() }) });
+      setNomeAberto(false);
       setOk('Nome salvo.');
       recarregar();
     });
@@ -32,7 +72,6 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
     const arquivo = input.files?.[0];
     input.value = ''; // permite escolher o mesmo arquivo de novo
     if (!arquivo) return;
-    setOk('');
     fotoEnvio.enviar(async () => {
       try {
         const { blob } = await comprimir(arquivo, 480);
@@ -42,65 +81,86 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
         setOk('Foto salva.');
         recarregar();
       } catch (erro) {
-        if (erro instanceof ErroImagem) fotoEnvio.setAviso('Não deu para ler essa imagem. Escolha outra foto.');
-        else if (erro instanceof ErroApi && erro.codigo === 'IMAGEM_INVALIDA') fotoEnvio.setAviso('Essa imagem não serve. Escolha uma foto JPEG ou PNG.');
+        if (erro instanceof ErroImagem || (erro instanceof ErroApi && erro.codigo === 'IMAGEM_INVALIDA')) fotoEnvio.setAviso('Não deu para ler essa imagem. Escolha outra foto.');
         else throw erro;
       }
     });
   }
 
-  function salvarSenha(e: FormEvent) {
-    e.preventDefault();
-    setOk('');
-    const novos = { atual: atual ? undefined : 'Digite a senha atual.', nova: nova.length < 8 ? 'Use pelo menos 8 caracteres.' : undefined };
-    setErros(novos);
-    if (novos.atual || novos.nova) return;
-    senhaEnvio.enviar(
-      async () => {
-        await api<Me>('/me', { method: 'PATCH', body: JSON.stringify({ senhaAtual: atual, senhaNova: nova }) });
-        setAtual('');
-        setNova('');
-        setOk('Senha trocada. Você saiu dos outros aparelhos.');
-        recarregar();
-      },
-      (erro: ErroApi) => {
-        if (erro.codigo !== 'SENHA_ATUAL_INVALIDA') return false;
-        setErros({ atual: 'Senha atual incorreta.' });
-        return true;
-      },
-    );
+  async function alternarPush() {
+    const novo = !push;
+    setPush(novo);
+    try {
+      // shortcut: só grava a preferência; a permissão do navegador e a inscrição vêm na Task 13
+      await api<Me>('/me', { method: 'PATCH', body: JSON.stringify({ pushEnabled: novo }) });
+      recarregar();
+    } catch {
+      setPush(!novo);
+      setOk('Não deu para salvar. Tente de novo.');
+    }
   }
 
   async function sair() {
     await api('/auth/sair', { method: 'POST' }).catch(() => {});
     recarregar();
+    navegar('/entrar');
   }
 
   return (
     <div className="tela perfil">
       <h1>Perfil</h1>
-      <div role="status">{ok}</div>
-      {me.avatarUrl ? <img className="avatar" src={me.avatarUrl} alt="" /> : <div className="avatar" aria-hidden="true">{me.nome[0]?.toUpperCase()}</div>}
       <Aviso>{fotoEnvio.aviso}</Aviso>
-      <label className="botao secundario">
-        {fotoEnvio.enviando ? 'Enviando…' : 'Trocar foto'}
-        <input type="file" accept="image/*" aria-label="Trocar foto" className="sr" onChange={trocarFoto} disabled={fotoEnvio.enviando} />
-      </label>
+      <header className="perfil-topo">
+        <label className="avatar-botao">
+          {me.avatarUrl ? <img className="avatar g" src={me.avatarUrl} alt="" /> : <span className="avatar g" aria-hidden="true">{me.nome[0]?.toUpperCase()}</span>}
+          {fotoEnvio.enviando ? <span className="veu-foto"><span className="giro" /></span> : <span className="camera"><IcCamera /></span>}
+          <input type="file" accept="image/*" aria-label="Trocar foto" className="sr" onChange={trocarFoto} disabled={fotoEnvio.enviando} />
+        </label>
+        <div>
+          <h2 className="perfil-nome">{me.nome}</h2>
+          {me.clube ? (
+            <span className="pilula" aria-label={`Clube ${me.clube.nome}`}><Escudo src={me.clube.escudoUrl} tam={16} />{sigla(me.clube.id)}</span>
+          ) : (
+            <span className="giz2 legenda-s">Torcedor, sem clube</span>
+          )}
+          <div className="giz2 legenda-s">{me.email}</div>
+        </div>
+      </header>
 
-      <form onSubmit={salvarNome} noValidate>
-        <Aviso>{nomeEnvio.aviso}</Aviso>
-        <Campo rotulo="Nome de exibição" autoComplete="nickname" ajuda="Até 60 letras" value={nome} onChange={(e) => setNome(e.target.value)} disabled={nomeEnvio.enviando} erro={erros.nome} />
-        <Botao type="submit" carregando={nomeEnvio.enviando ? 'Salvando…' : undefined}>Salvar nome</Botao>
-      </form>
+      <p className="grupo giz2">Conta</p>
+      <Linha titulo="Nome de exibição" sub={me.nome} aoClicar={() => { setNome(me.nome); setErroNome(''); setNomeAberto(true); }} />
+      <Linha titulo="Senha" sub="Trocar a senha" para="/perfil/senha" />
 
-      <form onSubmit={salvarSenha} noValidate>
-        <Aviso>{senhaEnvio.aviso}</Aviso>
-        <Campo rotulo="Senha atual" type="password" autoComplete="current-password" value={atual} onChange={(e) => setAtual(e.target.value)} disabled={senhaEnvio.enviando} erro={erros.atual} />
-        <Campo rotulo="Nova senha" type="password" autoComplete="new-password" ajuda="Pelo menos 8 caracteres" value={nova} onChange={(e) => setNova(e.target.value)} disabled={senhaEnvio.enviando} erro={erros.nova} />
-        <Botao type="submit" carregando={senhaEnvio.enviando ? 'Salvando…' : undefined} disabled={senhaEnvio.bloqueado}>Salvar senha</Botao>
-      </form>
+      <p className="grupo giz2">Avisos</p>
+      <Linha titulo="Notificações" sub="Avisos de post novo e comentário">
+        <button type="button" role="switch" aria-checked={push} aria-label="Notificações" className={`interruptor ${push ? 'ligado' : ''}`} onClick={alternarPush}><span /></button>
+      </Linha>
 
-      <Botao variante="fantasma" onClick={sair}>Sair</Botao>
+      <p className="grupo giz2">Clube</p>
+      {me.clube ? <Linha titulo={me.clube.nome} sub="Seu clube" para={`/c/${me.clube.id}`} /> : <Linha titulo="Sem clube" sub="Você vê, curte e comenta, mas não posta." />}
+      {pendente ? (
+        <Linha titulo="Pedido pendente" tom="aviso" sub={`${pendente.tipo === 'SAIR' ? 'Sair do clube' : `Assumir o ${nomes[pendente.clubeId ?? ''] ?? 'clube pedido'}`}. Aguardando o admin.`} />
+      ) : (
+        <>
+          <Linha titulo={me.clube ? 'Trocar de clube' : 'Pedir um clube'} sub={me.clube ? 'Sair ou assumir outro clube' : undefined} para="/trocar" />
+          {recusada?.decididoEm && <p className="giz2 legenda-s recusa">Último pedido recusado em {data(recusada.decididoEm).slice(0, 5)}.</p>}
+        </>
+      )}
+
+      {me.isAdmin && <Linha titulo="Administração" para="/admin" />}
+      <button type="button" className="linha sair giz2" onClick={sair}>Sair da conta</button>
+      <div role="status" className={ok ? 'toast' : 'sr'}>{ok}</div>
+
+      {nomeAberto && (
+        <Folha titulo="Editar nome" aoFechar={() => setNomeAberto(false)}>
+          <form onSubmit={salvarNome} noValidate className="folha-form">
+            <Aviso>{nomeEnvio.aviso}</Aviso>
+            <Campo rotulo="Nome de exibição" data-foco autoComplete="nickname" ajuda="Até 60 letras." value={nome} onChange={(e) => setNome(e.target.value)} disabled={nomeEnvio.enviando} erro={erroNome} />
+            <Botao type="submit" carregando={nomeEnvio.enviando ? 'Salvando…' : undefined}>Salvar nome</Botao>
+            <Botao variante="fantasma" onClick={() => setNomeAberto(false)}>Cancelar</Botao>
+          </form>
+        </Folha>
+      )}
     </div>
   );
 }

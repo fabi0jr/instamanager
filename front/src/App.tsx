@@ -6,11 +6,17 @@ import { Entrar } from './conta/Entrar';
 import { Esqueci } from './conta/Esqueci';
 import { NovaSenha } from './conta/NovaSenha';
 import { Perfil } from './conta/Perfil';
+import { TrocarSenha } from './conta/TrocarSenha';
+import { ListaClubes } from './clube/ListaClubes';
+import { PerfilClube } from './clube/PerfilClube';
+import { Galeria } from './galeria/Galeria';
+import { Feed } from './feed/Feed';
+import { PostPagina } from './feed/PostPagina';
 import { navegar, PUBLICAS, useRota } from './rotas';
 
 export function App() {
   const { me, carregando, recarregar } = useMe();
-  const { caminho } = useRota();
+  const { caminho, params } = useRota();
   const publica = PUBLICAS.includes(caminho);
 
   // logada numa tela de acesso (acabou de entrar): vai para o feed
@@ -28,7 +34,15 @@ export function App() {
   }
   return (
     <>
-      <main>{caminho === '/perfil' && <Perfil me={me} recarregar={recarregar} />}</main>
+      <main>
+        {caminho === '/' && <Feed me={me} />}
+        {caminho.startsWith('/p/') && params.id && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
+        {params.id && /^\/c\/[^/]+$/.test(caminho) && <PerfilClube id={params.id} me={me} />}
+        {caminho === '/clubes' && <ListaClubes />}
+        {caminho === '/galeria' && <Galeria />}
+        {caminho === '/perfil/senha' && <TrocarSenha />}
+        {caminho === '/perfil' && <Perfil me={me} recarregar={recarregar} />}
+      </main>
       <BarraInferior clubeId={me.clube?.id} />
     </>
   );
