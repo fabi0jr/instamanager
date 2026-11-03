@@ -1,0 +1,72 @@
+/* Fonte: docs/design/fundamentos.md. Não inventar valores aqui. */
+:root {
+  /* cor */
+  --im-carvao: #0E0F11;           /* fundo do app */
+  --im-superficie: #17191C;       /* card, barra, campo */
+  --im-superficie-alta: #202327;  /* pílula, botão secundário, toque, esqueleto */
+  --im-linha: #2C2F34;            /* divisor e borda */
+  --im-giz: #F2EFE6;              /* texto principal */
+  --im-giz-2: #A8A79F;            /* texto secundário */
+  --im-giz-3: #74756F;            /* dica e ícone inativo (não use em texto corrido) */
+  --im-vermelho: #D2261F;         /* botão primário, curtida, marca */
+  --im-vermelho-press: #A81D18;   /* botão pressionado */
+  --im-vermelho-texto: #FF625A;   /* erro em texto, ícone e borda */
+  --im-gramado: #2FA866;          /* sucesso */
+  --im-amarelo: #F2B705;          /* aviso */
+
+  /* fonte (arquivos locais, sem Google Fonts) */
+  --im-fonte-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --im-fonte-texto: "Inter", system-ui, sans-serif;
+
+  /* espaço (base 4) */
+  --im-e1: 4px;  --im-e2: 8px;  --im-e3: 12px; --im-e4: 16px;
+  --im-e5: 20px; --im-e6: 24px; --im-e8: 32px; --im-e12: 48px;
+
+  /* raio */
+  --im-r-btn: 10px;    /* botão e campo */
+  --im-r-midia: 12px;  /* cards soltos (estados vazio/erro), imagem no desktop */
+  --im-r-folha: 20px;  /* folha inferior / modal */
+  --im-r-pilula: 999px;
+
+  /* movimento */
+  --im-pulso: 1.2s ease-in-out infinite; /* esqueleto: opacidade 100% → 60% */
+  --im-giro: 0.9s linear infinite;       /* spinner */
+}
+@media (prefers-reduced-motion: reduce) { :root { --im-pulso: 0s; --im-giro: 0s; } }
+
+@font-face { font-family: "Inter"; font-weight: 400; font-style: normal; font-display: swap; src: url("/fonts/inter-latin-400-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Inter"; font-weight: 400; font-style: normal; font-display: swap; src: url("/fonts/inter-latin-ext-400-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Inter"; font-weight: 500; font-style: normal; font-display: swap; src: url("/fonts/inter-latin-500-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Inter"; font-weight: 500; font-style: normal; font-display: swap; src: url("/fonts/inter-latin-ext-500-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Inter"; font-weight: 600; font-style: normal; font-display: swap; src: url("/fonts/inter-latin-600-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Inter"; font-weight: 600; font-style: normal; font-display: swap; src: url("/fonts/inter-latin-ext-600-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Barlow Condensed"; font-weight: 600; font-style: normal; font-display: swap; src: url("/fonts/barlow-condensed-latin-600-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Barlow Condensed"; font-weight: 600; font-style: normal; font-display: swap; src: url("/fonts/barlow-condensed-latin-ext-600-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; font-style: normal; font-display: swap; src: url("/fonts/barlow-condensed-latin-700-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; font-style: normal; font-display: swap; src: url("/fonts/barlow-condensed-latin-ext-700-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Barlow Condensed"; font-weight: 800; font-style: normal; font-display: swap; src: url("/fonts/barlow-condensed-latin-800-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Barlow Condensed"; font-weight: 800; font-style: normal; font-display: swap; src: url("/fonts/barlow-condensed-latin-ext-800-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--im-carvao); color: var(--im-giz); font: 400 15px/22px var(--im-fonte-texto); }
+h1, h2, h3 { font-family: var(--im-fonte-display); font-weight: 700; margin: 0; }
+a, button { min-height: 44px; min-width: 44px; }
+:focus-visible { outline: 2px solid var(--im-giz); outline-offset: 2px; }
+main { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
+
+.barra-inferior { position: fixed; inset: auto 0 0 0; display: flex; justify-content: space-around; align-items: center;
+  height: calc(56px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
+  background: var(--im-superficie); border-top: 1px solid var(--im-linha); }
+.barra-inferior a { display: grid; place-items: center; color: var(--im-giz-3); }
+.barra-inferior a[aria-current='page'] { color: var(--im-giz); }
+
+.carregando { margin: var(--im-e12) auto; width: 24px; height: 24px; border: 2px solid var(--im-linha); border-top-color: var(--im-giz);
+  border-radius: 50%; animation: giro var(--im-giro); }
+@keyframes giro { to { transform: rotate(360deg); } }
+
+/* desktop: barra vira lateral de 72 px */
+@media (min-width: 768px) {
+  .barra-inferior { inset: 0 auto 0 0; width: 72px; height: auto; flex-direction: column; justify-content: flex-start;
+    gap: var(--im-e2); padding: var(--im-e4) 0; border-top: 0; border-right: 1px solid var(--im-linha); }
+  main { margin-left: 72px; padding-bottom: 0; }
+}
