@@ -3,7 +3,7 @@ import { api, type Me } from '../api/cliente';
 import { CardPost } from './CardPost';
 import { IcVoltar } from './icones';
 import type { Post } from './tipos';
-import { navegar } from '../rotas';
+import { navegar, voltar } from '../rotas';
 import { esquecerFeed } from './Feed';
 
 export function PostPagina({ id, me }: { id: string; me: Me }) {
@@ -23,7 +23,7 @@ export function PostPagina({ id, me }: { id: string; me: Me }) {
   return (
     <>
       <header className="topo-post">
-        <button type="button" aria-label="Voltar" onClick={() => (history.length > 1 ? history.back() : navegar('/'))}><IcVoltar /></button>
+        <button type="button" aria-label="Voltar" onClick={() => voltar('/')}><IcVoltar /></button>
         <h1>Post</h1>
       </header>
       <CardPost

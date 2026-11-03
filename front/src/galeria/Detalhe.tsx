@@ -3,7 +3,7 @@ import { api, type Me } from '../api/cliente';
 import { Escudo } from '../feed/Escudo';
 import { IcCopiar, IcFechar, IcOk } from '../feed/icones';
 import { haQuanto, type Post } from '../feed/tipos';
-import { Link, navegar } from '../rotas';
+import { Link, voltar } from '../rotas';
 
 // Copia pelo clipboard; sem ele (ou bloqueado), tenta o execCommand sobre o texto selecionado
 async function copiar(texto: string, no: HTMLElement | null) {
@@ -39,8 +39,8 @@ export function Detalhe({ imagemId, postId }: { imagemId: string; postId: string
     return () => clearTimeout(t);
   }, [copia]);
 
-  // veio do feed (Ver prompt) ou da grade: voltar devolve a tela de origem; sem histórico (link direto), cai na galeria
-  const fechar = () => (history.length > 1 ? history.back() : navegar('/galeria'));
+  // veio do feed (Ver prompt) ou da grade: voltar devolve a tela de origem; link direto cai na galeria
+  const fechar = () => voltar('/galeria');
   const comPrompt = post !== 'carregando' && post !== 'erro' ? post.imagens.filter((i) => i.prompt) : [];
   const atual = indice ?? Math.max(0, comPrompt.findIndex((i) => i.id === imagemId));
   const img = comPrompt[atual];

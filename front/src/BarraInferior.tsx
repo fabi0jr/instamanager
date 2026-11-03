@@ -11,14 +11,14 @@ export function BarraInferior({ clubeId }: { clubeId?: string }) {
     { para: '/postar', nome: 'Postar', ativo: caminho === '/postar', destaque: true, ic: "novo-post" },
     { para: clubeId ? `/c/${clubeId}` : '/clubes', nome: 'Clube', ativo: caminho === '/clubes' || (!!clubeId && caminho === `/c/${clubeId}`), ic: "escudo" },
     { para: '/perfil', nome: 'Perfil', ativo: caminho.startsWith('/perfil'), ic: "perfil" },
-  ];
+  ] as const;
   return (
     <nav className="barra-inferior" aria-label="Principal">
       {/* só no desktop: a lateral leva a marca (o cabeçalho do feed some a partir de 768 px) */}
       <div className="marca-lateral"><img src="/icones/icon-192.png" alt="" width="40" height="40" /><span>InstaManager</span></div>
       {itens.map((i) => (
-        <Link key={i.para} para={i.para} className={`${i.ativo ? 'ativo' : ''} ${i.destaque ? 'destaque' : ''}`} aria-current={i.ativo ? 'page' : undefined}>
-          <span className="ic"><Icone nome={i.ic as never} /></span>
+        <Link key={i.para} para={i.para} className={`${i.ativo ? 'ativo' : ''} ${'destaque' in i ? 'destaque' : ''}`} aria-current={i.ativo ? 'page' : undefined}>
+          <span className="ic"><Icone nome={i.ic} /></span>
           <span className="rotulo">{i.nome}</span>
         </Link>
       ))}

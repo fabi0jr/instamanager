@@ -10,6 +10,12 @@ export function useCaminho() {
   return useSyncExternalStore(assinar, () => location.pathname);
 }
 
+// Voltar de verdade só quando a entrada anterior é do app (estado gravado por navegar); link direto/externo cai no `fallback`
+export function voltar(fallback: string) {
+  if (history.state?.interno) history.back();
+  else navegar(fallback);
+}
+
 // parâmetros da query (?imagem=…): a tela decide o que mostrar por cima, sem trocar de rota
 export function useBusca() {
   return new URLSearchParams(useSyncExternalStore(assinar, () => location.search));
@@ -17,7 +23,7 @@ export function useBusca() {
 
 export function navegar(para: string) {
   if (para === location.pathname + location.search) return;
-  history.pushState(null, '', para);
+  history.pushState({ interno: true }, '', para); // marca: a entrada anterior é do app
   dispatchEvent(new PopStateEvent('popstate'));
 }
 

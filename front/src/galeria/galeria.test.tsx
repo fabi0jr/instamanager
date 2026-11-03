@@ -76,8 +76,17 @@ test('filtro por clube refaz a busca com ?clube=', async () => {
 test('fechar o detalhe vindo do feed volta ao feed', async () => {
   fetchFalso({ 'GET /galeria': { itens: [], proximo: null }, 'GET /posts/p1': postDe('p1') });
   history.pushState(null, '', '/');
-  history.pushState(null, '', '/galeria?imagem=i1&post=p1');
+  history.pushState({ interno: true }, '', '/galeria?imagem=i1&post=p1'); // como o navegar() do app grava
   render(<Galeria />);
   fireEvent.click(await screen.findByRole('button', { name: 'Fechar' }));
   await waitFor(() => expect(location.pathname).toBe('/'));
+});
+
+test('fechar o detalhe aberto por link direto (sem origem no app) vai para a galeria', async () => {
+  fetchFalso({ 'GET /galeria': { itens: [], proximo: null }, 'GET /posts/p1': postDe('p1') });
+  history.pushState(null, '', '/galeria?imagem=i1&post=p1');
+  render(<Galeria />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Fechar' }));
+  await waitFor(() => expect(location.search).toBe(''));
+  expect(location.pathname).toBe('/galeria');
 });

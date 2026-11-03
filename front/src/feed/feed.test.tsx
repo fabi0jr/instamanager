@@ -263,3 +263,20 @@ test('ícones oficiais: curtir usa curtido (cheio) quando curtiu', () => {
   const { container } = render(<CardPost post={post('a', { curtiu: true })} me={me} />);
   expect(container.querySelector('.acoes .curtido svg')?.getAttribute('fill')).toBe('currentColor');
 });
+
+test('Voltar do /p/:id: history.back só se a entrada anterior é do app; senão vai ao feed', async () => {
+  const { PostPagina } = await import('./PostPagina');
+  fetchFalso({ 'GET /posts/a': post('a') });
+  const voltarNav = vi.spyOn(history, 'back').mockImplementation(() => {});
+  history.pushState({ interno: true }, '', '/p/a');
+  const { unmount } = render(<PostPagina id="a" me={me} />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Voltar' }));
+  expect(voltarNav).toHaveBeenCalledTimes(1);
+  unmount();
+  history.pushState(null, '', '/p/a'); // link direto
+  render(<PostPagina id="a" me={me} />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Voltar' }));
+  expect(voltarNav).toHaveBeenCalledTimes(1);
+  expect(location.pathname).toBe('/');
+  voltarNav.mockRestore();
+});
