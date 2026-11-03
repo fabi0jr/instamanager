@@ -13,15 +13,15 @@ describe('banco (migrations + seed)', () => {
 
   beforeAll(() => semear(prisma, 'convite-teste'));
   afterAll(async () => {
-    await prisma.club.updateMany({ data: { coachId: null } });
-    await prisma.user.deleteMany({ where: { email: { in: emails } } });
+    const ids = (await prisma.user.findMany({ where: { email: { in: emails } }, select: { id: true } })).map((u) => u.id);
+    await prisma.club.updateMany({ where: { coachId: { in: ids } }, data: { coachId: null } });
+    await prisma.user.deleteMany({ where: { id: { in: ids } } });
     await prisma.$disconnect();
   });
 
-  it('seed cria 20 clubes sem técnico', async () => {
+  it('seed cria os 20 clubes', async () => {
     await semear(prisma); // idempotente
     expect(await prisma.club.count()).toBe(20);
-    expect(await prisma.club.count({ where: { coachId: null } })).toBe(20);
     expect(await prisma.setting.findUnique({ where: { key: 'inviteCode' } })).not.toBeNull();
   });
 

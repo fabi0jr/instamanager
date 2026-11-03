@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 import { clubes } from './clubes.js';
@@ -14,7 +15,7 @@ export async function semear(db: Db, inviteCode = process.env.INVITE_CODE) {
 }
 
 if (process.argv[1]?.endsWith('seed.ts')) {
-  process.loadEnvFile('../.env');
+  if (existsSync('../.env')) process.loadEnvFile('../.env');
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
   await semear(prisma);
   await prisma.$disconnect();
