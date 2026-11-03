@@ -3,6 +3,7 @@ export class ErroApi extends Error {
     public status: number,
     public codigo: string,
     mensagem: string,
+    public campos: string[] = [], // DADOS_INVALIDOS: quais campos falharam
   ) {
     super(mensagem);
   }
@@ -17,7 +18,11 @@ export async function api<T>(caminho: string, init: RequestInit = {}): Promise<T
   });
   if (res.status === 204) return undefined as T;
   const corpo = await res.json().catch(() => null);
-  if (!res.ok) throw new ErroApi(res.status, corpo?.codigo ?? 'ERRO_DESCONHECIDO', corpo?.mensagem ?? 'Algo deu errado');
+  if (!res.ok) {
+    // sessão caiu (cookie venceu ou foi derrubado em outro aparelho): o useMe limpa a sessão e leva para /entrar
+    if (res.status === 401 && corpo?.codigo === 'NAO_AUTENTICADO') dispatchEvent(new Event('sessao-expirada'));
+    throw new ErroApi(res.status, corpo?.codigo ?? 'ERRO_DESCONHECIDO', corpo?.mensagem ?? 'Algo deu errado', corpo?.campos);
+  }
   return corpo as T;
 }
 

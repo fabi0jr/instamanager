@@ -6,10 +6,7 @@ import { Entrar } from './conta/Entrar';
 import { Esqueci } from './conta/Esqueci';
 import { NovaSenha } from './conta/NovaSenha';
 import { Perfil } from './conta/Perfil';
-import { navegar, useRota } from './rotas';
-
-// rotas do grupo de acesso: abertas sem sessão
-const PUBLICAS = ['/entrar', '/cadastro', '/esqueci-senha', '/nova-senha'];
+import { navegar, PUBLICAS, useRota } from './rotas';
 
 export function App() {
   const { me, carregando, recarregar } = useMe();
