@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import type { Me } from '../api/cliente';
 import { guardarAviso } from '../aviso';
 import { esquecerFeed } from '../feed/Feed';
@@ -13,7 +13,7 @@ import './postar.css';
 const MAX = 10;
 const MAX_BYTES = 3 * 1024 * 1024;
 type Item = { id: number; nome: string; estado: 'preparando' | 'ok' | 'erro'; erro?: string; cheia?: Blob; mini?: Blob; miniUrl?: string };
-type Envio = { estado: 'enviando' | 'falhou'; carregado: number; total: number; tipo?: 'rede' | 'permissao' | 'imagem' };
+type Envio = { estado: 'enviando' | 'falhou'; carregado: number; total: number; tipo?: 'rede' | 'incerto' | 'permissao' | 'imagem' };
 const mb = (n: number) => (n / 1048576).toFixed(1).replace('.', ',');
 
 let seq = 0;
@@ -27,6 +27,8 @@ export function Postar({ me }: { me: Me }) {
   const [envio, setEnvio] = useState<Envio | null>(null);
   const cancelar = useRef<(() => void) | null>(null);
   const { bloqueado } = useEnvio();
+  const urls = useRef<string[]>([]);
+  useEffect(() => () => urls.current.forEach((u) => URL.revokeObjectURL(u)), []); // soltar as prévias ao sair
 
   if (!me.clube)
     return (
@@ -40,11 +42,17 @@ export function Postar({ me }: { me: Me }) {
 
   const editar = (id: number, f: (i: Item) => Item) => setItens((l) => l.map((i) => (i.id === id ? f(i) : i)));
 
+  function criarUrl(b: Blob) {
+    const u = URL.createObjectURL(b);
+    urls.current.push(u);
+    return u;
+  }
+
   async function preparar(i: Item, arquivo: File) {
     try {
-      const [cheia, mini] = [await comprimir(arquivo, 1600), await comprimir(arquivo, 480)];
+      const [cheia, mini] = [await comprimir(arquivo, 1600), await comprimir(arquivo, 800)];
       if (cheia.blob.size > MAX_BYTES) throw new Error('grande');
-      editar(i.id, (x) => ({ ...x, estado: 'ok', cheia: cheia.blob, mini: mini.blob, miniUrl: URL.createObjectURL(mini.blob) }));
+      editar(i.id, (x) => ({ ...x, estado: 'ok', cheia: cheia.blob, mini: mini.blob, miniUrl: criarUrl(mini.blob) }));
     } catch (e) {
       const erro = e instanceof ErroImagem ? `Não deu para ler ${arquivo.name}. Escolha outra imagem ou exporte como JPEG.` : 'Essa imagem ficou grande demais. Escolha outra.';
       editar(i.id, (x) => ({ ...x, estado: 'erro', erro }));
@@ -63,6 +71,8 @@ export function Postar({ me }: { me: Me }) {
   }
 
   function remover(id: number) {
+    const sai = itens.find((i) => i.id === id)?.miniUrl;
+    if (sai) URL.revokeObjectURL(sai);
     setItens((l) => l.filter((i) => i.id !== id));
     setPrompts(({ [id]: _, ...resto }) => resto);
   }
@@ -78,8 +88,8 @@ export function Postar({ me }: { me: Me }) {
     f.append('legenda', legenda);
     f.append('prompts', JSON.stringify(textos.map((t) => t.trim() || null)));
     prontas.forEach((i, n) => {
-      f.append('cheia[]', i.cheia!, `cheia-${n}.jpg`);
-      f.append('mini[]', i.mini!, `mini-${n}.jpg`);
+      f.append('cheia', i.cheia!, `cheia-${n}.jpg`);
+      f.append('mini', i.mini!, `mini-${n}.jpg`);
     });
     setPasso(3);
     setEnvio({ estado: 'enviando', carregado: 0, total: 0 });
@@ -93,8 +103,14 @@ export function Postar({ me }: { me: Me }) {
       },
       (e) => {
         if (e.codigo === 'CANCELADO') return;
-        const tipo = e.codigo === 'SEM_CLUBE' ? 'permissao' : e.codigo === 'IMAGEM_INVALIDA' || e.status === 429 ? 'imagem' : 'rede';
-        setEnvio((a) => ({ estado: 'falhou', carregado: a?.carregado ?? 0, total: a?.total ?? 0, tipo }));
+        setEnvio((a) => {
+          const carregado = a?.carregado ?? 0;
+          const total = a?.total ?? 0;
+          // tudo subiu e a resposta se perdeu: o post pode ter sido criado, então não oferece reenviar (duplicaria)
+          const perdida = total > 0 && carregado >= total && (e.status === 0 || e.status >= 500);
+          const tipo = e.codigo === 'SEM_CLUBE' ? 'permissao' : e.codigo === 'IMAGEM_INVALIDA' || e.status === 429 ? 'imagem' : perdida ? 'incerto' : 'rede';
+          return { estado: 'falhou', carregado, total, tipo };
+        });
       },
     );
   }
@@ -114,9 +130,10 @@ export function Postar({ me }: { me: Me }) {
           </>
         ) : (
           <>
-            <h1>{falhou ? 'Não deu para publicar' : 'Publicando…'}</h1>
+            <h1>{falhou ? (envio.tipo === 'incerto' ? 'Não sabemos se publicou' : 'Não deu para publicar') : 'Publicando…'}</h1>
             <p>
               {!falhou && `Enviando ${prontas.length} ${prontas.length === 1 ? 'imagem' : 'imagens'} e a legenda.`}
+              {falhou && envio.tipo === 'incerto' && 'O envio terminou, mas não chegou a resposta. Pode ter sido publicado, confira o feed.'}
               {falhou && envio.tipo === 'imagem' && 'Alguma imagem não passou na conferência do servidor. Volte e escolha outra.'}
               {falhou && envio.tipo === 'rede' && `O envio parou em ${pct}%. Nada foi publicado. Sua legenda e os prompts continuam aqui.`}
             </p>
@@ -128,7 +145,8 @@ export function Postar({ me }: { me: Me }) {
             {!falhou && <p className="giz2">Não feche o app até terminar.</p>}
             {!falhou && <button type="button" className="botao fantasma" onClick={() => { cancelar.current?.(); setPasso(2); }}>Cancelar envio</button>}
             {falhou && envio.tipo === 'rede' && <button type="button" className="botao" onClick={publicar}>Tentar de novo</button>}
-            {falhou && <button type="button" className={`botao ${envio.tipo === 'rede' ? 'secundario' : ''}`} onClick={() => setPasso(2)}>Voltar e editar</button>}
+            {falhou && envio.tipo === 'incerto' && <button type="button" className="botao" onClick={() => { esquecerFeed(); navegar('/'); }}>Ver o feed</button>}
+            {falhou && <button type="button" className={`botao ${envio.tipo === 'rede' || envio.tipo === 'incerto' ? 'secundario' : ''}`} onClick={() => setPasso(2)}>Voltar e editar</button>}
           </>
         )}
       </div>

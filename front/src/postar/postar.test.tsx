@@ -23,7 +23,7 @@ const torcedor: Me = { ...tecnico, clube: null };
 
 type Envio = { form: FormData; xhr: FakeXhr };
 let envios: Envio[] = [];
-let resposta = { status: 201, corpo: '{"id":"novo"}' };
+let resposta: { status: number; corpo: string; perdida?: boolean } = { status: 201, corpo: '{"id":"novo"}' };
 class FakeXhr {
   upload: { onprogress?: (e: unknown) => void } = {};
   status = 0;
@@ -36,7 +36,9 @@ class FakeXhr {
   send(form: FormData) {
     envios.push({ form, xhr: this });
     queueMicrotask(() => {
-      this.upload.onprogress?.({ lengthComputable: true, loaded: 50, total: 100 });
+      const fim = resposta.perdida ? 100 : 50;
+      this.upload.onprogress?.({ lengthComputable: true, loaded: fim, total: 100 });
+      if (resposta.perdida) return this.onerror?.();
       this.status = resposta.status;
       this.responseText = resposta.corpo;
       this.onload?.();
@@ -66,7 +68,7 @@ test('torcedor abrindo /postar vê "Só técnico posta" e o link para pedir club
   expect(screen.getByRole('link', { name: 'Ver clubes livres' }).getAttribute('href')).toBe('/clubes');
 });
 
-test('publicar envia cheia[] e mini[] na mesma ordem dos prompts', async () => {
+test('publicar envia cheia e mini (sem colchetes, mini de 800) na mesma ordem dos prompts', async () => {
   render(<Postar me={tecnico} />);
   escolher('a.jpg', 'b.jpg');
   await waitFor(() => expect((screen.getByRole('button', { name: 'Continuar' }) as HTMLButtonElement).disabled).toBe(false));
@@ -79,8 +81,8 @@ test('publicar envia cheia[] e mini[] na mesma ordem dos prompts', async () => {
 
   const f = envios[0].form;
   const textos = async (k: string) => Promise.all((f.getAll(k) as File[]).map((b) => b.text()));
-  expect(await textos('cheia[]')).toEqual(['a.jpg:1600', 'b.jpg:1600']);
-  expect(await textos('mini[]')).toEqual(['a.jpg:480', 'b.jpg:480']);
+  expect(await textos('cheia')).toEqual(['a.jpg:1600', 'b.jpg:1600']);
+  expect(await textos('mini')).toEqual(['a.jpg:800', 'b.jpg:800']);
   expect(JSON.parse(f.get('prompts') as string)).toEqual([null, 'um gol']);
   expect(f.get('legenda')).toBe('Treino');
   await waitFor(() => expect(location.pathname).toBe('/'));
@@ -160,4 +162,25 @@ test('editar: NAO_E_TECNICO avisa e desabilita', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
   expect(await screen.findByText(/Você não é mais técnico deste clube/)).toBeTruthy();
   expect((screen.getByRole('button', { name: 'Salvar alterações' }) as HTMLButtonElement).disabled).toBe(true);
+});
+
+test('upload chegou a 100% e a resposta se perdeu: não oferece reenviar', async () => {
+  resposta = { status: 0, corpo: '', perdida: true };
+  render(<Postar me={tecnico} />);
+  escolher('a.jpg');
+  await waitFor(() => expect((screen.getByRole('button', { name: 'Continuar' }) as HTMLButtonElement).disabled).toBe(false));
+  clica('Continuar');
+  clica('Publicar');
+  expect(await screen.findByText(/Pode ter sido publicado, confira o feed/)).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Tentar de novo' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Ver o feed' })).toBeTruthy();
+});
+
+test('remover imagem solta a URL da prévia', async () => {
+  render(<Postar me={tecnico} />);
+  escolher('a.jpg');
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Remover imagem 1' })).toBeTruthy());
+  await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled());
+  clica('Remover imagem 1');
+  expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:x');
 });

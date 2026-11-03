@@ -3,6 +3,7 @@ import { api, ErroApi } from '../api/cliente';
 import { guardarAviso } from '../aviso';
 import { esquecerFeed } from '../feed/Feed';
 import { Aviso, Botao, useEnvio } from '../conta/ui';
+import { Folha } from '../feed/Folha';
 import type { Post } from '../feed/tipos';
 import { haQuanto } from '../feed/tipos';
 import { navegar } from '../rotas';
@@ -77,13 +78,11 @@ export function EditarPost({ id }: { id: string }) {
         <Botao carregando={enviando ? 'Salvando…' : undefined} disabled={!mudou || estouro || semPermissao} onClick={salvar}>Salvar alterações</Botao>
       </div>
       {descartar && (
-        <div className="veu" role="dialog" aria-modal="true" aria-label="Descartar">
-          <div className="folha">
-            <h2>Descartar as alterações?</h2>
-            <button type="button" className="botao" onClick={() => setDescartar(false)}>Continuar editando</button>
-            <button type="button" className="botao fantasma" onClick={() => navegar('/')}>Descartar</button>
-          </div>
-        </div>
+        <Folha titulo="Descartar as alterações?" aoFechar={() => setDescartar(false)}>
+          <h2>Descartar as alterações?</h2>
+          <button type="button" className="botao" onClick={() => setDescartar(false)}>Continuar editando</button>
+          <button type="button" className="botao fantasma" onClick={() => navegar('/')}>Descartar</button>
+        </Folha>
       )}
     </div>
   );
