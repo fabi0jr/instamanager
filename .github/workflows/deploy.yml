@@ -23,6 +23,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://instamanager:instamanager@localhost:5432/instamanager
       APP_URL: http://localhost:5173
+      INVITE_CODE: CONVITE-CI
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -34,6 +35,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter back db:deploy
+      - run: pnpm --filter back db:seed # os e2e precisam dos 20 clubes e do convite
       - run: pnpm --filter front exec tsc --noEmit
       - run: pnpm test
       - run: node --test board/board.test.mjs
