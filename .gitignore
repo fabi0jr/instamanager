@@ -1,0 +1,12 @@
+.superpowers/
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+.maestri/
+*.tsbuildinfo
+.vitest/
+
+# prints do WhatsApp (têm telefones dos amigos)
+Image*.jpeg
