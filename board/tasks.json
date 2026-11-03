@@ -486,7 +486,7 @@
         "IM-17"
       ],
       "responsavel": "Ponta",
-      "coluna": "revisao",
+      "coluna": "correcao",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.231Z",
@@ -544,6 +544,13 @@
           "de": "dev",
           "para": "revisao",
           "nota": "correção 2b2850d"
+        },
+        {
+          "quando": "2026-11-03T20:12:50.350Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "types{} no nginx.conf substitui o mime.types, JS sai octet-stream"
         }
       ]
     },
@@ -975,7 +982,7 @@
         "IM-17"
       ],
       "responsavel": "Prancheta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.461Z",
@@ -1005,6 +1012,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:12:13.629Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "feed aprovado pelo Fabio: carrossel segue a 1ª imagem 4:5 a 1,91:1; toque duplo curte; torcedor em Postar vê 'Só técnico posta'"
+        },
+        {
+          "quando": "2026-11-03T20:12:13.652Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "feed aprovado pelo Fabio: carrossel segue a 1ª imagem 4:5 a 1,91:1; toque duplo curte; torcedor em Postar vê 'Só técnico posta'"
+        },
+        {
+          "quando": "2026-11-03T20:12:13.675Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "feed aprovado pelo Fabio: carrossel segue a 1ª imagem 4:5 a 1,91:1; toque duplo curte; torcedor em Postar vê 'Só técnico posta'"
         }
       ]
     },
@@ -1022,8 +1050,8 @@
       "depende": [
         "IM-17"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Prancheta",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.483Z",
@@ -1034,6 +1062,25 @@
           "quando": "2026-11-03T19:33:58.456Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T20:12:13.697Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:12:13.721Z",
+          "quem": "PO",
+          "nota": "atribuída a Prancheta"
+        },
+        {
+          "quando": "2026-11-03T20:12:13.743Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     },
