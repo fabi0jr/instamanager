@@ -85,6 +85,7 @@ Campinho visto de cima com a seta da jogada. Sem letras no símbolo: lê em 48 p
 
 Grade 24 px, traço 1,75 px, pontas e juntas arredondadas, sem preenchimento. Cor ativa `--im-giz`, inativa `--im-giz-3`. Exceção: **curtido** é preenchido e com traço em `--im-vermelho`. “mais” usa traço 3,2 px (pontos).
 Conjunto (board **Icones**, exportar SVG de lá): inicio, galeria, novo-post, curtir, curtido, comentar, perfil, copiar, fechar, voltar, mais, imagem, ok, alerta, trocar, lixo, escudo, apito.
+SVGs prontos para o front em `docs/design/icones/<nome>.svg` (viewBox 24, `stroke="currentColor"`, traço 1,75): inicio, galeria, novo-post, escudo, perfil, curtir, curtido (preenchido), comentar, mais, copiar, camera, voltar. A cor vem do `color` do CSS.
 Escudo do clube nos mockups é um placeholder verde; os escudos reais vêm do cadastro dos 20 clubes.
 
 ## Componentes e estados
