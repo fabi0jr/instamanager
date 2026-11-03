@@ -71,15 +71,23 @@ export async function reinscreverSePreciso(pushEnabledAntes: boolean): Promise<v
   }
 }
 
-/** Antes de sair: tira este aparelho do push (senão ele segue recebendo avisos de quem saiu). Nunca impede o logout. */
+const LIMITE_SAIR_MS = 3000;
+
+/**
+ * Antes de sair: tira este aparelho do push (senão ele segue recebendo avisos de quem saiu).
+ * Nunca impede o logout: erro é engolido e, com a rede pendurada, espera no máximo ~3 s.
+ */
 export async function cancelarInscricaoAoSair(): Promise<void> {
-  try {
+  const cancelar = async () => {
     if (!suportaPush()) return;
     const assinatura = await (await registroPush())?.pushManager.getSubscription();
     if (!assinatura) return;
     await api('/push/inscricao', { method: 'DELETE', body: JSON.stringify({ endpoint: assinatura.endpoint }) });
     await assinatura.unsubscribe();
-  } catch {
-    // o logout segue; a inscrição velha o servidor apaga sozinho quando o push voltar 404/410
-  }
+  };
+  let relogio: ReturnType<typeof setTimeout> | undefined;
+  const limite = new Promise<void>((ok) => (relogio = setTimeout(ok, LIMITE_SAIR_MS)));
+  // se o servidor demorar, a inscrição velha o próprio servidor apaga quando o push voltar 404/410
+  await Promise.race([cancelar().catch(() => undefined), limite]);
+  clearTimeout(relogio);
 }

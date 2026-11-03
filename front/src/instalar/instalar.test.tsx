@@ -341,3 +341,51 @@ test('primeira vez logada no feed → /instalar; depois de "Agora não" fica no 
   await screen.findByRole('navigation', { name: 'Principal' });
   expect(location.pathname).toBe('/'); // já visto: não volta a aparecer
 });
+
+test('mostrou = visto: abrir /instalar já marca, e sair pela barra abre o feed (não volta para /instalar)', async () => {
+  aparelho({ ua: DESKTOP });
+  fetchFalso(aoVivo({ v: true }));
+  history.replaceState(null, '', '/');
+  render(<App />);
+  await waitFor(() => expect(location.pathname).toBe('/instalar'));
+  expect(localStorage.getItem(VISTO)).toBe('1'); // marcado ao montar, sem tocar em nada
+  fireEvent.click(screen.getByRole('link', { name: 'Feed' })); // barra inferior
+  await waitFor(() => expect(location.pathname).toBe('/'));
+  await new Promise((r) => setTimeout(r, 50));
+  expect(location.pathname).toBe('/');
+});
+
+test('cancelarInscricaoAoSair espera no máximo ~3 s mesmo com o servidor pendurado', async () => {
+  vi.useFakeTimers();
+  try {
+    aparelho({ permissao: 'granted', existente: assinatura });
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => undefined))); // DELETE nunca responde
+    let acabou = false;
+    const p = cancelarInscricaoAoSair().then(() => (acabou = true));
+    await vi.advanceTimersByTimeAsync(2900);
+    expect(acabou).toBe(false);
+    await vi.advanceTimersByTimeAsync(200);
+    await p;
+    expect(acabou).toBe(true);
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+test('Sair com push pendurado: o POST /auth/sair sai depois do limite, sem travar para sempre', async () => {
+  vi.useFakeTimers();
+  try {
+    aparelho({ permissao: 'granted', existente: assinatura });
+    const chamadas: string[] = [];
+    vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) => {
+      chamadas.push(`${init?.method ?? 'GET'} ${url.replace(/^\/api/, '')}`);
+      return url.endsWith('/auth/sair') ? Promise.resolve(new Response(null, { status: 204 })) : new Promise(() => undefined);
+    }));
+    render(<Perfil me={{ ...me, pushEnabled: true }} recarregar={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
+    await vi.advanceTimersByTimeAsync(3100);
+    expect(chamadas).toEqual(['DELETE /push/inscricao', 'POST /auth/sair']);
+  } finally {
+    vi.useRealTimers();
+  }
+});

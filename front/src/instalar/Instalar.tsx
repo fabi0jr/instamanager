@@ -172,6 +172,8 @@ function Avisos({ recarregar }: { recarregar: () => void }) {
 /** /instalar e /avisos. `recarregar` atualiza o `me` (pushEnabled) depois de ativar. */
 export function Instalar({ caminho, recarregar }: { caminho: string; recarregar: () => void }) {
   const jaInstalado = instalado();
+  // mostrou = visto: quem sai pela barra (sem tocar em "Agora não") não cai de novo aqui no próximo feed
+  useEffect(() => marcarVisto(), []);
   // app já na tela inicial: instalar não faz sentido, vai direto aos avisos
   useEffect(() => {
     if (caminho === '/instalar' && jaInstalado) navegar('/avisos');
