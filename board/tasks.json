@@ -683,7 +683,7 @@
         "IM-18"
       ],
       "responsavel": "Ponta",
-      "coluna": "qa",
+      "coluna": "correcao",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.252Z",
@@ -727,6 +727,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou b8de443; QA com Bandeirinha"
+        },
+        {
+          "quando": "2026-11-03T20:33:48.089Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "correcao",
+          "nota": "Bandeirinha: DADOS_INVALIDOS vira 'Confira a conexão'; 401 não leva a /entrar; foco não segue as setas na lista de clubes; +2 menores"
         }
       ]
     },
@@ -751,7 +758,7 @@
         "IM-19"
       ],
       "responsavel": "Ponta",
-      "coluna": "revisao",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.272Z",
@@ -793,6 +800,13 @@
           "de": "dev",
           "para": "revisao",
           "nota": "correção 64eca3c"
+        },
+        {
+          "quando": "2026-11-03T20:33:32.148Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 64eca3c; QA depois da IM-9"
         }
       ]
     },
@@ -1403,7 +1417,7 @@
         "IM-17"
       ],
       "responsavel": "Prancheta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.525Z",
@@ -1433,6 +1447,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:32:19.388Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "design aprovado pelo Maestro: instalar e avisos sempre opcionais, tela explicativa antes do pedido do sistema, confirmação ao aprovar/recusar/tirar técnico, rótulo 'Admin'"
+        },
+        {
+          "quando": "2026-11-03T20:32:19.410Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "design aprovado pelo Maestro: instalar e avisos sempre opcionais, tela explicativa antes do pedido do sistema, confirmação ao aprovar/recusar/tirar técnico, rótulo 'Admin'"
+        },
+        {
+          "quando": "2026-11-03T20:32:19.431Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "design aprovado pelo Maestro: instalar e avisos sempre opcionais, tela explicativa antes do pedido do sistema, confirmação ao aprovar/recusar/tirar técnico, rótulo 'Admin'"
         }
       ]
     }
