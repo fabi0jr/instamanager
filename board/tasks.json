@@ -786,7 +786,7 @@
         "IM-19"
       ],
       "responsavel": "Ponta",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.272Z",
@@ -863,6 +863,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 4464061; reteste da rolagem"
+        },
+        {
+          "quando": "2026-11-03T23:08:24.909Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "QA aprovado pelo Bandeirinha; merge na main junto do pacote featim-23-visual"
         }
       ]
     },
@@ -885,7 +892,7 @@
         "IM-20"
       ],
       "responsavel": "Ponta",
-      "coluna": "qa",
+      "coluna": "correcao",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.294Z",
@@ -950,6 +957,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 9b6b2ed; QA na fila do Bandeirinha depois da IM-10"
+        },
+        {
+          "quando": "2026-11-03T23:08:24.934Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "correcao",
+          "nota": "barra inferior cobre o botão fixo Continuar/Publicar/Salvar no celular"
         }
       ]
     },
@@ -1044,7 +1058,7 @@
         "IM-22"
       ],
       "responsavel": "Volante",
-      "coluna": "dev",
+      "coluna": "correcao",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.335Z",
@@ -1084,6 +1098,20 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-03T23:06:48.667Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "entregue 30d2b94"
+        },
+        {
+          "quando": "2026-11-03T23:08:15.961Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "feed inacessível pela barra: 'visto' só marca em 'Agora não'; merge com o pacote exige ligar push no Perfil"
         }
       ]
     },
@@ -1107,7 +1135,7 @@
         "IM-22"
       ],
       "responsavel": "Volante",
-      "coluna": "revisao",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.356Z",
@@ -1170,6 +1198,13 @@
           "de": "dev",
           "para": "revisao",
           "nota": "correção 4c13daf"
+        },
+        {
+          "quando": "2026-11-03T23:03:53.314Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 4c13daf; o fix do back do convite vem em commit separado"
         }
       ]
     },
