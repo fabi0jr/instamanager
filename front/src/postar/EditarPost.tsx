@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, ErroApi } from '../api/cliente';
 import { guardarAviso } from '../aviso';
+import { esquecerFeed } from '../feed/Feed';
 import { Aviso, Botao, useEnvio } from '../conta/ui';
 import type { Post } from '../feed/tipos';
 import { haQuanto } from '../feed/tipos';
@@ -45,6 +46,7 @@ export function EditarPost({ id }: { id: string }) {
       async () => {
         await api<Post>(`/posts/${id}`, { method: 'PATCH', body: JSON.stringify({ legenda, prompts: prompts.map((p) => p.trim() || null) }) });
         guardarAviso('Alterações salvas');
+        esquecerFeed();
         navegar('/');
       },
       (e: ErroApi) => {

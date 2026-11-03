@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import type { Me } from '../api/cliente';
 import { guardarAviso } from '../aviso';
+import { esquecerFeed } from '../feed/Feed';
 import { Aviso, Botao, useEnvio } from '../conta/ui';
 import { Folha } from '../feed/Folha';
 import { Link, navegar } from '../rotas';
@@ -87,6 +88,7 @@ export function Postar({ me }: { me: Me }) {
     promessa.then(
       () => {
         guardarAviso('Post publicado');
+        esquecerFeed(); // o feed guardado não tem o post novo
         navegar('/');
       },
       (e) => {
@@ -164,7 +166,6 @@ export function Postar({ me }: { me: Me }) {
                 {i.estado === 'preparando' && <span className="giro véu" aria-label="Preparando" />}
                 {i.estado === 'erro' && <span className="nao-lida">Não lida</span>}
                 <button type="button" className="x" aria-label={`Remover imagem ${n + 1}`} onClick={() => remover(i.id)}>✕</button>
-                {i.erro && <p role="alert" className="erro-txt sr">{i.erro}</p>}
               </div>
             ))}
           </div>

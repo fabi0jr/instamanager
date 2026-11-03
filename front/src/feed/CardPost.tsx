@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api, type Me } from '../api/cliente';
 import { Link, navegar } from '../rotas';
 import { Carrossel } from './Carrossel';
@@ -14,10 +14,12 @@ type Props = {
   prioridade?: boolean;
   abrirComentarios?: boolean;
   aoApagar?: (id: string) => void;
+  aoMudar?: (p: Post) => void; // o Feed guarda a versão mais nova (curtida, contagem) para ao voltar
 };
 
-export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoApagar }: Props) {
+export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoApagar, aoMudar }: Props) {
   const [post, setPost] = useState(inicial);
+  useEffect(() => aoMudar?.(post), [post]); // eslint-disable-line react-hooks/exhaustive-deps
   const [aviso, setAviso] = useState('');
   const [menu, setMenu] = useState<'menu' | 'apagar' | null>(null);
   const [comentando, setComentando] = useState(!!abrirComentarios);
@@ -74,10 +76,12 @@ export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoAp
       {aviso && <p role="alert" className="erro-txt aviso-card">{aviso}</p>}
 
       {post.legenda && (
-        <p className={`legenda-post ${expandida ? '' : 'corta'}`}>
-          <strong>{post.autor.nome}</strong> {post.legenda}
+        <div className="legenda-bloco">
+          <p className={`legenda-post ${expandida ? '' : 'corta'}`}>
+            <strong>{post.autor.nome}</strong> {post.legenda}
+          </p>
           {longa && !expandida && <button type="button" className="link giz2" onClick={() => setExpandida(true)}>mais</button>}
-        </p>
+        </div>
       )}
       <button type="button" className="link giz2 ver-coment" onClick={() => setComentando(true)}>
         {post.comentarios > 0 ? `Ver os ${post.comentarios} comentários` : 'Comentar'}

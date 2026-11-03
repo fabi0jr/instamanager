@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState, type KeyboardEvent } from 'react';
 import { navegar } from '../rotas';
 import type { Post } from './tipos';
 
@@ -10,11 +10,23 @@ export function proporcao(p: Post) {
 
 export function Carrossel({ post, prioridade, aoDuploToque }: { post: Post; prioridade?: boolean; aoDuploToque: () => void }) {
   const [atual, setAtual] = useState(0);
+  const faixa = useRef<HTMLDivElement>(null);
+  // um quadro por vez (encaixe do scroll-snap termina o movimento)
+  const rolar = (dir: 1 | -1) => faixa.current?.scrollBy({ left: dir * faixa.current.clientWidth, behavior: 'smooth' });
+  function tecla(e: KeyboardEvent) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      rolar(e.key === 'ArrowRight' ? 1 : -1);
+    }
+  }
   const total = post.imagens.length;
   const img = post.imagens[atual];
   return (
     <div className="carrossel-moldura">
       <div
+        ref={faixa}
+        tabIndex={0}
+        onKeyDown={tecla}
         className="carrossel"
         role="group"
         aria-roledescription="carrossel"
@@ -33,6 +45,8 @@ export function Carrossel({ post, prioridade, aoDuploToque }: { post: Post; prio
           />
         ))}
       </div>
+      {total > 1 && atual > 0 && <button type="button" className="seta esq" aria-label="Imagem anterior" onClick={() => rolar(-1)}>‹</button>}
+      {total > 1 && atual < total - 1 && <button type="button" className="seta dir" aria-label="Próxima imagem" onClick={() => rolar(1)}>›</button>}
       {total > 1 && <span className="contador">{atual + 1}/{total}</span>}
       {img?.prompt && (
         <button type="button" className="ver-prompt" onClick={() => navegar(`/galeria?imagem=${img.id}`)}>Ver prompt</button>

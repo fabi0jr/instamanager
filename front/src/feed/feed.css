@@ -45,3 +45,9 @@
 .comentar textarea { flex: 1; min-height: 44px; max-height: 120px; border-radius: 22px; }
 .comentar button { min-height: 44px; background: none; border: 0; color: var(--im-giz-3); font: 600 15px var(--im-fonte-texto); cursor: pointer; } .comentar button.ativo { color: var(--im-vermelho-texto); }
 @media (min-width: 768px) { .veu { align-items: center; } .folha, .folha.alta { border-radius: var(--im-r-folha); max-width: 390px; height: auto; max-height: 660px; } .folha.alta { height: 660px; } }
+
+.legenda-bloco { padding: 0 var(--im-e4); display: flex; flex-direction: column; align-items: flex-start; } .legenda-bloco .legenda-post { padding: 0; }
+.carrossel:focus-visible { outline: 2px solid var(--im-giz); outline-offset: -2px; }
+.seta { display: none; position: absolute; top: calc(50% - 18px); width: 36px; height: 36px; min-width: 36px; min-height: 36px; padding: 0; border: 0; border-radius: 50%; background: rgb(14 15 17 / .72); color: var(--im-giz); font-size: 24px; line-height: 1; cursor: pointer; }
+.seta.esq { left: 8px; } .seta.dir { right: 8px; }
+@media (min-width: 768px) { .carrossel-moldura:hover .seta, .carrossel-moldura:focus-within .seta { display: block; } }

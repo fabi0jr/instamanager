@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, type Me } from '../api/cliente';
+import { Escudo } from './Escudo';
 import { Folha } from './Folha';
 import { IcFechar, IcMais } from './icones';
+import { sigla } from './siglas';
 import { haQuanto, type Comentario } from './tipos';
 
 type Item = Comentario & { estado?: 'enviando' | 'falhou' };
-const sigla = (id: string) => id.slice(0, 3).toUpperCase();
 
 function Avatar({ nome, url }: { nome: string; url: string | null }) {
   return url ? <img className="av32" src={url} alt="" /> : <span className="av32" aria-hidden="true">{nome[0]?.toUpperCase()}</span>;
@@ -15,6 +16,7 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
   const [lista, setLista] = useState<Item[] | 'carregando' | 'erro'>('carregando');
   const [texto, setTexto] = useState('');
   const [menu, setMenu] = useState<Item | null>(null);
+  const [aviso, setAviso] = useState('');
   const fim = useRef<HTMLDivElement>(null);
   const seq = useRef(0);
 
@@ -56,6 +58,7 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
       await api(`/comentarios/${c.id}`, { method: 'DELETE' });
     } catch {
       mudar((l) => [...l, c].sort((a, b) => a.criadoEm.localeCompare(b.criadoEm)));
+      setAviso('Não deu para apagar o comentário. Tente de novo.');
     }
   }
 
@@ -66,6 +69,7 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
         <h2>Comentários {Array.isArray(lista) && <span className="giz2">{lista.length}</span>}</h2>
         <button type="button" aria-label="Fechar" onClick={aoFechar}><IcFechar /></button>
       </header>
+      {aviso && <p role="alert" className="erro-txt">{aviso}</p>}
       <div className="comentarios-lista">
         {lista === 'carregando' && [0, 1, 2, 3].map((n) => <div key={n} className="esqueleto" />)}
         {lista === 'erro' && (
@@ -83,7 +87,7 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
             <div className="corpo">
               <div>
                 <strong>{c.usuario.nome}</strong>{' '}
-                {c.usuario.clube && <span className="pilula" aria-label={`Clube ${c.usuario.clube.nome}`}><img src={`/escudos/${c.usuario.clube.id}.svg`} alt="" width="12" height="12" onError={(e) => (e.currentTarget.src = '/escudos/generico.svg')} />{sigla(c.usuario.clube.id)}</span>}
+                {c.usuario.clube && <span className="pilula" aria-label={`Clube ${c.usuario.clube.nome}`}><Escudo src={`/escudos/${c.usuario.clube.id}.svg`} tam={12} />{sigla(c.usuario.clube.id)}</span>}
               </div>
               <p>{c.texto}</p>
               {c.estado === 'falhou' ? (

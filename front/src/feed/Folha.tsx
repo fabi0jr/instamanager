@@ -9,7 +9,10 @@ export function Folha({ titulo, aoFechar, children, alta }: { titulo: string; ao
     return () => antes?.focus();
   }, []);
   function tecla(e: KeyboardEvent) {
-    if (e.key === 'Escape') aoFechar();
+    if (e.key === 'Escape') {
+      e.stopPropagation(); // Folha aninhada fecha só ela
+      aoFechar();
+    }
   }
   return (
     <div className="veu" onClick={aoFechar}>
