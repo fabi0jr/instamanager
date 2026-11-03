@@ -5,10 +5,17 @@ import { Link } from '../rotas';
 import { CardPost } from './CardPost';
 import type { Pagina, Post } from './tipos';
 
+// Ao abrir um post/clube e voltar, o Feed remonta: guarda lista e rolagem para voltar ao mesmo ponto sem refazer a busca.
+let guardado: { meId: string; itens: Post[]; proximo: string | null; y: number } | null = null;
+export const esquecerFeed = () => (guardado = null); // chamar quando a lista muda por fora (ex.: post novo publicado)
+
 export function Feed({ me }: { me: Me }) {
-  const [itens, setItens] = useState<Post[]>([]);
-  const [proximo, setProximo] = useState<string | null>(null);
-  const [estado, setEstado] = useState<'carregando' | 'ok' | 'erro'>('carregando');
+  const volta = guardado?.meId === me.id ? guardado : null;
+  const [itens, setItens] = useState<Post[]>(volta?.itens ?? []);
+  const [proximo, setProximo] = useState<string | null>(volta?.proximo ?? null);
+  const [estado, setEstado] = useState<'carregando' | 'ok' | 'erro'>(volta ? 'ok' : 'carregando');
+  const atual = useRef({ itens, proximo });
+  atual.current = { itens, proximo };
   const [erroMais, setErroMais] = useState(false);
   const [aviso, setAviso] = useState('');
   const ocupado = useRef(false);
@@ -30,7 +37,13 @@ export function Feed({ me }: { me: Me }) {
       ocupado.current = false;
     }
   }, []);
-  useEffect(() => { carregar(null); }, [carregar]);
+  useEffect(() => {
+    if (volta) requestAnimationFrame(() => window.scrollTo(0, volta.y));
+    else carregar(null);
+    return () => {
+      guardado = { meId: me.id, ...atual.current, y: window.scrollY };
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // rolagem infinita: o sentinela no fim da lista pede a próxima página (começa 600 px antes)
   useEffect(() => {
@@ -61,10 +74,17 @@ export function Feed({ me }: { me: Me }) {
         <div className="caixa-info">
           <h2>Ainda não tem post por aqui</h2>
           <p className="giz2">Quando alguém publicar, o post aparece aqui. Que tal abrir o jogo?</p>
-          {me.clube && <Link para="/postar" className="botao">Novo post</Link>}
+          {me.clube ? (
+            <Link para="/postar" className="botao">Novo post</Link>
+          ) : (
+            <>
+              <p className="giz2">Só técnico de clube posta.</p>
+              <Link para="/clubes" className="botao secundario">Ver clubes livres</Link>
+            </>
+          )}
         </div>
       )}
-      {itens.map((p, i) => <CardPost key={p.id} post={p} me={me} prioridade={i === 0} aoApagar={apagado} />)}
+      {itens.map((p, i) => <CardPost key={p.id} post={p} me={me} prioridade={i === 0} aoApagar={apagado} aoMudar={(n) => setItens((l) => l.map((x) => (x.id === n.id && x !== n ? n : x)))} />)}
       {erroMais && (
         <div className="caixa-info" role="alert">
           <p>Não deu para carregar mais posts.</p>

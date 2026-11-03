@@ -4,7 +4,7 @@ import type { Me } from '../api/cliente';
 import { fetchFalso } from '../testes/fetchFalso';
 import { CardPost } from './CardPost';
 import { Comentarios } from './Comentarios';
-import { Feed } from './Feed';
+import { esquecerFeed, Feed } from './Feed';
 import type { Post } from './tipos';
 
 const me: Me = { id: 'u1', nome: 'Lincoln', email: 'l@x.com', avatarUrl: null, isAdmin: false, pushEnabled: false, clube: null };
@@ -24,6 +24,7 @@ const post = (id: string, extra: Partial<Post> = {}): Post => ({
 
 let observadores: { cb: IntersectionObserverCallback }[] = [];
 beforeEach(() => {
+  esquecerFeed();
   observadores = [];
   vi.stubGlobal('IntersectionObserver', class {
     constructor(public cb: IntersectionObserverCallback) { observadores.push(this); }
@@ -143,4 +144,78 @@ test('comentário novo aparece na hora e a falha mostra "Não enviou"', async ()
   fireEvent.click(screen.getByRole('button', { name: 'Publicar' }));
   expect(screen.getByText('Show')).toBeTruthy();
   expect(await screen.findByText('Não enviou. Toque para tentar de novo.')).toBeTruthy();
+});
+
+test('"mais" fica fora do parágrafo cortado e expande a legenda', () => {
+  const { container } = render(<CardPost post={post('a', { legenda: 'x'.repeat(200) })} me={me} />);
+  const mais = screen.getByRole('button', { name: 'mais' });
+  expect(mais.closest('.corta')).toBeNull();
+  expect(container.querySelector('.corta')).toBeTruthy();
+  fireEvent.click(mais);
+  expect(container.querySelector('.corta')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'mais' })).toBeNull();
+});
+
+test('carrossel: foco por teclado, ←/→ rolam um quadro e há setas', () => {
+  const p = post('a', { imagens: [1, 2, 3].map((n) => ({ id: 'i' + n, miniUrl: `/m${n}.jpg`, cheiaUrl: `/c${n}.jpg`, largura: 1000, altura: 1000, prompt: null })) });
+  render(<CardPost post={p} me={me} />);
+  const faixa = screen.getByRole('group', { name: 'Imagens do post' });
+  expect(faixa.getAttribute('tabindex')).toBe('0');
+  const scrollBy = vi.fn();
+  Object.assign(faixa, { scrollBy });
+  Object.defineProperty(faixa, 'clientWidth', { value: 300 });
+  fireEvent.keyDown(faixa, { key: 'ArrowRight' });
+  expect(scrollBy).toHaveBeenLastCalledWith({ left: 300, behavior: 'smooth' });
+  fireEvent.keyDown(faixa, { key: 'ArrowLeft' });
+  expect(scrollBy).toHaveBeenLastCalledWith({ left: -300, behavior: 'smooth' });
+  expect(screen.getByRole('button', { name: 'Próxima imagem' })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Imagem anterior' })).toBeNull(); // na 1ª imagem
+  fireEvent.click(screen.getByRole('button', { name: 'Próxima imagem' }));
+  expect(scrollBy).toHaveBeenLastCalledWith({ left: 300, behavior: 'smooth' });
+});
+
+test('Esc fecha só a folha de cima', () => {
+  render(<CardPost post={post('a', { podeEditar: true })} me={me} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Mais opções' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Apagar post' }));
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+  expect(screen.queryByRole('dialog')).toBeNull();
+});
+
+test('comentário que não apagou volta e mostra aviso', async () => {
+  fetchFalso({
+    'GET /posts/a/comentarios': [{ id: 'c1', texto: 'Oi', criadoEm: new Date().toISOString(), usuario: { id: 'u1', nome: 'Lincoln', avatarUrl: null, clube: null } }],
+    'DELETE /comentarios/c1': { status: 500 },
+  });
+  render(<Comentarios postId="a" me={me} aoFechar={() => {}} aoContar={() => {}} />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Opções do comentário' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Apagar comentário' }));
+  expect(await screen.findByText('Não deu para apagar o comentário. Tente de novo.')).toBeTruthy();
+  expect(screen.getByText('Oi')).toBeTruthy();
+});
+
+test('sigla dos clubes vem do mapa fixo', async () => {
+  fetchFalso({ 'GET /posts/a/comentarios': [{ id: 'c1', texto: 'x', criadoEm: new Date().toISOString(), usuario: { id: 'u2', nome: 'A', avatarUrl: null, clube: { id: 'sao-paulo', nome: 'São Paulo' } } }] });
+  render(<Comentarios postId="a" me={me} aoFechar={() => {}} aoContar={() => {}} />);
+  expect(await screen.findByText('SPFC')).toBeTruthy();
+});
+
+test('feed vazio do torcedor explica e leva a Ver clubes livres', async () => {
+  fetchFalso({ 'GET /posts': { itens: [], proximo: null } });
+  render(<Feed me={me} />);
+  expect(await screen.findByText('Só técnico de clube posta.')).toBeTruthy();
+  expect(screen.getByRole('link', { name: 'Ver clubes livres' }).getAttribute('href')).toBe('/clubes');
+});
+
+test('ao voltar, o feed reaparece sem nova busca e na mesma rolagem', async () => {
+  const chamadas = fetchFalso({ 'GET /posts': { itens: [post('a')], proximo: null } });
+  window.scrollTo = vi.fn() as never;
+  Object.defineProperty(window, 'scrollY', { value: 420, configurable: true });
+  const { unmount } = render(<Feed me={{ ...me, id: 'volta' }} />);
+  await screen.findAllByRole('article');
+  unmount();
+  render(<Feed me={{ ...me, id: 'volta' }} />);
+  expect(screen.getAllByRole('article')).toHaveLength(1);
+  await waitFor(() => expect(window.scrollTo).toHaveBeenCalledWith(0, 420));
+  expect(chamadas).toHaveLength(1);
 });
