@@ -1,4 +1,4 @@
-// Modelos entram na IM-2 (contrato em docs/api.md).
+// Contrato da API: docs/api.md.
 
 generator client {
   provider            = "prisma-client"
@@ -9,4 +9,160 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum TrocaTipo {
+  SAIR
+  ASSUMIR
+}
+
+enum TrocaStatus {
+  PENDENTE
+  APROVADA
+  RECUSADA
+}
+
+model User {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  name         String
+  avatarPath   String?
+  isAdmin      Boolean  @default(false)
+  pushEnabled  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  club          Club?
+  sessions      Session[]
+  resets        PasswordReset[]
+  tenures       CoachTenure[]
+  posts         Post[]
+  likes         Like[]
+  comments      Comment[]
+  transfers     TransferRequest[]
+  subscriptions PushSubscription[]
+}
+
+model Session {
+  id        String   @id // sha256 do token do cookie
+  userId    String   @db.Uuid
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordReset {
+  tokenHash String    @id
+  userId    String    @db.Uuid
+  expiresAt DateTime
+  usedAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Club {
+  id        String  @id // slug, ex. "palmeiras"
+  name      String
+  crestPath String
+  coachId   String? @unique @db.Uuid // único: um técnico por clube e um clube por pessoa
+  coach     User?   @relation(fields: [coachId], references: [id], onDelete: SetNull)
+
+  tenures   CoachTenure[]
+  posts     Post[]
+  transfers TransferRequest[]
+}
+
+model CoachTenure {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clubId    String
+  userId    String    @db.Uuid
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+  club      Club      @relation(fields: [clubId], references: [id])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([clubId, startedAt])
+}
+
+model Post {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clubId    String
+  authorId  String   @db.Uuid // técnico que publicou
+  caption   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  club      Club     @relation(fields: [clubId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+
+  images   PostImage[]
+  likes    Like[]
+  comments Comment[]
+
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@index([clubId, createdAt(sort: Desc)])
+}
+
+model PostImage {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId    String  @db.Uuid
+  position  Int
+  fullPath  String
+  thumbPath String
+  width     Int
+  height    Int
+  prompt    String?
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, position])
+}
+
+model Like {
+  postId String @db.Uuid
+  userId String @db.Uuid
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+}
+
+model Comment {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId    String   @db.Uuid
+  userId    String   @db.Uuid
+  text      String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+}
+
+model TransferRequest {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String      @db.Uuid
+  kind      TrocaTipo
+  clubId    String?
+  status    TrocaStatus @default(PENDENTE)
+  createdAt DateTime    @default(now())
+  decidedAt DateTime?
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club      Club?       @relation(fields: [clubId], references: [id])
+
+  @@index([status, createdAt])
+}
+
+model PushSubscription {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId   String @db.Uuid
+  endpoint String @unique
+  p256dh   String
+  auth     String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Setting {
+  key   String @id
+  value String
 }

@@ -13,6 +13,7 @@ cp .env.example .env              # troque a senha nas duas linhas
 pnpm install
 docker compose up -d              # Postgres em 127.0.0.1:5433
 pnpm --filter back db:deploy      # aplica as migrações
+pnpm --filter back db:seed        # 20 clubes + código de convite
 pnpm --filter back start:dev      # http://localhost:3000/api/health
 pnpm --filter front dev           # http://localhost:5173
 ```

@@ -33,6 +33,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter back db:deploy
       - run: pnpm --filter front exec tsc --noEmit
       - run: pnpm test
       - run: node --test board/board.test.mjs
