@@ -28,7 +28,9 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
   }
 
   function trocarFoto(e: ChangeEvent<HTMLInputElement>) {
-    const arquivo = e.target.files?.[0];
+    const input = e.target;
+    const arquivo = input.files?.[0];
+    input.value = ''; // permite escolher o mesmo arquivo de novo
     if (!arquivo) return;
     setOk('');
     fotoEnvio.enviar(async () => {
@@ -41,6 +43,7 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
         recarregar();
       } catch (erro) {
         if (erro instanceof ErroImagem) fotoEnvio.setAviso('Não deu para ler essa imagem. Escolha outra foto.');
+        else if (erro instanceof ErroApi && erro.codigo === 'IMAGEM_INVALIDA') fotoEnvio.setAviso('Essa imagem não serve. Escolha uma foto JPEG ou PNG.');
         else throw erro;
       }
     });

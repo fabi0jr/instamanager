@@ -22,10 +22,11 @@ export function App() {
   }, [me, publica, caminho]);
 
   if (carregando) return <div className="carregando" role="status" aria-label="Carregando" />;
+  // o link do e-mail abre a tela com ou sem sessão
+  if (caminho === '/nova-senha') return <NovaSenha />;
   if (!me) {
     if (caminho === '/cadastro') return <Cadastro aoEntrar={recarregar} />;
     if (caminho === '/esqueci-senha') return <Esqueci />;
-    if (caminho === '/nova-senha') return <NovaSenha />;
     return <Entrar aoEntrar={recarregar} />;
   }
   return (

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { comprimir, ErroImagem } from './comprimir';
 
-let canvas: { width: number; height: number };
+let canvas: any;
 beforeEach(() => {
   canvas = { width: 0, height: 0 };
   vi.spyOn(document, 'createElement').mockImplementation(((tag: string) =>
@@ -36,5 +36,12 @@ test('imagem menor que ladoMax não aumenta', async () => {
 
 test('arquivo ilegível → ErroImagem', async () => {
   vi.stubGlobal('createImageBitmap', vi.fn(async () => Promise.reject(new Error('x'))));
+  await expect(comprimir(new File(['x'], 'a.jpg'), 480)).rejects.toBeInstanceOf(ErroImagem);
+});
+
+test('canvas sem contexto 2d → ErroImagem', async () => {
+  imagem(100, 100);
+  canvas.getContext = () => null;
+  vi.mocked(document.createElement).mockImplementation((() => canvas) as never);
   await expect(comprimir(new File(['x'], 'a.jpg'), 480)).rejects.toBeInstanceOf(ErroImagem);
 });

@@ -35,3 +35,14 @@ test('técnico vê Clube apontando para o próprio clube', async () => {
   expect(nav.querySelectorAll('a')).toHaveLength(5);
   expect(nav.querySelector('[href="/c/palmeiras"]')).toBeTruthy();
 });
+
+test('/nova-senha abre a NovaSenha com ou sem sessão', async () => {
+  history.pushState(null, '', '/nova-senha?token=t');
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(me))));
+  render(<App />);
+  expect(await screen.findByRole('heading', { name: 'Nova senha' })).toBeTruthy();
+  cleanup();
+  vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 401 })));
+  render(<App />);
+  expect(await screen.findByRole('heading', { name: 'Nova senha' })).toBeTruthy();
+});

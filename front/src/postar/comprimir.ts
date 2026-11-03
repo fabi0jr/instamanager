@@ -14,7 +14,9 @@ export async function comprimir(arquivo: File, ladoMax: number) {
   const canvas = document.createElement('canvas');
   canvas.width = largura;
   canvas.height = altura;
-  canvas.getContext('2d')?.drawImage(bmp, 0, 0, largura, altura);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new ErroImagem('Não deu para processar essa imagem');
+  ctx.drawImage(bmp, 0, 0, largura, altura);
   bmp.close?.();
   const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/jpeg', 0.82));
   if (!blob) throw new ErroImagem('Não deu para comprimir essa imagem');

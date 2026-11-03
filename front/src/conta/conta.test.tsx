@@ -147,3 +147,25 @@ test('perfil salva nome, foto (comprimida em 480) e senha', async () => {
   expect(JSON.parse(chamadas.filter((c) => c.chave === 'PATCH /me')[1].body as string)).toEqual({ senhaAtual: 'velha1234', senhaNova: 'nova12345' });
   expect(recarregar).toHaveBeenCalled();
 });
+
+test('sem clube livre, torcedor já vem escolhido', async () => {
+  fetchFalso({ 'GET /clubes?livres=1': [] });
+  await ateOClube();
+  expect(screen.getByRole('radio', { name: 'Sou só torcedor' }).getAttribute('aria-checked')).toBe('true');
+});
+
+test('erro ao carregar clubes: torcedor é radio focável por teclado e as setas funcionam', async () => {
+  fetchFalso({ 'GET /clubes?livres=1': { status: 500 } });
+  await ateOClube().catch(() => {});
+  const r = await screen.findByRole('radio', { name: 'Sou só torcedor' });
+  expect(r.getAttribute('tabindex')).toBe('0');
+  fireEvent.keyDown(r.parentElement!, { key: 'ArrowDown' });
+  expect(r.getAttribute('aria-checked')).toBe('true');
+});
+
+test('perfil: IMAGEM_INVALIDA mostra a mensagem', async () => {
+  fetchFalso({ 'PUT /me/foto': { status: 400, corpo: { codigo: 'IMAGEM_INVALIDA', mensagem: 'x' } } });
+  render(<Perfil me={me} recarregar={() => {}} />);
+  fireEvent.change(screen.getByLabelText('Trocar foto'), { target: { files: [new File(['x'], 'f.jpg')] } });
+  expect((await screen.findAllByRole('alert'))[0].textContent).toContain('Essa imagem não serve');
+});

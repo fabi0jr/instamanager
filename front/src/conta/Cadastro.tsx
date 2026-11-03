@@ -18,7 +18,9 @@ export function Cadastro({ aoEntrar }: { aoEntrar: () => void }) {
   const carregarClubes = useCallback(async () => {
     setClubes('carregando');
     try {
-      setClubes(await api<ClubeLivre[]>('/clubes?livres=1'));
+      const livres = await api<ClubeLivre[]>('/clubes?livres=1');
+      setClubes(livres);
+      if (livres.length === 0) setEscolha(TORCEDOR); // todos ocupados: torcedor já escolhido
     } catch {
       setClubes('erro');
     }
@@ -75,7 +77,8 @@ export function Cadastro({ aoEntrar }: { aoEntrar: () => void }) {
     );
   }
 
-  const opcoes = Array.isArray(clubes) ? [...clubes.map((c) => ({ id: c.id, nome: c.nome, img: c.escudoUrl })), { id: TORCEDOR, nome: 'Sou só torcedor', img: '' }] : [];
+  // mesma lista para o map, o tabIndex e as setas; "Sou só torcedor" existe até no estado de erro
+  const opcoes = [...(Array.isArray(clubes) ? clubes.map((c) => ({ id: c.id, nome: c.nome, img: c.escudoUrl })) : []), { id: TORCEDOR, nome: 'Sou só torcedor', img: '' }];
   function seta(e: React.KeyboardEvent) {
     const i = opcoes.findIndex((o) => o.id === escolha);
     const delta = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1 : 0;
@@ -128,8 +131,8 @@ export function Cadastro({ aoEntrar }: { aoEntrar: () => void }) {
           {Array.isArray(clubes) && clubes.length === 0 && <div className="caixa-info"><h2>Todos os clubes já têm técnico</h2></div>}
           {(Array.isArray(clubes) || clubes === 'erro') && (
             <div role="radiogroup" aria-label="Clube" className="clubes duas" onKeyDown={seta}>
-              {(clubes === 'erro' ? [{ id: TORCEDOR, nome: 'Sou só torcedor', img: '' }] : opcoes).map((o) => (
-                <button key={o.id} type="button" role="radio" aria-checked={escolha === o.id} tabIndex={escolha === o.id || (!escolha && o === opcoes[0]) ? 0 : -1}
+              {opcoes.map((o) => (
+                <button key={o.id} type="button" role="radio" aria-checked={escolha === o.id} tabIndex={escolha === o.id || (!escolha && o.id === opcoes[0].id) ? 0 : -1}
                   className={`opcao ${o.id === TORCEDOR ? 'torcedor' : ''}`} disabled={enviando} onClick={() => setEscolha(o.id)}>
                   {o.img && <img src={o.img} alt="" />}
                   {o.nome}
