@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { api } from '../api/cliente';
-import { Aviso, Botao, Campo, useEnvio, useFocoNoErro } from '../conta/ui';
+import { Aviso, Botao, Campo, errosDosCampos, useEnvio, useFocoNoErro } from '../conta/ui';
 import { Folha } from '../feed/Folha';
 import { Topo } from './Admin';
 
@@ -39,14 +39,23 @@ export function Convite() {
     e.preventDefault();
     const valor = novo.trim();
     if (valor.length < 4) return setErro('Use pelo menos 4 caracteres.');
+    if (valor.length > 64) return setErro('Use no máximo 64 caracteres.');
     setErro('');
-    enviar(async () => {
-      const r = await api<{ codigo: string }>('/admin/convite', { method: 'PUT', body: JSON.stringify({ codigo: valor }) });
-      setCodigo(r.codigo);
-      setCopiado(false);
-      setTrocando(false);
-      setNovo('');
-    });
+    enviar(
+      async () => {
+        const r = await api<{ codigo: string }>('/admin/convite', { method: 'PUT', body: JSON.stringify({ codigo: valor }) });
+        setCodigo(r.codigo);
+        setCopiado(false);
+        setTrocando(false);
+        setNovo('');
+      },
+      (e) => {
+        const campos = errosDosCampos(e, { codigo: 'Use de 4 a 64 caracteres.' });
+        if (!campos) return false;
+        setErro(campos.codigo);
+        return true;
+      },
+    );
   }
 
   return (
@@ -74,7 +83,7 @@ export function Convite() {
         <Folha titulo="Trocar código" aoFechar={() => setTrocando(false)}>
           <form onSubmit={trocar} noValidate className="form-folha">
             <Aviso>{aviso}</Aviso>
-            <Campo data-foco rotulo="Novo código" value={novo} autoCapitalize="characters" autoComplete="off" ajuda="Pelo menos 4 caracteres." erro={erro} disabled={enviando} onChange={(e) => setNovo(e.target.value.toUpperCase())} />
+            <Campo data-foco rotulo="Novo código" maxLength={64} value={novo} autoCapitalize="characters" autoComplete="off" ajuda="Pelo menos 4 caracteres." erro={erro} disabled={enviando} onChange={(e) => setNovo(e.target.value.toUpperCase())} />
             <p className="aviso-ambar">O código antigo para de valer na hora. Quem já tem conta continua entrando.</p>
             <Botao type="submit" carregando={enviando ? 'Trocando…' : undefined}>Trocar código</Botao>
           </form>

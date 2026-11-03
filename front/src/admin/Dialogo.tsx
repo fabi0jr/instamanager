@@ -17,7 +17,14 @@ export function Dialogo({ titulo, texto, acao, perigo, ocupado, aoConfirmar, aoV
   useEffect(() => {
     const antes = document.activeElement as HTMLElement | null;
     voltar.current?.focus();
-    return () => antes?.focus();
+    return () => {
+      // o botão de origem pode ter sumido (pedido aprovado, técnico tirado): o foco cai no título da tela, não no <body>
+      const alvo = antes && antes !== document.body && antes.isConnected ? antes : document.querySelector<HTMLElement>('h1'); // Safari não foca botão ao tocar: body também vale como "sumiu"
+      if (alvo) {
+        if (alvo.tagName === 'H1') alvo.tabIndex = -1;
+        alvo.focus();
+      }
+    };
   }, []);
   function tecla(e: KeyboardEvent) {
     if (e.key === 'Escape') {
@@ -35,9 +42,4 @@ export function Dialogo({ titulo, texto, acao, perigo, ocupado, aoConfirmar, aoV
       </div>
     </div>
   );
-}
-
-// Aviso rápido de sucesso; some sozinho (o chamador zera o texto)
-export function usarAvisoRapido() {
-  return { toast: (set: (t: string) => void, t: string) => { set(t); setTimeout(() => set(''), 4000); } };
 }

@@ -204,3 +204,42 @@ test('clubes: técnico → diálogo e "Tirar técnico" libera a vaga; clube sem 
   await waitFor(() => expect(screen.getAllByText('Vaga aberta')).toHaveLength(2));
   expect(screen.getByRole('status').textContent).toContain('Lincoln saiu do Palmeiras.');
 });
+
+test('convite: o campo limita a 64, e o 400 DADOS_INVALIDOS do servidor vira erro no campo (sem aviso de conexão)', async () => {
+  fetchFalso({
+    'GET /admin/convite': { codigo: 'OSM-2026' },
+    'PUT /admin/convite': { status: 400, corpo: { codigo: 'DADOS_INVALIDOS', mensagem: 'x', campos: ['codigo'] } },
+  });
+  render(<Admin me={admin} caminho="/admin/convite" />);
+  await screen.findByText('OSM-2026');
+  clica('Trocar código');
+  const campo = (await screen.findByLabelText('Novo código')) as HTMLInputElement;
+  expect(campo.maxLength).toBe(64);
+  fireEvent.change(campo, { target: { value: 'abcde' } });
+  clica('Trocar código', within(screen.getByRole('dialog')));
+  expect(await screen.findByText('Use de 4 a 64 caracteres.')).toBeTruthy();
+  expect(screen.queryByText(/Confira a conexão/)).toBeNull();
+  // colado com mais de 64 (se o navegador não cortar): erro de tamanho no campo, sem chamar a API
+  fireEvent.change(campo, { target: { value: 'A'.repeat(65) } });
+  clica('Trocar código', within(screen.getByRole('dialog')));
+  expect(await screen.findByText('Use no máximo 64 caracteres.')).toBeTruthy();
+});
+
+test('o foco volta ao título quando o botão que abriu o diálogo sumiu (pedido aprovado)', async () => {
+  fetchFalso({ 'GET /admin/trocas?status=PENDENTE': [pedido('1', 'Marcos'), pedido('2', 'Abel')], 'POST /admin/trocas/1/aprovar': { status: 204 } });
+  render(<Admin me={admin} caminho="/admin/pedidos" />);
+  clica('Aprovar', within((await screen.findByText('Marcos')).closest('li') as HTMLElement));
+  clica('Aprovar', within(await screen.findByRole('alertdialog')));
+  await waitFor(() => expect(screen.queryByText('Marcos')).toBeNull());
+  expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Pedidos de troca' }));
+});
+
+test('o foco volta ao botão de origem quando ele continua na tela (Voltar)', async () => {
+  fetchFalso({ 'GET /admin/trocas?status=PENDENTE': [pedido('1', 'Marcos')] });
+  render(<Admin me={admin} caminho="/admin/pedidos" />);
+  const aprovar = within((await screen.findByText('Marcos')).closest('li') as HTMLElement).getByRole('button', { name: 'Aprovar' });
+  aprovar.focus();
+  fireEvent.click(aprovar);
+  clica('Voltar', within(await screen.findByRole('alertdialog')));
+  expect(document.activeElement).toBe(aprovar);
+});
