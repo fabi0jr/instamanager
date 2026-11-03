@@ -354,7 +354,7 @@
         "IM-3"
       ],
       "responsavel": "Volante",
-      "coluna": "revisao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.168Z",
@@ -391,6 +391,20 @@
           "de": "dev",
           "para": "revisao",
           "nota": "entregue 2062a09"
+        },
+        {
+          "quando": "2026-11-03T20:19:33.544Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "tarefa sem tela: revisão+testes"
+        },
+        {
+          "quando": "2026-11-03T20:19:33.565Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "tarefa sem tela: revisão+testes"
         }
       ]
     },
@@ -454,8 +468,8 @@
       "depende": [
         "IM-6"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Volante",
+      "coluna": "pronto",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.209Z",
@@ -466,6 +480,18 @@
           "quando": "2026-11-03T19:33:58.178Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T20:19:33.585Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:19:33.607Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
         }
       ]
     },
