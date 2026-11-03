@@ -6,11 +6,15 @@ import { Entrar } from './conta/Entrar';
 import { Esqueci } from './conta/Esqueci';
 import { NovaSenha } from './conta/NovaSenha';
 import { Perfil } from './conta/Perfil';
+import { Feed } from './feed/Feed';
+import { PostPagina } from './feed/PostPagina';
+import { EditarPost } from './postar/EditarPost';
+import { Postar } from './postar/Postar';
 import { navegar, PUBLICAS, useRota } from './rotas';
 
 export function App() {
   const { me, carregando, recarregar } = useMe();
-  const { caminho } = useRota();
+  const { caminho, params } = useRota();
   const publica = PUBLICAS.includes(caminho);
 
   // logada numa tela de acesso (acabou de entrar): vai para o feed
@@ -28,7 +32,13 @@ export function App() {
   }
   return (
     <>
-      <main>{caminho === '/perfil' && <Perfil me={me} recarregar={recarregar} />}</main>
+      <main>
+        {caminho === '/' && <Feed me={me} />}
+        {params.id && /^\/p\/[^/]+$/.test(caminho) && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
+        {params.id && caminho.endsWith('/editar') && <div className="post-pagina"><EditarPost id={params.id} /></div>}
+        {caminho === '/postar' && <Postar me={me} />}
+        {caminho === '/perfil' && <Perfil me={me} recarregar={recarregar} />}
+      </main>
       <BarraInferior clubeId={me.clube?.id} />
     </>
   );

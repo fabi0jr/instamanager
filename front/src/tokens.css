@@ -52,21 +52,36 @@ html, body { margin: 0; background: var(--im-carvao); color: var(--im-giz); font
 h1, h2, h3 { font-family: var(--im-fonte-display); font-weight: 700; margin: 0; }
 a, button { min-height: 44px; min-width: 44px; }
 :focus-visible { outline: 2px solid var(--im-giz); outline-offset: 2px; }
-main { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
+main { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 
-.barra-inferior { position: fixed; inset: auto 0 0 0; display: flex; justify-content: space-around; align-items: center;
-  height: calc(56px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
-  background: var(--im-superficie); border-top: 1px solid var(--im-linha); }
-.barra-inferior a { display: grid; place-items: center; color: var(--im-giz-3); }
-.barra-inferior a[aria-current='page'] { color: var(--im-giz); }
+.barra-inferior { position: fixed; inset: auto 0 0 0; display: grid; grid-template-columns: repeat(5, 1fr);
+  height: calc(64px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
+  background: var(--im-superficie); border-top: 1px solid var(--im-linha); z-index: 5; }
+.barra-inferior a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--im-giz-2); text-decoration: none; }
+.barra-inferior .rotulo { font: 500 12px/16px var(--im-fonte-texto); }
+.barra-inferior a.ativo { color: var(--im-giz); } .barra-inferior a.ativo .rotulo { font-weight: 600; }
+.barra-inferior a.ativo svg { stroke-width: 2.1; }
+.barra-inferior a.destaque .ic { display: grid; place-items: center; width: 48px; height: 32px; border-radius: 10px; background: var(--im-vermelho); color: var(--im-giz); }
+.barra-inferior a.destaque { color: var(--im-giz); }
 
 .carregando { margin: var(--im-e12) auto; width: 24px; height: 24px; border: 2px solid var(--im-linha); border-top-color: var(--im-giz);
   border-radius: 50%; animation: giro var(--im-giro); }
 @keyframes giro { to { transform: rotate(360deg); } }
 
-/* desktop: barra vira lateral de 72 px */
+/* desktop: barra lateral; 72 px só com ícones, 220 px com rótulos a partir de 1100 px */
 @media (min-width: 768px) {
-  .barra-inferior { inset: 0 auto 0 0; width: 72px; height: auto; flex-direction: column; justify-content: flex-start;
+  .barra-inferior { inset: 0 auto 0 0; width: 72px; height: auto; display: flex; flex-direction: column; justify-content: flex-start;
     gap: var(--im-e2); padding: var(--im-e4) 0; border-top: 0; border-right: 1px solid var(--im-linha); }
+  .barra-inferior a { flex: none; min-height: 48px; }
+  .barra-inferior .rotulo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   main { margin-left: 72px; padding-bottom: 0; }
+}
+@media (min-width: 1100px) {
+  .barra-inferior { width: 220px; padding: var(--im-e4) var(--im-e3); }
+  .barra-inferior a { flex-direction: row; justify-content: flex-start; gap: var(--im-e3); padding: 0 var(--im-e3); border-radius: var(--im-r-btn); }
+  .barra-inferior a.ativo { background: var(--im-superficie-alta); }
+  .barra-inferior a.destaque { background: var(--im-vermelho); }
+  .barra-inferior a.destaque .ic { background: none; width: 24px; }
+  .barra-inferior .rotulo { position: static; width: auto; height: auto; clip: auto; font-size: 16px; line-height: 24px; }
+  main { margin-left: 220px; }
 }

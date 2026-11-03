@@ -33,7 +33,7 @@ export function Link({ para, onClick, ...props }: { para: string } & AnchorHTMLA
 // rotas do grupo de acesso: abertas sem sessão
 export const PUBLICAS = ['/entrar', '/cadastro', '/esqueci-senha', '/nova-senha'];
 
-const PADROES = ['/p/:id', '/c/:id'];
+const PADROES = ['/p/:id', '/p/:id/editar', '/c/:id'];
 
 // casa o caminho com /p/:id e /c/:id; as demais rotas não têm parâmetro
 export function useRota() {
