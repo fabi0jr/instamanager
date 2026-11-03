@@ -19,7 +19,7 @@
 - Cadastro exige o código de convite (`Setting.inviteCode`; valor inicial vem de `INVITE_CODE` no `.env`). Não existe confirmação de e-mail. Admin = conta cujo e-mail é igual a `ADMIN_EMAIL` no `.env`.
 - Login só com e-mail e senha. Recuperação de senha por e-mail via Resend, com link válido por **1 h** e uso único.
 - Post: de **1 a 10 imagens**, legenda de até **2200** caracteres e prompt opcional por imagem de até **4000**. Comentário de até **1000** caracteres.
-- Imagens geradas no cliente em **JPEG**: cheia com lado maior de **1600 px** e miniatura com **480 px**, qualidade **0.82**. O back recusa arquivo que não comece com a assinatura JPEG (`FF D8 FF`) ou que passe de **3 MB**.
+- Imagens geradas no cliente em **JPEG**: cheia com lado maior de **1600 px** e miniatura com **800 px** (era 480; subiu para não borrar no iPhone 3x, decisão do Maestro em 2026-11-03), qualidade **0.82**. O back recusa arquivo que não comece com a assinatura JPEG (`FF D8 FF`) ou que passe de **3 MB**.
 - Push (Web Push/VAPID) em três casos: post novo (todos menos o autor), comentário em post do clube (técnico atual, se não for quem comentou) e troca de time (pedido → admin; decisão → técnico). Respeita `User.pushEnabled`.
 - Sem stories, DM, tabela, prêmios, vídeo, busca ou @ (ficam para a v1.1). Nada é importado do WhatsApp.
 - Dependência nova só com aprovação do Fabio. Já aprovadas pela spec: o mesmo conjunto do Terrato. **A aprovar: `web-push` + `@types/web-push`.**
