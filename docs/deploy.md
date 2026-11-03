@@ -99,6 +99,6 @@ docker run --rm -v instamanager_uploads:/v -v "$PWD":/b alpine tar xzf /b/instam
 
 - **Logs:** `docker compose -f docker-compose.prod.yml logs -f back` (rotação: 3 × 10 MB por serviço).
 - **Trocar o código de convite:** pelo app (tela de admin). O `INVITE_CODE` do `.env` só vale na primeira subida.
-- **Voltar uma versão:** `git checkout <commit>` na VPS e o mesmo `up -d --build`. Migrations só andam para frente; mudanças de schema precisam de migration nova.
+- **Voltar uma versão:** `git checkout <commit>` na VPS e o mesmo `up -d --build`. Migrations só andam para frente; mudanças de schema precisam de migration nova. **Depois de testar, volte com `git checkout main`**: com a VPS num commit solto, o `git pull --ff-only` do próximo deploy falha.
 - **Saúde:** se o `saude.yml` falhar, o GitHub avisa por e-mail. O GitHub desliga cron depois de 60 dias sem atividade no repo.
 - **iPhone:** o push só funciona com o app instalado na tela inicial (iOS 16.4+); o app ensina o passo a passo depois do primeiro login.

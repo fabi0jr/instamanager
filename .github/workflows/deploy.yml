@@ -37,6 +37,12 @@ jobs:
       - run: pnpm --filter front exec tsc --noEmit
       - run: pnpm test
       - run: node --test board/board.test.mjs
+      # o nginx resolve 'back' só no boot: confere a sintaxe do conf antes de implantar (add-host só para o nome existir)
+      - run: >-
+          docker run --rm --add-host back:127.0.0.1
+          -v $PWD/front/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+          -v $PWD/front/seguranca.conf:/etc/nginx/snippets/seguranca.conf:ro
+          nginxinc/nginx-unprivileged:1.29-alpine nginx -t
 
   implantar:
     needs: verificar

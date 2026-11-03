@@ -46,7 +46,8 @@ services:
     build: { context: ., dockerfile: front/Dockerfile }
     restart: unless-stopped
     depends_on:
-      back: { condition: service_healthy }
+      # restart: true — o nginx resolve 'back' só no boot; se o back for recriado (deploy), o web reinicia junto
+      back: { condition: service_healthy, restart: true }
     networks: [interna, infra-network]
     logging: { driver: json-file, options: { max-size: 10m, max-file: "3" } }
     volumes:
