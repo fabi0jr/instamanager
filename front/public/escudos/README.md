@@ -23,6 +23,6 @@ Fonte: Wikimedia Commons (arquivo `File:<nome>` em https://commons.wikimedia.org
 | sao-paulo.svg ⚠ | São Paulo Futebol Clube logo (2022).svg | Domínio público (conferir a versão) |
 | vasco.svg | CR Vasco da Gama.svg | CC BY-SA 3.0 (pede atribuição: ver a página do arquivo no Commons) |
 | vitoria.svg | Esporte Clube Vitória (2024).svg | Domínio público |
-| red-bull-bragantino.svg ⚠ | **FALTA**: não há escudo do Bragantino no Commons (busca "Bragantino" e "Red Bull Bragantino logo" só acham fotos) | — |
+| red-bull-bragantino.svg ⚠ | **PLACEHOLDER feito à mão** (escudo carvão com "RBB" em giz): não há escudo do Bragantino no Commons (a busca só acha fotos). Trocar quando o Fabio mandar o oficial. | Nosso, sem restrição |
 
 As licenças vêm do campo `LicenseShortName` da API do Commons, lido na pesquisa; confira na página de cada arquivo antes de publicar. Todos os SVGs foram checados: têm `<svg>` e nenhum `<script>`.
