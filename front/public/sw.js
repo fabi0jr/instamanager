@@ -16,7 +16,9 @@ self.addEventListener('push', (e) => {
 
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  const url = e.notification.data?.url ?? '/';
+  // só abre URL da própria origem; qualquer outra vira '/'
+  const u = new URL(e.notification.data?.url ?? '/', self.location.origin);
+  const url = u.origin === self.location.origin ? u.href : '/';
   e.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (janelas) => {
       const j = janelas[0];

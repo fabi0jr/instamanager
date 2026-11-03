@@ -15,7 +15,7 @@ export function App() {
   return (
     <>
       <main>{/* telas das Tasks 9–13 entram aqui */}</main>
-      <BarraInferior />
+      <BarraInferior clubeId={me.clube?.id} />
     </>
   );
 }
