@@ -44,7 +44,7 @@ backlog → pronto → dev → revisao → qa → concluido
 
 ## Ciclo de uma tarefa
 
-1. A **P.O** cria o card (`add`) e o move para `pronto` quando os critérios estão claros. Se for tela, o design precisa estar aprovado pelo Fabio.
+1. A **P.O** cria o card (`add`) e o move para `pronto` quando os critérios estão claros. Se for tela, o design precisa estar aprovado pelo Maestro.
 2. O **Maestro** escolhe o responsável e a P.O registra (`assign`) e move o card para `dev`.
 3. O **dev** trabalha no próprio andar ou branch (`feat/IM-N-curto`), com teste. Ao terminar, avisa o Maestro.
 4. O **Maestro** confere, pede à P.O que mova o card para `revisao` e aciona o **Revisor**.
@@ -53,7 +53,7 @@ backlog → pronto → dev → revisao → qa → concluido
 
 ## Portões do Fabio (o fluxo para e espera)
 
-- Design de cada grupo de telas.
+- ~~Design de cada grupo de telas~~: desde 2026-11-03 o Fabio delegou ao Maestro. O Maestro confere o design contra a spec e aprova.
 - Dependência nova.
 - `git push`.
 - Qualquer ação na VPS.

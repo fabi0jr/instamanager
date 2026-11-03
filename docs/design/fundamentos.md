@@ -84,7 +84,7 @@ Campinho visto de cima com a seta da jogada. Sem letras no símbolo: lê em 48 p
 ## Ícones
 
 Grade 24 px, traço 1,75 px, pontas e juntas arredondadas, sem preenchimento. Cor ativa `--im-giz`, inativa `--im-giz-3`. Exceção: **curtido** é preenchido e com traço em `--im-vermelho`. “mais” usa traço 3,2 px (pontos).
-Conjunto (board **Icones**, exportar SVG de lá): inicio, galeria, novo-post, curtir, curtido, comentar, perfil, notificacao, copiar, fechar, voltar, mais, imagem, ok, alerta, trocar, lixo, escudo, apito.
+Conjunto (board **Icones**, exportar SVG de lá): inicio, galeria, novo-post, curtir, curtido, comentar, perfil, copiar, fechar, voltar, mais, imagem, ok, alerta, trocar, lixo, escudo, apito.
 Escudo do clube nos mockups é um placeholder verde; os escudos reais vêm do cadastro dos 20 clubes.
 
 ## Componentes e estados
@@ -111,7 +111,7 @@ Escudo do clube nos mockups é um placeholder verde; os escudos reais vêm do ca
 - Pontos do carrossel: 6 px, a 10 px da imagem, ativo giz, demais giz-3. Só aparece com mais de uma imagem.
 - Ações: `curtir` e `comentar` (24 px, alvo 44) a 12 px da borda. Curtido: coração preenchido `--im-vermelho`, contagem “129 curtidas” sobe na hora (otimista).
 - Contagem: `numero` (“128 curtidas”). Legenda: `corpo`, nome do técnico em `corpo-forte` antes do texto, corta em 3 linhas com “mais”. “Ver os 14 comentários” em `legenda` giz-2.
-- Cada toque principal tem destino: clube → perfil do clube, imagem → carrossel, comentários → tela do post.
+- Cada toque principal tem destino: clube → perfil do clube, imagem → carrossel, comentários → folha de comentários (`docs/design/feed.md`).
 
 **Estados do feed**
 - carregando: esqueleto com os mesmos blocos do card em `--im-superficie-alta`, pulsando (`--im-pulso`). Sem texto e sem spinner solto.
@@ -120,11 +120,11 @@ Escudo do clube nos mockups é um placeholder verde; os escudos reais vêm do ca
 
 ## Desktop (a partir de 768 px)
 
-Coluna do feed centralizada com no máximo 470 px de largura (imagem 470 × 470), fundo `--im-carvao`. Barra inferior do celular vira barra lateral esquerda de 72 px (só ícones; com ≥ 1100 px mostra rótulos, 220 px). Páginas de formulário (login, cadastro): cartão `--im-superficie` de 400 px, raio 12, centralizado. As telas de cada grupo trarão a versão desktop.
+Coluna do feed centralizada com no máximo 470 px de largura (imagem 470 × 470), fundo `--im-carvao`. A barra inferior do celular vira barra lateral esquerda de 220 px (ícone + rótulo), detalhada em `docs/design/feed.md`. Páginas de formulário (login, cadastro): cartão `--im-superficie` de 400 px, raio 12, centralizado. As telas de cada grupo trarão a versão desktop.
 
-## Barra inferior (referência para o grupo de navegação)
+## Barra inferior
 
-Altura 56 + área segura do iPhone, fundo `--im-superficie`, borda superior 1 px `--im-linha`, 5 ícones (inicio, galeria, novo-post, notificacao, perfil), ativo `--im-giz`, inativo `--im-giz-3`. O desenho final fica no grupo de telas de navegação.
+Definida no grupo do feed: ver `docs/design/feed.md` (Feed, Galeria, Postar, Clube, Perfil; **sem notificações**, o app só avisa por push).
 
 ## Pendências para o Fabio aprovar
 

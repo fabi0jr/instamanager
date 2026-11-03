@@ -1,7 +1,8 @@
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { ehJpeg, salvarImagem } from './imagens.js';
+import { montarJpeg } from '../../test/jpeg.js';
+import { dimensoesJpeg, ehJpeg, salvarImagem } from './imagens.js';
 
 const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]);
 
@@ -25,5 +26,12 @@ describe('imagens', () => {
       vi.unstubAllEnvs();
       await rm(dir, { recursive: true });
     }
+  });
+
+  it('dimensoesJpeg lê largura e altura do SOF; sem SOF → null', () => {
+    expect(dimensoesJpeg(montarJpeg(1600, 1200))).toEqual({ largura: 1600, altura: 1200 });
+    expect(dimensoesJpeg(montarJpeg(480, 360, 100))).toEqual({ largura: 480, altura: 360 });
+    expect(dimensoesJpeg(jpeg)).toBeNull();
+    expect(dimensoesJpeg(Buffer.alloc(0))).toBeNull();
   });
 });

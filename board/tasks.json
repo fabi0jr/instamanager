@@ -170,7 +170,7 @@
         "IM-2"
       ],
       "responsavel": "Volante",
-      "coluna": "revisao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.126Z",
@@ -249,6 +249,20 @@
           "de": "dev",
           "para": "revisao",
           "nota": "correção 57b80ad"
+        },
+        {
+          "quando": "2026-11-03T20:02:07.984Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "tarefa sem tela: revisão+testes"
+        },
+        {
+          "quando": "2026-11-03T20:02:08.013Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "tarefa sem tela: revisão+testes"
         }
       ]
     },
@@ -266,7 +280,7 @@
         "IM-2"
       ],
       "responsavel": "Volante",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.146Z",
@@ -296,6 +310,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:03:58.264Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "entregue 44ede3f; pendência: escudo do Bragantino"
+        },
+        {
+          "quando": "2026-11-03T20:05:45.049Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "tarefa sem tela: revisão+testes"
+        },
+        {
+          "quando": "2026-11-03T20:05:45.071Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "tarefa sem tela: revisão+testes"
         }
       ]
     },
@@ -318,8 +353,8 @@
       "depende": [
         "IM-3"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Volante",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.168Z",
@@ -330,6 +365,46 @@
           "quando": "2026-11-03T19:33:58.132Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T20:04:11.860Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:04:11.880Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-03T20:04:11.902Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:10:32.942Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "entregue 2062a09"
+        },
+        {
+          "quando": "2026-11-03T20:19:33.544Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "tarefa sem tela: revisão+testes"
+        },
+        {
+          "quando": "2026-11-03T20:19:33.565Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "tarefa sem tela: revisão+testes"
         }
       ]
     },
@@ -351,8 +426,8 @@
       "depende": [
         "IM-5"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Volante",
+      "coluna": "pronto",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.189Z",
@@ -363,6 +438,18 @@
           "quando": "2026-11-03T19:33:58.156Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T20:10:42.691Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:10:42.712Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
         }
       ]
     },
@@ -381,8 +468,8 @@
       "depende": [
         "IM-6"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Volante",
+      "coluna": "pronto",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.209Z",
@@ -393,6 +480,18 @@
           "quando": "2026-11-03T19:33:58.178Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T20:19:33.585Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:19:33.607Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
         }
       ]
     },
@@ -413,7 +512,7 @@
         "IM-17"
       ],
       "responsavel": "Ponta",
-      "coluna": "dev",
+      "coluna": "revisao",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.231Z",
@@ -443,6 +542,55 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:03:06.603Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "entregue bc8f5d2"
+        },
+        {
+          "quando": "2026-11-03T20:04:22.773Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "sw.js notificationclick sem conferir origem; mime do webmanifest; tirar /notificacoes da barra"
+        },
+        {
+          "quando": "2026-11-03T20:07:50.835Z",
+          "quem": "PO",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "correção 2b2850d"
+        },
+        {
+          "quando": "2026-11-03T20:07:50.858Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "correção 2b2850d"
+        },
+        {
+          "quando": "2026-11-03T20:12:50.350Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "types{} no nginx.conf substitui o mime.types, JS sai octet-stream"
+        },
+        {
+          "quando": "2026-11-03T20:18:04.433Z",
+          "quem": "PO",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "correção c0d2c8c"
+        },
+        {
+          "quando": "2026-11-03T20:18:04.456Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "correção c0d2c8c"
         }
       ]
     },
@@ -464,8 +612,8 @@
         "IM-8",
         "IM-18"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "pronto",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.252Z",
@@ -476,6 +624,18 @@
           "quando": "2026-11-03T19:33:58.229Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T20:03:06.625Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:03:06.647Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
         }
       ]
     },
@@ -490,7 +650,8 @@
         "curtir atualiza na hora e desfaz se a API falhar",
         "card usa miniUrl e lazy, nunca cheiaUrl",
         "comentário mostra tag do clube",
-        "editar e apagar só aparecem com podeEditar"
+        "editar e apagar só aparecem com podeEditar",
+        "<img> de escudo tem onError com escudo genérico"
       ],
       "depende": [
         "IM-5",
@@ -510,6 +671,11 @@
           "quando": "2026-11-03T19:33:58.253Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T20:05:45.093Z",
+          "quem": "PO",
+          "nota": "editado: criterios"
         }
       ]
     },
@@ -556,7 +722,8 @@
         "perfil mostra técnico atual e histórico com \"até hoje\"",
         "clube sem técnico mostra \"Vaga aberta\"",
         "copiar prompt chama clipboard com texto exato",
-        "filtro por clube refaz a busca com ?clube="
+        "filtro por clube refaz a busca com ?clube=",
+        "<img> de escudo tem onError com escudo genérico"
       ],
       "depende": [
         "IM-4",
@@ -576,6 +743,11 @@
           "quando": "2026-11-03T19:33:58.298Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T20:05:45.117Z",
+          "quem": "PO",
+          "nota": "editado: criterios"
         }
       ]
     },
@@ -850,7 +1022,7 @@
         "IM-17"
       ],
       "responsavel": "Prancheta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.461Z",
@@ -880,6 +1052,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:12:13.629Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "feed aprovado pelo Fabio: carrossel segue a 1ª imagem 4:5 a 1,91:1; toque duplo curte; torcedor em Postar vê 'Só técnico posta'"
+        },
+        {
+          "quando": "2026-11-03T20:12:13.652Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "feed aprovado pelo Fabio: carrossel segue a 1ª imagem 4:5 a 1,91:1; toque duplo curte; torcedor em Postar vê 'Só técnico posta'"
+        },
+        {
+          "quando": "2026-11-03T20:12:13.675Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "feed aprovado pelo Fabio: carrossel segue a 1ª imagem 4:5 a 1,91:1; toque duplo curte; torcedor em Postar vê 'Só técnico posta'"
         }
       ]
     },
@@ -897,8 +1090,8 @@
       "depende": [
         "IM-17"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Prancheta",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.483Z",
@@ -909,6 +1102,46 @@
           "quando": "2026-11-03T19:33:58.456Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T20:12:13.697Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:12:13.721Z",
+          "quem": "PO",
+          "nota": "atribuída a Prancheta"
+        },
+        {
+          "quando": "2026-11-03T20:12:13.743Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:18:04.522Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "design aprovado pelo Maestro (delegação do Fabio): HEIC aceito no seletor com falha por miniatura; editar só legenda/prompts"
+        },
+        {
+          "quando": "2026-11-03T20:18:04.544Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "design aprovado pelo Maestro (delegação do Fabio): HEIC aceito no seletor com falha por miniatura; editar só legenda/prompts"
+        },
+        {
+          "quando": "2026-11-03T20:18:04.566Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "design aprovado pelo Maestro (delegação do Fabio): HEIC aceito no seletor com falha por miniatura; editar só legenda/prompts"
         }
       ]
     },
@@ -926,8 +1159,8 @@
       "depende": [
         "IM-17"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Prancheta",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.505Z",
@@ -938,6 +1171,25 @@
           "quando": "2026-11-03T19:33:58.479Z",
           "quem": "PO",
           "nota": "editado: depende"
+        },
+        {
+          "quando": "2026-11-03T20:18:04.587Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:18:04.607Z",
+          "quem": "PO",
+          "nota": "atribuída a Prancheta"
+        },
+        {
+          "quando": "2026-11-03T20:18:04.627Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     },

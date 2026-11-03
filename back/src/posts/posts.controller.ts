@@ -1,0 +1,60 @@
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { type AuthedRequest, SessionGuard } from '../auth/session.guard.js';
+import { PostsService } from './posts.service.js';
+
+type Arquivos = { cheia?: { buffer: Buffer }[]; mini?: { buffer: Buffer }[] };
+const corpo = (b: unknown) => (typeof b === 'object' && b ? (b as Record<string, unknown>) : {});
+
+@Controller('posts')
+@UseGuards(SessionGuard)
+export class PostsController {
+  constructor(private readonly posts: PostsService) {}
+
+  // maxCount 10 e 3 MB por arquivo: o multer recusa antes de qualquer coisa chegar ao disco (400 / 413)
+  @Post()
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'cheia', maxCount: 10 },
+        { name: 'mini', maxCount: 10 },
+      ],
+      { limits: { fileSize: 3 * 1024 * 1024 } },
+    ),
+  )
+  criar(@Req() req: AuthedRequest, @Body() body: unknown, @UploadedFiles() arquivos: Arquivos | undefined) {
+    return this.posts.criar(req.user, corpo(body), arquivos?.cheia ?? [], arquivos?.mini ?? []);
+  }
+
+  @Get()
+  feed(@Req() req: AuthedRequest, @Query('antes') antes?: string, @Query('clube') clube?: string) {
+    return this.posts.feed(req.user, antes, clube);
+  }
+
+  @Get(':id')
+  obter(@Req() req: AuthedRequest, @Param('id') id: string) {
+    return this.posts.obter(id, req.user);
+  }
+
+  @Patch(':id')
+  editar(@Req() req: AuthedRequest, @Param('id') id: string, @Body() body: unknown) {
+    return this.posts.editar(id, req.user, corpo(body));
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async apagar(@Req() req: AuthedRequest, @Param('id') id: string) {
+    await this.posts.apagar(id, req.user);
+  }
+}
+
+@Controller('galeria')
+@UseGuards(SessionGuard)
+export class GaleriaController {
+  constructor(private readonly posts: PostsService) {}
+
+  @Get()
+  galeria(@Query('antes') antes?: string, @Query('clube') clube?: string) {
+    return this.posts.galeria(antes, clube);
+  }
+}
