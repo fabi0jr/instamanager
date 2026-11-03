@@ -5,8 +5,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY front/package.json front/
 COPY back/package.json back/
-# --store-dir: o pnpm-workspace.yaml aponta para o disco do Fabio, que não existe aqui
-RUN pnpm install --frozen-lockfile --ignore-scripts --store-dir /pnpm-store --filter front...
+RUN pnpm install --frozen-lockfile --ignore-scripts --filter front...
 COPY front front
 # só o bundle: a checagem de tipos roda no CI
 RUN pnpm --filter front exec vite build

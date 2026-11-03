@@ -8,8 +8,7 @@ COPY back/package.json back/
 COPY front/package.json front/
 COPY back/prisma back/prisma
 COPY back/prisma.config.ts back/
-# --store-dir: o pnpm-workspace.yaml aponta para o disco do Fabio, que não existe aqui
-RUN pnpm install --frozen-lockfile --store-dir /pnpm-store --filter back...
+RUN pnpm install --frozen-lockfile --filter back...
 COPY back back
 RUN pnpm --filter back build
 
