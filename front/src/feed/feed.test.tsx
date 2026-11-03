@@ -45,6 +45,7 @@ test('feed carrega a próxima página ao chegar no fim', async () => {
   render(<Feed me={me} />);
   await screen.findAllByRole('article');
   expect(screen.getAllByRole('article')).toHaveLength(2);
+  await waitFor(() => expect(observadores.length).toBeGreaterThan(0)); // o observador nasce num efeito, depois da lista
   chegouNoFim();
   await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(3));
   expect(chamadas.map((c) => c.chave)).toEqual(['GET /posts', 'GET /posts?antes=c1']);
