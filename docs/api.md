@@ -72,7 +72,7 @@ Pagina<T> = { itens: T[], proximo: string|null }   // proximo = cursor opaco par
 | `DELETE /api/posts/:id` | — | `204`, apaga curtidas, comentários e arquivos · `NAO_E_TECNICO` (admin pode qualquer um) |
 | `GET /api/galeria?antes=&clube=` | — | `Pagina<{imagemId, postId, miniUrl, cheiaUrl, prompt, clube: ClubeMini}>`, só imagens com prompt. |
 
-Cursor: `criadoEm|id` codificado em base64url.
+Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver malformado). A galeria pagina de 24 em 24 (o feed, de 12 em 12). Largura e altura de cada imagem são lidas do JPEG da `cheia[]` no servidor.
 
 ## 4. Curtidas, comentários, trocas e admin (Task 6) 🔒
 
