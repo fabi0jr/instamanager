@@ -19,7 +19,7 @@ type Props = {
 
 export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoApagar, aoMudar }: Props) {
   const [post, setPost] = useState(inicial);
-  useEffect(() => aoMudar?.(post), [post]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { aoMudar?.(post); }, [post]); // eslint-disable-line react-hooks/exhaustive-deps
   const [aviso, setAviso] = useState('');
   const [menu, setMenu] = useState<'menu' | 'apagar' | 'editar' | null>(null);
   const [comentando, setComentando] = useState(!!abrirComentarios);

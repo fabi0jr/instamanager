@@ -219,3 +219,18 @@ test('ao voltar, o feed reaparece sem nova busca e na mesma rolagem', async () =
   await waitFor(() => expect(window.scrollTo).toHaveBeenCalledWith(0, 420));
   expect(chamadas).toHaveLength(1);
 });
+
+test('curtir em /p/:id faz o feed guardado ser esquecido (volta atualizado)', async () => {
+  const { PostPagina } = await import('./PostPagina');
+  const chamadas = fetchFalso({ 'GET /posts': { itens: [post('a')], proximo: null }, 'GET /posts/a': post('a'), 'PUT /posts/a/curtida': { status: 204 } });
+  window.scrollTo = vi.fn() as never;
+  const { unmount } = render(<Feed me={{ ...me, id: 'esq' }} />);
+  await screen.findAllByRole('article');
+  unmount();
+  render(<PostPagina id="a" me={{ ...me, id: 'esq' }} />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Curtir' }));
+  await waitFor(() => expect(chamadas.some((c) => c.chave === 'PUT /posts/a/curtida')).toBe(true));
+  cleanup();
+  render(<Feed me={{ ...me, id: 'esq' }} />);
+  await waitFor(() => expect(chamadas.filter((c) => c.chave === 'GET /posts')).toHaveLength(2)); // refez a busca
+});

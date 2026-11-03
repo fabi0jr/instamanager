@@ -3,6 +3,7 @@ import { api, type Me } from '../api/cliente';
 import { CardPost } from './CardPost';
 import type { Post } from './tipos';
 import { navegar } from '../rotas';
+import { esquecerFeed } from './Feed';
 
 export function PostPagina({ id, me }: { id: string; me: Me }) {
   const [post, setPost] = useState<Post | 'carregando' | 'erro' | 'sumiu'>('carregando');
@@ -18,5 +19,15 @@ export function PostPagina({ id, me }: { id: string; me: Me }) {
         <button type="button" className="botao secundario" onClick={() => navegar('/')}>Voltar ao feed</button>
       </div>
     );
-  return <CardPost post={post} me={me} prioridade aoApagar={() => navegar('/')} />;
+  return <CardPost
+      post={post}
+      me={me}
+      prioridade
+      // curtir/comentar/apagar aqui mudam o post: o feed guardado ficaria desatualizado
+      aoMudar={(n) => n !== post && esquecerFeed()}
+      aoApagar={() => {
+        esquecerFeed();
+        navegar('/');
+      }}
+    />;
 }
