@@ -11,10 +11,7 @@ import { PerfilClube } from './clube/PerfilClube';
 import { Galeria } from './galeria/Galeria';
 import { Feed } from './feed/Feed';
 import { PostPagina } from './feed/PostPagina';
-import { navegar, useRota } from './rotas';
-
-// rotas do grupo de acesso: abertas sem sessão
-const PUBLICAS = ['/entrar', '/cadastro', '/esqueci-senha', '/nova-senha'];
+import { navegar, PUBLICAS, useRota } from './rotas';
 
 export function App() {
   const { me, carregando, recarregar } = useMe();

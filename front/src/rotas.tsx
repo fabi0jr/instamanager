@@ -35,6 +35,9 @@ export function Link({ para, onClick, ...props }: { para: string } & AnchorHTMLA
   return <a aria-current={atual ? 'page' : undefined} {...props} href={para} onClick={clicar} />;
 }
 
+// rotas do grupo de acesso: abertas sem sessão
+export const PUBLICAS = ['/entrar', '/cadastro', '/esqueci-senha', '/nova-senha'];
+
 const PADROES = ['/p/:id', '/c/:id'];
 
 // casa o caminho com /p/:id e /c/:id; as demais rotas não têm parâmetro

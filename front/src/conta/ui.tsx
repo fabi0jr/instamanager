@@ -54,6 +54,18 @@ export function useFocoNoErro(dep: unknown) {
   }, [dep]);
 }
 
+// 400 DADOS_INVALIDOS traz `campos`: vira mensagem em cada campo (em vez do aviso de conexão)
+const POR_CAMPO: Record<string, string> = {
+  convite: 'Digite o código de convite.',
+  nome: 'Digite um nome de até 60 letras.',
+  email: 'Digite seu e-mail.',
+  senha: 'Digite sua senha.',
+};
+export function errosDosCampos(e: ErroApi, texto: Record<string, string> = {}): Record<string, string> | null {
+  if (e.codigo !== 'DADOS_INVALIDOS' || !e.campos.length) return null;
+  return Object.fromEntries(e.campos.map((c) => [c, texto[c] ?? POR_CAMPO[c] ?? 'Confira este campo.']));
+}
+
 const MUITAS = 'Muitas tentativas. Espere alguns minutos e tente de novo.';
 const GENERICO = 'Não deu para completar. Confira a conexão e tente de novo.';
 
