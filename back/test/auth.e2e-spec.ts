@@ -104,6 +104,28 @@ describe('auth (e2e)', () => {
     await request(http()).post('/api/auth/entrar').send({}).expect(403);
   });
 
+  describe('limites de tentativa', () => {
+    const errar = (email: string, ip: string) => post('/api/auth/entrar', { email, senha: 'errada-errada' }, ip);
+
+    it('login: 20 erros por conta, de IPs diferentes, bloqueiam o 21º com 429 (mesmo com a senha certa)', async () => {
+      const d = dados();
+      await post('/api/auth/cadastro', d).expect(201);
+      for (let i = 0; i < 20; i++) await errar(d.email, `10.1.0.${i + 1}`).expect(401);
+      const res = await post('/api/auth/entrar', { email: d.email, senha: d.senha }, '10.1.1.1').expect(429);
+      expect(res.body.codigo).toBe('MUITAS_TENTATIVAS');
+      expect(res.headers['retry-after']).toBeDefined();
+    }, 30_000);
+
+    it('login: acertar a senha zera os contadores da conta', async () => {
+      const d = dados();
+      await post('/api/auth/cadastro', d).expect(201);
+      for (let i = 0; i < 9; i++) await errar(d.email, '10.2.0.1').expect(401);
+      await post('/api/auth/entrar', { email: d.email, senha: d.senha }, '10.2.0.1').expect(200);
+      // sem o reset, o 11º pedido do mesmo IP/e-mail já seria 429
+      for (let i = 0; i < 9; i++) await errar(d.email, '10.2.0.1').expect(401);
+    }, 30_000);
+  });
+
   describe('PATCH /api/me', () => {
     const logar = async () => {
       const d = dados();
@@ -118,6 +140,17 @@ describe('auth (e2e)', () => {
       const res = await patch(cookie, { senhaAtual: 'errada-errada', senhaNova: 'nova-senha-123' }).expect(400);
       expect(res.body.codigo).toBe('SENHA_ATUAL_INVALIDA');
     });
+
+    it('senhaAtual: 6ª tentativa errada em 15 min → 429; acertar zera a contagem', async () => {
+      const { d, cookie } = await logar();
+      const errada = () => patch(cookie, { senhaAtual: 'errada-errada', senhaNova: 'nova-senha-123' });
+      for (let i = 0; i < 4; i++) await errada().expect(400);
+      await patch(cookie, { senhaAtual: d.senha, senhaNova: 'nova-senha-123' }).expect(200);
+      // sem o reset, o 6º palpite (este é o 1º depois do acerto) já seria 429
+      for (let i = 0; i < 5; i++) await errada().expect(400);
+      const res = await errada().expect(429);
+      expect(res.body.codigo).toBe('MUITAS_TENTATIVAS');
+    }, 30_000);
 
     it('troca nome e pushEnabled; trocar a senha derruba as outras sessões e mantém a atual', async () => {
       const { d, cookie } = await logar();

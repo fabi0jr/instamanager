@@ -110,4 +110,6 @@ Ver `back/prisma/schema.prisma`: `User`, `Session`, `PasswordReset`, `Club` (`co
 
 ## 7. Variáveis de ambiente
 
-`DATABASE_URL`, `APP_URL`, `INVITE_CODE` (valor inicial do convite, só no seed), `ADMIN_EMAIL`, `UPLOADS_DIR`, `RESEND_API_KEY`, `MAIL_FROM`, `COOKIE_SECRET`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT` (Task 7).
+`DATABASE_URL`, `APP_URL`, `INVITE_CODE` (valor inicial do convite, só no seed), `ADMIN_EMAIL`, `UPLOADS_DIR`, `RESEND_API_KEY`, `MAIL_FROM`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT` (Task 7).
+
+Em produção, atrás do Traefik/nginx: `TRUST_PROXY=1` (sem isso o rate limit enxerga o IP do proxy e conta todo mundo junto).

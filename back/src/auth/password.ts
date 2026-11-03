@@ -1,7 +1,7 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 
-// docs/api.md, seção 2: scrypt N=2^17, r=8, p=1. Formato guardado: scrypt$N$r$p$sal$hash (base64url).
+// scrypt N=2^17, r=8, p=1. Formato guardado: scrypt$N$r$p$sal$hash (base64url).
 const N = 2 ** 17;
 const R = 8;
 const P = 1;
