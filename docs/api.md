@@ -100,11 +100,11 @@ Apagar post e comentário pelo admin usa as mesmas rotas de §3 e §4.
 
 | Rota | Corpo | Resposta |
 |---|---|---|
-| `GET /api/push/chave` | — | `{chave}` (VAPID pública) |
-| `POST /api/push/inscricao` | `{endpoint, keys: {p256dh, auth}}` | `204` (upsert por endpoint) |
-| `DELETE /api/push/inscricao` | `{endpoint}` | `204` |
+| `GET /api/push/chave` | — | `{chave}` (VAPID pública) · `503 PUSH_INDISPONIVEL` se o servidor não tem VAPID |
+| `POST /api/push/inscricao` | `{endpoint, keys: {p256dh, auth}}` | `204` (upsert por endpoint; se outra pessoa entrar no mesmo aparelho, a inscrição passa para ela). `400` se o endpoint não for `https` de um serviço de push conhecido (`fcm.googleapis.com`, `*.push.services.mozilla.com`, `web.push.apple.com`, `*.notify.windows.com`, sem porta nem usuário), porque o servidor faz POST nele. **O front chama `DELETE /api/push/inscricao` antes de `POST /auth/sair`** (senão o aparelho segue recebendo push de quem saiu); redefinir a senha apaga todas as inscrições da conta. |
+| `DELETE /api/push/inscricao` | `{endpoint}` | `204` (só apaga a inscrição da própria pessoa) |
 
-Ligar/desligar: `PATCH /api/me {pushEnabled}`. Mensagens (`titulo` / `corpo` → `url`): post novo `"<Clube>"` / `"<técnico> postou"` → `/p/<id>`; comentário `"Novo comentário"` / `"<nome>: <80 chars>"` → `/p/<id>`; pedido de troca `"Pedido de troca"` → `/admin`; decisão `"Troca aprovada"` ou `"Troca recusada"` → `/perfil`. Inscrição que responde 404/410 é apagada.
+Ligar/desligar: `PATCH /api/me {pushEnabled}`. Mensagens (`titulo` / `corpo` → `url`): post novo `"<Clube>"` / `"<técnico> postou"` → `/p/<id>`; comentário `"Novo comentário"` / `"<nome>: <80 chars>"` → `/p/<id>`; pedido de troca (só para admins, menos quem pediu) `"Pedido de troca"` → `/admin`; decisão `"Troca aprovada"` ou `"Troca recusada"` → `/perfil`. Inscrição que responde 404/410 é apagada.
 
 ## 6. Modelo de dados
 

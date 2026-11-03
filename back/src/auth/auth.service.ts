@@ -143,6 +143,8 @@ export class AuthService implements OnModuleInit {
       if (count === 0) throw invalido();
       await tx.user.update({ where: { id: reg.userId }, data: { passwordHash } });
       await tx.session.deleteMany({ where: { userId: reg.userId } });
+      // todas as sessões caíram: os aparelhos também deixam de receber push até entrarem de novo
+      await tx.pushSubscription.deleteMany({ where: { userId: reg.userId } });
     });
   }
 

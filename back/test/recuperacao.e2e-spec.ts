@@ -61,7 +61,10 @@ describe('recuperação de senha (e2e, Resend mockado)', () => {
     const email = await criarConta();
     const sessao = (await post('/api/auth/entrar', { email, senha: 'senha-antiga-1' }).expect(200)).headers['set-cookie'];
     const token = await pedir(email);
+    const userId = (await prisma.user.findUniqueOrThrow({ where: { email } })).id;
+    await prisma.pushSubscription.create({ data: { userId, endpoint: `https://fcm.googleapis.com/fcm/send/${token}`, p256dh: 'a', auth: 'b' } });
     await post('/api/auth/redefinir', { token, senha: 'senha-nova-123' }).expect(204);
+    expect(await prisma.pushSubscription.count({ where: { userId } })).toBe(0); // push cai junto com as sessões
     await post('/api/auth/entrar', { email, senha: 'senha-antiga-1' }).expect(401);
     await post('/api/auth/entrar', { email, senha: 'senha-nova-123' }).expect(200);
     await request(http()).get('/api/me').set('Cookie', sessao).expect(401);
