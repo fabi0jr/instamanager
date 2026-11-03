@@ -8,6 +8,8 @@ import { NovaSenha } from './conta/NovaSenha';
 import { Perfil } from './conta/Perfil';
 import { Feed } from './feed/Feed';
 import { PostPagina } from './feed/PostPagina';
+import { EditarPost } from './postar/EditarPost';
+import { Postar } from './postar/Postar';
 import { navegar, useRota } from './rotas';
 
 // rotas do grupo de acesso: abertas sem sessão
@@ -35,7 +37,9 @@ export function App() {
     <>
       <main>
         {caminho === '/' && <Feed me={me} />}
-        {caminho.startsWith('/p/') && params.id && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
+        {params.id && /^\/p\/[^/]+$/.test(caminho) && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
+        {params.id && caminho.endsWith('/editar') && <div className="post-pagina"><EditarPost id={params.id} /></div>}
+        {caminho === '/postar' && <Postar me={me} />}
         {caminho === '/perfil' && <Perfil me={me} recarregar={recarregar} />}
       </main>
       <BarraInferior clubeId={me.clube?.id} />

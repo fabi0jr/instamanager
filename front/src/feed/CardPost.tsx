@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { api, type Me } from '../api/cliente';
-import { Link } from '../rotas';
+import { Link, navegar } from '../rotas';
 import { Carrossel } from './Carrossel';
 import { Comentarios } from './Comentarios';
 import { Escudo } from './Escudo';
@@ -19,7 +19,7 @@ type Props = {
 export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoApagar }: Props) {
   const [post, setPost] = useState(inicial);
   const [aviso, setAviso] = useState('');
-  const [menu, setMenu] = useState<'menu' | 'apagar' | 'editar' | null>(null);
+  const [menu, setMenu] = useState<'menu' | 'apagar' | null>(null);
   const [comentando, setComentando] = useState(!!abrirComentarios);
   const [expandida, setExpandida] = useState(false);
 
@@ -88,7 +88,7 @@ export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoAp
       )}
       {menu === 'menu' && (
         <Folha titulo="Opções do post" aoFechar={() => setMenu(null)}>
-          <button type="button" className="item-folha" onClick={() => setMenu('editar')}>Editar legenda e prompts</button>
+          <button type="button" className="item-folha" onClick={() => navegar(`/p/${post.id}/editar`)}>Editar legenda e prompts</button>
           <button type="button" className="item-folha perigo" onClick={() => setMenu('apagar')}>Apagar post</button>
           <button type="button" className="botao fantasma" onClick={() => setMenu(null)}>Cancelar</button>
         </Folha>
@@ -101,38 +101,6 @@ export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoAp
           <button type="button" className="botao secundario" onClick={() => setMenu(null)}>Manter post</button>
         </Folha>
       )}
-      {menu === 'editar' && <EditarPost post={post} aoSalvar={(p) => { setPost(p); setMenu(null); }} aoFechar={() => setMenu(null)} />}
     </article>
-  );
-}
-
-// Edita só legenda e prompts (as imagens não mudam). Os campos do novo post (Task 11) podem substituir este formulário.
-function EditarPost({ post, aoSalvar, aoFechar }: { post: Post; aoSalvar: (p: Post) => void; aoFechar: () => void }) {
-  const [legenda, setLegenda] = useState(post.legenda);
-  const [prompts, setPrompts] = useState(post.imagens.map((i) => i.prompt ?? ''));
-  const [erro, setErro] = useState('');
-  const [salvando, setSalvando] = useState(false);
-  async function salvar() {
-    setSalvando(true);
-    setErro('');
-    try {
-      const novo = await api<Post>(`/posts/${post.id}`, { method: 'PATCH', body: JSON.stringify({ legenda, prompts: prompts.map((p) => p.trim() || null) }) });
-      aoSalvar(novo);
-    } catch {
-      setErro('Não deu para salvar. Tente de novo.');
-      setSalvando(false);
-    }
-  }
-  return (
-    <Folha titulo="Editar post" aoFechar={aoFechar} alta>
-      <h2>Editar post</h2>
-      <label>Legenda<textarea data-foco maxLength={2200} value={legenda} onChange={(e) => setLegenda(e.target.value)} /></label>
-      {prompts.map((p, i) => (
-        <label key={post.imagens[i].id}>Prompt da imagem {i + 1}<textarea maxLength={4000} value={p} onChange={(e) => setPrompts(prompts.map((x, j) => (j === i ? e.target.value : x)))} /></label>
-      ))}
-      {erro && <p role="alert" className="erro-txt">{erro}</p>}
-      <button type="button" className="botao" disabled={salvando} onClick={salvar}>{salvando ? 'Salvando…' : 'Salvar'}</button>
-      <button type="button" className="botao fantasma" onClick={aoFechar}>Cancelar</button>
-    </Folha>
   );
 }
