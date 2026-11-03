@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { NextFunction, Request, Response } from 'express';
@@ -62,4 +63,10 @@ export function configureApp(app: NestExpressApplication) {
   app.useBodyParser('json', { limit: '1mb' });
   // erros dos middlewares do Express (Origin, JSON inválido, corpo grande) não passam pelo filtro do Nest
   app.use((erro: unknown, req: Request, res: Response, _next: NextFunction) => responderErro(erro, req, res));
+}
+
+/** Só em dev (NODE_ENV ≠ production): serve UPLOADS_DIR em /uploads, para o proxy do vite mostrar as fotos. Em produção quem serve é o nginx. */
+export function servirUploadsEmDev(app: NestExpressApplication) {
+  if (process.env.NODE_ENV === 'production') return;
+  app.useStaticAssets(resolve(process.env.UPLOADS_DIR ?? './uploads'), { prefix: '/uploads', index: false });
 }

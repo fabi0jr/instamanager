@@ -53,7 +53,7 @@ Pagina<T> = { itens: T[], proximo: string|null }   // proximo = cursor opaco par
 | `POST /api/auth/esqueci` | `{email}` | `204` sempre (não revela se o e-mail existe). Link por Resend válido por 1 h: `APP_URL/nova-senha?token=…` |
 | `POST /api/auth/redefinir` | `{token, senha}` | `204` · `TOKEN_INVALIDO`. Uso único; derruba as outras sessões. |
 | `GET /api/me` 🔒 | — | `Me` |
-| `PATCH /api/me` 🔒 | `{nome?, senhaAtual?, senhaNova?, pushEnabled?}` | `Me`. Trocar senha exige `senhaAtual` e derruba as outras sessões. |
+| `PATCH /api/me` 🔒 | `{nome?, senhaAtual?, senhaNova?, pushEnabled?}` | `Me`. Trocar senha exige `senhaAtual`, derruba as outras sessões e apaga as inscrições de push da conta (o aparelho atual se inscreve de novo). |
 | `PUT /api/me/foto` 🔒 | multipart `foto` (JPEG ≤ 480 px) | `Me` · `IMAGEM_INVALIDA` |
 
 ## 2. Clubes (Task 4)
@@ -67,14 +67,14 @@ Pagina<T> = { itens: T[], proximo: string|null }   // proximo = cursor opaco par
 
 | Rota | Corpo | Resposta |
 |---|---|---|
-| `POST /api/posts` | multipart: `legenda`, `prompts` (JSON `(string\|null)[]`), `cheia[]` e `mini[]` na mesma ordem (1–10 pares) | `201 Post`. `SEM_CLUBE`, `IMAGEM_INVALIDA`, `413` se > 3 MB, `400` se 0 ou > 10 imagens ou arrays de tamanhos diferentes. Nada é gravado em disco se algum arquivo for inválido. Emite `posts.criado`. |
+| `POST /api/posts` | multipart com os campos `legenda`, `prompts` (JSON `(string\|null)[]`), `cheia` e `mini`: cada arquivo vai como uma repetição do campo (`cheia` repetido 1–10 vezes, `mini` idem, **na mesma ordem**); o `[]` que aparece em outros pontos é só notação de lista, o nome do campo é `cheia`/`mini` sem colchetes (1–10 pares) | `201 Post`. `SEM_CLUBE`, `IMAGEM_INVALIDA`, `413` se > 3 MB, `400` se 0 ou > 10 imagens ou arrays de tamanhos diferentes. Nada é gravado em disco se algum arquivo for inválido. Emite `posts.criado`. |
 | `GET /api/posts?antes=&clube=` | — | `Pagina<Post>`, 12 por página, do mais novo ao mais velho. |
 | `GET /api/posts/:id` | — | `Post` |
 | `PATCH /api/posts/:id` | `{legenda?, prompts?}` (`prompts` na ordem das imagens) | `Post` · `NAO_E_TECNICO` |
 | `DELETE /api/posts/:id` | — | `204`, apaga curtidas, comentários e arquivos · `NAO_E_TECNICO` (admin pode qualquer um) |
 | `GET /api/galeria?antes=&clube=` | — | `Pagina<{imagemId, postId, miniUrl, cheiaUrl, prompt, clube: ClubeMini}>`, só imagens com prompt. |
 
-Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver malformado). A galeria pagina de 24 em 24 (o feed, de 12 em 12). Largura e altura de cada imagem são lidas do JPEG da `cheia[]` no servidor.
+Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver malformado). A galeria pagina de 24 em 24 (o feed, de 12 em 12). Largura e altura de cada imagem são lidas do JPEG da `cheia` no servidor.
 
 ## 4. Curtidas, comentários, trocas e admin (Task 6) 🔒
 

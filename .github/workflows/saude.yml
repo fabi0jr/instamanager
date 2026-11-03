@@ -1,0 +1,14 @@
+name: Saúde do instamanager
+# shortcut: o GitHub desliga cron após 60 dias sem atividade no repo; se o site ficar parado tanto tempo, reativar em Actions.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  saude:
+    runs-on: ubuntu-latest
+    steps:
+      # passa pelo Traefik e pelo nginx até o back e o banco; falhou → o GitHub avisa por e-mail
+      - run: curl -fsS --retry 2 --max-time 20 https://instamanager.fj-dev.tech/api/health

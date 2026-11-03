@@ -1,0 +1,64 @@
+name: Verificar e implantar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: instamanager
+          POSTGRES_PASSWORD: instamanager
+          POSTGRES_DB: instamanager
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U instamanager -d instamanager"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://instamanager:instamanager@localhost:5432/instamanager
+      APP_URL: http://localhost:5173
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.5.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter back db:deploy
+      - run: pnpm --filter front exec tsc --noEmit
+      - run: pnpm test
+      - run: node --test board/board.test.mjs
+      # o nginx resolve 'back' só no boot: confere a sintaxe do conf antes de implantar (add-host só para o nome existir)
+      - run: >-
+          docker run --rm --add-host back:127.0.0.1
+          -v $PWD/front/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+          -v $PWD/front/seguranca.conf:/etc/nginx/snippets/seguranca.conf:ro
+          nginxinc/nginx-unprivileged:1.29-alpine nginx -t
+
+  implantar:
+    needs: verificar
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      # Build na própria VPS; as migrations e o seed rodam quando o back sobe.
+      - name: Implantar por SSH
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5 (fixo: a ação recebe a chave SSH)
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/projetos/instamanager
+            git pull --ff-only origin main
+            docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+            docker image prune -f
