@@ -1,0 +1,62 @@
+import { useEffect, useState } from 'react';
+import { api, type Me } from '../api/cliente';
+import { Link, navegar } from '../rotas';
+import './admin.css';
+import { Clubes } from './Clubes';
+import { Convite } from './Convite';
+import { Pedidos } from './Pedidos';
+
+export const Topo = ({ titulo, voltar }: { titulo: string; voltar?: boolean }) => (
+  <>
+    {voltar && <Link para="/admin" className="voltar-admin">‹ Administração</Link>}
+    <header className="topo-admin">
+      <h1>{titulo}</h1>
+      <span className="pilula-admin">Admin</span>
+    </header>
+  </>
+);
+
+function Inicio() {
+  const [pedidos, setPedidos] = useState<number>();
+  const [codigo, setCodigo] = useState<string>();
+  const [clubes, setClubes] = useState<{ com: number; total: number }>();
+  useEffect(() => {
+    api<unknown[]>('/admin/trocas?status=PENDENTE').then((l) => setPedidos(l.length), () => undefined);
+    api<{ codigo: string | null }>('/admin/convite').then((c) => setCodigo(c.codigo ?? undefined), () => undefined);
+    api<{ tecnico: unknown }[]>('/clubes').then((l) => setClubes({ com: l.filter((c) => c.tecnico).length, total: l.length }), () => undefined);
+  }, []);
+  return (
+    <div className="tela admin">
+      <Topo titulo="Administração" />
+      <nav className="linhas" aria-label="Administração">
+        <Link para="/admin/pedidos" className="linha-config">
+          <span>Pedidos de troca</span>
+          {!!pedidos && <span className="selo" aria-label={`${pedidos} ${pedidos === 1 ? 'pedido pendente' : 'pedidos pendentes'}`}>{pedidos}</span>}
+          <span aria-hidden="true">›</span>
+        </Link>
+        <Link para="/admin/convite" className="linha-config">
+          <span>Código de convite</span>
+          {codigo && <span className="giz2">{codigo}</span>}
+          <span aria-hidden="true">›</span>
+        </Link>
+        <Link para="/admin/clubes" className="linha-config">
+          <span>Clubes e técnicos</span>
+          {clubes && <span className="giz2">{clubes.com} de {clubes.total} com técnico</span>}
+          <span aria-hidden="true">›</span>
+        </Link>
+      </nav>
+    </div>
+  );
+}
+
+// /admin e as três telas de dentro; quem não é admin volta ao feed sem aviso (a API também recusa)
+export function Admin({ me, caminho }: { me: Me; caminho: string }) {
+  useEffect(() => {
+    if (!me.isAdmin) navegar('/');
+  }, [me.isAdmin]);
+  if (!me.isAdmin) return null;
+  if (caminho === '/admin/pedidos') return <Pedidos />;
+  if (caminho === '/admin/convite') return <Convite />;
+  if (caminho === '/admin/clubes') return <Clubes />;
+  return <Inicio />;
+}

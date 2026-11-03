@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useMe } from './api/useMe';
 import { BarraInferior } from './BarraInferior';
+import { Admin } from './admin/Admin';
 import { Cadastro } from './conta/Cadastro';
 import { Entrar } from './conta/Entrar';
 import { Esqueci } from './conta/Esqueci';
@@ -11,6 +12,7 @@ import { PostPagina } from './feed/PostPagina';
 import { EditarPost } from './postar/EditarPost';
 import { Postar } from './postar/Postar';
 import { navegar, PUBLICAS, useRota } from './rotas';
+import { Trocar } from './trocas/Trocar';
 
 export function App() {
   const { me, carregando, recarregar } = useMe();
@@ -38,6 +40,8 @@ export function App() {
         {params.id && caminho.endsWith('/editar') && <div className="post-pagina"><EditarPost id={params.id} /></div>}
         {caminho === '/postar' && <Postar me={me} />}
         {caminho === '/perfil' && <Perfil me={me} recarregar={recarregar} />}
+        {caminho === '/trocar' && <Trocar me={me} />}
+        {(caminho === '/admin' || caminho.startsWith('/admin/')) && <Admin me={me} caminho={caminho} />}
       </main>
       <BarraInferior clubeId={me.clube?.id} />
     </>
