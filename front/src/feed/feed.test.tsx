@@ -240,3 +240,26 @@ test('curtir em /p/:id faz o feed guardado ser esquecido (volta atualizado)', as
   render(<Feed me={{ ...me, id: 'esq' }} />);
   await waitFor(() => expect(chamadas.filter((c) => c.chave === 'GET /posts')).toHaveLength(2)); // refez a busca
 });
+
+test('/p/:id tem seta Voltar no topo', async () => {
+  const { PostPagina } = await import('./PostPagina');
+  fetchFalso({ 'GET /posts/a': post('a') });
+  render(<PostPagina id="a" me={me} />);
+  expect(await screen.findByRole('button', { name: 'Voltar' })).toBeTruthy();
+});
+
+test('apagar abre o diálogo central; o menu tem alça, ícones e divisor', () => {
+  render(<CardPost post={post('a', { podeEditar: true })} me={me} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Mais opções' }));
+  const menu = screen.getByRole('dialog');
+  expect(menu.querySelector('.alca')).toBeTruthy();
+  expect(menu.querySelector('hr.divisor')).toBeTruthy();
+  expect(menu.querySelectorAll('.item-folha svg')).toHaveLength(2);
+  fireEvent.click(screen.getByRole('button', { name: 'Apagar post' }));
+  expect(screen.getByRole('dialog').className).toContain('centro');
+});
+
+test('ícones oficiais: curtir usa curtido (cheio) quando curtiu', () => {
+  const { container } = render(<CardPost post={post('a', { curtiu: true })} me={me} />);
+  expect(container.querySelector('.acoes .curtido svg')?.getAttribute('fill')).toBe('currentColor');
+});

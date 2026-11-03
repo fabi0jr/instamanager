@@ -60,3 +60,12 @@ test('sessão que expira numa chamada qualquer leva para /entrar', async () => {
   expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeTruthy();
   expect(location.pathname).toBe('/entrar');
 });
+
+test('barra: Postar usa o ícone novo-post (quadrado com +) e a lateral tem a marca', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (u: string) => new Response(JSON.stringify(u === '/api/me' ? me : { itens: [], proximo: null }))));
+  history.pushState(null, '', '/galeria');
+  render(<App />);
+  const nav = await screen.findByRole('navigation');
+  expect(nav.querySelector('a[href="/postar"] svg path')?.getAttribute('d')).toContain('M5 3h14');
+  expect(nav.querySelector('.marca-lateral')?.textContent).toBe('InstaManager');
+});

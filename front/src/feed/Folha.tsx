@@ -1,7 +1,7 @@
 import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 
 // Folha de baixo / janela central. Foco entra ao abrir (campo [data-foco] ou 1º botão) e volta a quem abriu; Esc fecha.
-export function Folha({ titulo, aoFechar, children, alta }: { titulo: string; aoFechar: () => void; children: ReactNode; alta?: boolean }) {
+export function Folha({ titulo, aoFechar, children, alta, centro }: { titulo: string; aoFechar: () => void; children: ReactNode; alta?: boolean; centro?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const antes = document.activeElement as HTMLElement | null;
@@ -15,8 +15,8 @@ export function Folha({ titulo, aoFechar, children, alta }: { titulo: string; ao
     }
   }
   return (
-    <div className="veu" onClick={aoFechar}>
-      <div ref={ref} role="dialog" aria-modal="true" aria-label={titulo} className={`folha ${alta ? 'alta' : ''}`} onClick={(e) => e.stopPropagation()} onKeyDown={tecla}>
+    <div className={`veu ${centro ? 'veu-centro' : ''}`} onClick={aoFechar}>
+      <div ref={ref} role="dialog" aria-modal="true" aria-label={titulo} className={`folha ${alta ? 'alta' : ''} ${centro ? 'centro' : ''}`} onClick={(e) => e.stopPropagation()} onKeyDown={tecla}>
         {children}
       </div>
     </div>

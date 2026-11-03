@@ -85,3 +85,12 @@ main { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
   .barra-inferior .rotulo { position: static; width: auto; height: auto; clip: auto; font-size: 16px; line-height: 24px; }
   main { margin-left: 220px; }
 }
+
+.icone { display: inline-flex; line-height: 0; } .icone svg { display: block; }
+.barra-inferior .marca-lateral { display: none; }
+@media (min-width: 768px) {
+  .barra-inferior .marca-lateral { display: flex; align-items: center; justify-content: center; gap: var(--im-e3); min-height: 56px; margin-bottom: var(--im-e2); font: 800 24px var(--im-fonte-display); }
+  .barra-inferior .marca-lateral span { display: none; }
+  .topo-feed { display: none; }
+}
+@media (min-width: 1100px) { .barra-inferior .marca-lateral { justify-content: flex-start; padding: 0 var(--im-e3); } .barra-inferior .marca-lateral span { display: inline; } }

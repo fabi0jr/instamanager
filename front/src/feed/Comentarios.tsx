@@ -91,7 +91,7 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
               </div>
               <p>{c.texto}</p>
               {c.estado === 'falhou' ? (
-                <button type="button" className="link erro-txt" onClick={() => enviar(c.texto, c.id)}>Não enviou. Toque para tentar de novo.</button>
+                <button type="button" className="link erro-txt sem-sublinhado" onClick={() => enviar(c.texto, c.id)}>Não enviou. Toque para tentar de novo.</button>
               ) : (
                 <span className="giz2 mini">{c.estado === 'enviando' ? 'Enviando…' : haQuanto(c.criadoEm)}</span>
               )}
@@ -111,6 +111,7 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
       </form>
       {menu && (
         <Folha titulo="Comentário" aoFechar={() => setMenu(null)}>
+          <div className="alca" aria-hidden="true" />
           <button type="button" className="item-folha perigo" onClick={() => apagar(menu)}>Apagar comentário</button>
           <button type="button" className="botao fantasma" onClick={() => setMenu(null)}>Cancelar</button>
         </Folha>

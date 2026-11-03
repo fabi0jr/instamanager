@@ -23,3 +23,5 @@
 .barra { height: 8px; border-radius: 4px; background: var(--im-superficie-alta); overflow: hidden; } .barra span { display: block; height: 100%; background: var(--im-vermelho); }
 .barra.falha span { background: var(--im-vermelho-texto); }
 .progresso-txt { display: flex; justify-content: space-between; } .progresso-txt .numero { font: 600 16px var(--im-fonte-display); }
+
+.postar #leg, .postar #legenda { min-height: 120px; }

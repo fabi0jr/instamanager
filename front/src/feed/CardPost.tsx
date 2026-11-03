@@ -5,7 +5,7 @@ import { Carrossel } from './Carrossel';
 import { Comentarios } from './Comentarios';
 import { Escudo } from './Escudo';
 import { Folha } from './Folha';
-import { IcComentar, IcCurtir, IcMais } from './icones';
+import { IcComentar, IcCurtir, IcEditar, IcLixo, IcMais } from './icones';
 import { haQuanto, type Post } from './tipos';
 
 type Props = {
@@ -92,13 +92,15 @@ export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoAp
       )}
       {menu === 'menu' && (
         <Folha titulo="Opções do post" aoFechar={() => setMenu(null)}>
-          <button type="button" className="item-folha" onClick={() => navegar(`/p/${post.id}/editar`)}>Editar legenda e prompts</button>
-          <button type="button" className="item-folha perigo" onClick={() => setMenu('apagar')}>Apagar post</button>
+          <div className="alca" aria-hidden="true" />
+          <button type="button" className="item-folha" onClick={() => navegar(`/p/${post.id}/editar`)}><IcEditar />Editar legenda e prompts</button>
+          <hr className="divisor" />
+          <button type="button" className="item-folha perigo" onClick={() => setMenu('apagar')}><IcLixo />Apagar post</button>
           <button type="button" className="botao fantasma" onClick={() => setMenu(null)}>Cancelar</button>
         </Folha>
       )}
       {menu === 'apagar' && (
-        <Folha titulo="Apagar post" aoFechar={() => setMenu(null)}>
+        <Folha titulo="Apagar post" aoFechar={() => setMenu(null)} centro>
           <h2>Apagar este post?</h2>
           <p className="giz2">As imagens, as curtidas e os comentários também somem. Não dá para desfazer.</p>
           <button type="button" className="botao" onClick={apagar}>Apagar post</button>

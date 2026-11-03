@@ -51,3 +51,11 @@
 .seta { display: none; position: absolute; top: calc(50% - 18px); width: 36px; height: 36px; min-width: 36px; min-height: 36px; padding: 0; border: 0; border-radius: 50%; background: rgb(14 15 17 / .72); color: var(--im-giz); font-size: 24px; line-height: 1; cursor: pointer; }
 .seta.esq { left: 8px; } .seta.dir { right: 8px; }
 @media (min-width: 768px) { .carrossel-moldura:hover .seta, .carrossel-moldura:focus-within .seta { display: block; } }
+
+.topo-post { display: flex; align-items: center; gap: var(--im-e2); height: 56px; padding: 0 var(--im-e2); border-bottom: 1px solid var(--im-linha); }
+.topo-post h1 { font: 700 24px var(--im-fonte-display); } .topo-post button { width: 44px; height: 44px; background: none; border: 0; color: var(--im-giz); display: grid; place-items: center; cursor: pointer; }
+.item-folha { display: flex; align-items: center; gap: var(--im-e3); } .divisor { width: 100%; border: 0; border-top: 1px solid var(--im-linha); margin: 0; }
+.veu.veu-centro { align-items: center; padding: var(--im-e4); } .folha.centro { max-width: 342px; border-radius: 16px; padding-bottom: var(--im-e4); height: auto; }
+.comentario { padding-bottom: var(--im-e3); border-bottom: 1px solid var(--im-linha); } .comentario:last-of-type { border-bottom: 0; }
+.sem-sublinhado { text-decoration: none; text-align: left; }
+@media (min-width: 768px) { .veu.veu-centro .folha.centro { max-width: 342px; } }
