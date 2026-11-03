@@ -51,16 +51,25 @@ test('clube sem técnico mostra "Vaga aberta" e leva ao pedido em /trocar?clube=
   expect(screen.getByRole('link', { name: 'Pedir este clube' }).getAttribute('href')).toBe('/trocar?clube=palmeiras');
 });
 
-test('com pedido pendente o botão vira "Pedido enviado" desabilitado', async () => {
-  fetchFalso({
-    'GET /clubes/palmeiras': { ...base, tecnico: null, historico: [] },
-    'GET /posts?clube=palmeiras': { itens: [], proximo: null },
-    'GET /trocas/minhas': [{ id: 't1', tipo: 'ASSUMIR', status: 'PENDENTE', clubeId: 'remo' }],
-  });
+const clubeLivre = () => ({
+  'GET /clubes/palmeiras': { ...base, tecnico: null, historico: [] },
+  'GET /posts?clube=palmeiras': { itens: [], proximo: null },
+});
+
+test('pedido pendente DESTE clube → "Pedido enviado" desabilitado', async () => {
+  fetchFalso({ ...clubeLivre(), 'GET /trocas/minhas': [{ id: 't1', tipo: 'ASSUMIR', status: 'PENDENTE', clubeId: 'palmeiras' }] });
   render(<PerfilClube id="palmeiras" me={me} />);
   const botao = (await screen.findByRole('button', { name: 'Pedido enviado' })) as HTMLButtonElement;
   expect(botao.disabled).toBe(true);
   expect(screen.queryByRole('link', { name: 'Pedir este clube' })).toBeNull();
+});
+
+test('pedido pendente de OUTRO clube → "Você já tem um pedido pendente"', async () => {
+  fetchFalso({ ...clubeLivre(), 'GET /trocas/minhas': [{ id: 't1', tipo: 'ASSUMIR', status: 'PENDENTE', clubeId: 'remo' }] });
+  render(<PerfilClube id="palmeiras" me={me} />);
+  const botao = (await screen.findByRole('button', { name: 'Você já tem um pedido pendente' })) as HTMLButtonElement;
+  expect(botao.disabled).toBe(true);
+  expect(screen.queryByRole('button', { name: 'Pedido enviado' })).toBeNull();
 });
 
 test('o próprio clube nunca mostra "Pedir este clube"', async () => {

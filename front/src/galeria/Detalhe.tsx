@@ -39,7 +39,8 @@ export function Detalhe({ imagemId, postId }: { imagemId: string; postId: string
     return () => clearTimeout(t);
   }, [copia]);
 
-  const fechar = () => navegar('/galeria');
+  // veio do feed (Ver prompt) ou da grade: voltar devolve a tela de origem; sem histórico (link direto), cai na galeria
+  const fechar = () => (history.length > 1 ? history.back() : navegar('/galeria'));
   const comPrompt = post !== 'carregando' && post !== 'erro' ? post.imagens.filter((i) => i.prompt) : [];
   const atual = indice ?? Math.max(0, comPrompt.findIndex((i) => i.id === imagemId));
   const img = comPrompt[atual];

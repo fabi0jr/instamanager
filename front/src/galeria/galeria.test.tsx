@@ -72,3 +72,12 @@ test('filtro por clube refaz a busca com ?clube=', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Limpar filtro' }));
   await waitFor(() => expect(screen.getByRole('link', { name: /Prompt de Palmeiras/ })).toBeTruthy());
 });
+
+test('fechar o detalhe vindo do feed volta ao feed', async () => {
+  fetchFalso({ 'GET /galeria': { itens: [], proximo: null }, 'GET /posts/p1': postDe('p1') });
+  history.pushState(null, '', '/');
+  history.pushState(null, '', '/galeria?imagem=i1&post=p1');
+  render(<Galeria />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Fechar' }));
+  await waitFor(() => expect(location.pathname).toBe('/'));
+});

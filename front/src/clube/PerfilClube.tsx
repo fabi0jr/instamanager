@@ -19,7 +19,7 @@ export const Inicial = ({ nome, tam }: { nome: string; tam: number }) => (
 export function PerfilClube({ id, me }: { id: string; me: Me }) {
   const [clube, setClube] = useState<Clube | 'carregando' | 'erro'>('carregando');
   const [aba, setAba] = useState<'posts' | 'historico'>('posts');
-  const [pedido, setPedido] = useState<'pendente' | null>(null);
+  const [pendente, setPendente] = useState<Troca | null>(null); // pedido pendente da pessoa, se houver
   const posts = usePaginado<Post>('/posts', { clube: id });
 
   function carregar() {
@@ -29,7 +29,7 @@ export function PerfilClube({ id, me }: { id: string; me: Me }) {
   useEffect(carregar, [id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     // já há pedido pendente da pessoa? então o botão fica "Pedido enviado"
-    api<Troca[]>('/trocas/minhas').then((l) => setPedido(l.some((t) => t.status === 'PENDENTE') ? 'pendente' : null), () => {});
+    api<Troca[]>('/trocas/minhas').then((l) => setPendente(l.find((t) => t.status === 'PENDENTE') ?? null), () => {});
   }, []);
 
   if (clube === 'carregando')
@@ -69,10 +69,15 @@ export function PerfilClube({ id, me }: { id: string; me: Me }) {
         )}
         {podePedir && (
           <>
-            {pedido === 'pendente' ? (
+            {pendente && pendente.clubeId === clube.id ? (
               <>
                 <button type="button" className="botao" disabled>Pedido enviado</button>
                 <p className="giz2 centro">Aguardando o admin.</p>
+              </>
+            ) : pendente ? (
+              <>
+                <button type="button" className="botao" disabled>Você já tem um pedido pendente</button>
+                <p className="giz2 centro">Espere o admin decidir para pedir outro.</p>
               </>
             ) : (
               <Link para={`/trocar?clube=${clube.id}`} className="botao">Pedir este clube</Link>
