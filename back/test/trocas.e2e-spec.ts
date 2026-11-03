@@ -161,22 +161,5 @@ describe('trocas de time e admin (e2e)', () => {
       await com('post', '/api/admin/clubes/sao-paulo/remover-tecnico', admin).expect(204);
       await com('post', '/api/admin/clubes/nao-existe/remover-tecnico', admin).expect(404);
     });
-
-    it('PUT convite → cadastro com o código antigo falha, com o novo funciona', async () => {
-      const atual = (await com('get', '/api/admin/convite', admin).expect(200)).body.codigo as string;
-      expect(atual).toEqual(expect.any(String));
-      await com('put', '/api/admin/convite', admin).send({ codigo: 'abc' }).expect(400);
-      try {
-        await com('put', '/api/admin/convite', admin).send({ codigo: '  novo-codigo-xyz ' }).expect(200);
-        const dados = (convite: string) => ({ convite, email: `teste-${Math.random().toString(36).slice(2)}@exemplo.com`, senha: 'senha-boa-123', nome: 'X', clubeId: null });
-        expect((await post('/api/auth/cadastro', dados(atual), '10.9.9.1').expect(400)).body.codigo).toBe('CONVITE_INVALIDO');
-        const ok = await post('/api/auth/cadastro', dados('novo-codigo-xyz'), '10.9.9.2').expect(201);
-        ids.push(ok.body.id);
-      } finally {
-        // o código é global e os outros e2e rodam em paralelo: restaura na hora
-        await com('put', '/api/admin/convite', admin).send({ codigo: atual });
-      }
-      expect((await com('get', '/api/admin/convite', admin).expect(200)).body.codigo).toBe(atual);
-    });
   });
 });

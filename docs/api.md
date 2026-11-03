@@ -84,14 +84,14 @@ Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver 
 | `DELETE /api/posts/:id/curtida` | — | `204` (idempotente) |
 | `GET /api/posts/:id/comentarios` | — | `[{id, texto, criadoEm, usuario: {id, nome, avatarUrl\|null, clube: {id,nome}\|null}}]`, do mais velho ao mais novo. `clube` é o atual de quem comentou. |
 | `POST /api/posts/:id/comentarios` | `{texto}` | `201` comentário · `400` se vazio ou > 1000. Emite `comentarios.criado`. |
-| `DELETE /api/comentarios/:id` | — | `204` (autor ou admin) · `403` |
+| `DELETE /api/comentarios/:id` | — | `204` (autor ou admin) · `403 NAO_E_AUTOR` |
 | `POST /api/trocas` | `{tipo: 'SAIR'\|'ASSUMIR', clubeId?}` | `201 {id, tipo, clubeId, status, criadoEm, decididoEm}` (`clubeId` só no `ASSUMIR`). `ASSUMIR` exige `clubeId` livre agora (`CLUBE_OCUPADO`); `SAIR` exige ter clube (`SEM_CLUBE`). `TROCA_PENDENTE` se já houver um. Emite `trocas.pedida`. |
 | `GET /api/trocas/minhas` | — | lista dos pedidos da pessoa, do mais novo ao mais velho |
 | `GET /api/admin/trocas?status=PENDENTE` 👑 | — | `[{id, tipo, status, criadoEm, usuario:{id,nome}, clubeAtual: ClubeMini\|null, clubeDesejado: ClubeMini\|null}]` |
 | `POST /api/admin/trocas/:id/aprovar` 👑 | — | `204`. Numa transação: fecha a tenure do clube antigo, solta o `coachId`, e (se `ASSUMIR`) abre a nova tenure e move o `coachId`. Clube ocupado depois do pedido → `409 CLUBE_OCUPADO`, nada muda, pedido segue `PENDENTE`. Emite `trocas.decidida`. |
 | `POST /api/admin/trocas/:id/recusar` 👑 | — | `204`. Emite `trocas.decidida`. |
 | `GET /api/admin/convite` 👑 | — | `{codigo}` |
-| `PUT /api/admin/convite` 👑 | `{codigo}` (mín. 4) | `{codigo}`. O código antigo para de valer. |
+| `PUT /api/admin/convite` 👑 | `{codigo}` (4 a 64 caracteres) | `{codigo}`. O código antigo para de valer. |
 | `POST /api/admin/clubes/:id/remover-tecnico` 👑 | — | `204`: fecha a tenure e deixa a pessoa como torcedora. |
 
 Apagar post e comentário pelo admin usa as mesmas rotas de §3 e §4.
