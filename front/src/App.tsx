@@ -1,20 +1,34 @@
+import { useEffect } from 'react';
 import { useMe } from './api/useMe';
 import { BarraInferior } from './BarraInferior';
+import { Cadastro } from './conta/Cadastro';
 import { Entrar } from './conta/Entrar';
-import { useRota } from './rotas';
-
-// rotas do grupo de acesso: abertas sem sessão (telas reais na Task 9)
-const PUBLICAS = ['/entrar', '/cadastro', '/esqueci-senha', '/nova-senha'];
+import { Esqueci } from './conta/Esqueci';
+import { NovaSenha } from './conta/NovaSenha';
+import { Perfil } from './conta/Perfil';
+import { navegar, PUBLICAS, useRota } from './rotas';
 
 export function App() {
-  const { me, carregando } = useMe();
+  const { me, carregando, recarregar } = useMe();
   const { caminho } = useRota();
+  const publica = PUBLICAS.includes(caminho);
+
+  // logada numa tela de acesso (acabou de entrar): vai para o feed
+  useEffect(() => {
+    if (me && publica && caminho !== '/nova-senha') navegar('/');
+  }, [me, publica, caminho]);
 
   if (carregando) return <div className="carregando" role="status" aria-label="Carregando" />;
-  if (!me || PUBLICAS.includes(caminho)) return <Entrar />;
+  // o link do e-mail abre a tela com ou sem sessão
+  if (caminho === '/nova-senha') return <NovaSenha />;
+  if (!me) {
+    if (caminho === '/cadastro') return <Cadastro aoEntrar={recarregar} />;
+    if (caminho === '/esqueci-senha') return <Esqueci />;
+    return <Entrar aoEntrar={recarregar} />;
+  }
   return (
     <>
-      <main>{/* telas das Tasks 9–13 entram aqui */}</main>
+      <main>{caminho === '/perfil' && <Perfil me={me} recarregar={recarregar} />}</main>
       <BarraInferior clubeId={me.clube?.id} />
     </>
   );
