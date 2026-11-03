@@ -1107,7 +1107,7 @@
         "IM-22"
       ],
       "responsavel": "Volante",
-      "coluna": "correcao",
+      "coluna": "revisao",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.356Z",
@@ -1156,6 +1156,20 @@
           "de": "revisao",
           "para": "correcao",
           "nota": "convite sem máx. 64 no front; DADOS_INVALIDOS genérico"
+        },
+        {
+          "quando": "2026-11-03T21:07:28.133Z",
+          "quem": "PO",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "correção 4c13daf"
+        },
+        {
+          "quando": "2026-11-03T21:07:28.168Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "correção 4c13daf"
         }
       ]
     },
