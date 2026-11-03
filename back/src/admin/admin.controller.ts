@@ -37,7 +37,7 @@ export class AdminController {
   @Put('convite')
   async trocarConvite(@Body() body: unknown) {
     const bruto = typeof body === 'object' && body ? (body as { codigo?: unknown }).codigo : undefined;
-    const codigo = typeof bruto === 'string' ? bruto.trim() : '';
+    const codigo = typeof bruto === 'string' ? bruto.trim().toUpperCase() : '';
     if (codigo.length < 4 || codigo.length > 64) throw new ApiError(400, 'DADOS_INVALIDOS', 'O código precisa ter de 4 a 64 caracteres.', ['codigo']);
     await this.prisma.setting.upsert({ where: { key: 'inviteCode' }, update: { value: codigo }, create: { key: 'inviteCode', value: codigo } });
     return { codigo };

@@ -31,14 +31,18 @@ describe('convite (e2e, serial)', () => {
     await comoAdmin('put', '/api/admin/convite').send({ codigo: 'abc' }).expect(400);
     await comoAdmin('put', '/api/admin/convite').send({ codigo: 'x'.repeat(65) }).expect(400);
     try {
-      await comoAdmin('put', '/api/admin/convite').send({ codigo: '  novo-codigo-xyz ' }).expect(200);
+      const salvo = await comoAdmin('put', '/api/admin/convite').send({ codigo: '  novo-codigo-xyz ' }).expect(200);
+      expect(salvo.body.codigo).toBe('NOVO-CODIGO-XYZ'); // trim + maiúsculas na gravação
       const dados = (convite: string) => ({ convite, email: `teste-${Math.random().toString(36).slice(2)}@exemplo.com`, senha: 'senha-boa-123', nome: 'X', clubeId: null });
       expect((await post('/api/auth/cadastro', dados(atual), '10.9.9.1').expect(400)).body.codigo).toBe('CONVITE_INVALIDO');
+      // não diferencia maiúsculas nem espaços nas pontas: quem digita no celular erra a caixa
       const ok = await post('/api/auth/cadastro', dados('novo-codigo-xyz'), '10.9.9.2').expect(201);
-      ids.push(ok.body.id);
+      const ok2 = await post('/api/auth/cadastro', dados('  Novo-Codigo-XYZ '), '10.9.9.3').expect(201);
+      ids.push(ok.body.id, ok2.body.id);
+      expect((await post('/api/auth/cadastro', dados('novo-codigo-xy'), '10.9.9.4').expect(400)).body.codigo).toBe('CONVITE_INVALIDO');
     } finally {
       await comoAdmin('put', '/api/admin/convite').send({ codigo: atual }); // restaura na hora
     }
-    expect((await comoAdmin('get', '/api/admin/convite').expect(200)).body.codigo).toBe(atual);
+    expect((await comoAdmin('get', '/api/admin/convite').expect(200)).body.codigo).toBe(atual.toUpperCase());
   });
 });
