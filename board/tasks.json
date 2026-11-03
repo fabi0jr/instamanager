@@ -1,5 +1,5 @@
 {
-  "proximoId": 23,
+  "proximoId": 24,
   "tarefas": [
     {
       "id": "IM-1",
@@ -786,7 +786,7 @@
         "IM-19"
       ],
       "responsavel": "Ponta",
-      "coluna": "correcao",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.272Z",
@@ -842,6 +842,27 @@
           "de": "qa",
           "para": "correcao",
           "nota": "voltar ao feed perde a rolagem: scrollY salvo no cleanup quando já zerou"
+        },
+        {
+          "quando": "2026-11-03T20:59:48.677Z",
+          "quem": "PO",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "correção 4464061"
+        },
+        {
+          "quando": "2026-11-03T20:59:48.703Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "correção 4464061"
+        },
+        {
+          "quando": "2026-11-03T21:01:06.620Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 4464061; reteste da rolagem"
         }
       ]
     },
@@ -952,7 +973,7 @@
         "IM-21"
       ],
       "responsavel": "Ponta",
-      "coluna": "dev",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.314Z",
@@ -987,6 +1008,20 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-03T21:02:28.145Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "entregue 5dfe2df"
+        },
+        {
+          "quando": "2026-11-03T21:06:02.011Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 5dfe2df; QA junto da IM-23 no andar featim-23-visual"
         }
       ]
     },
@@ -1008,8 +1043,8 @@
         "IM-8",
         "IM-22"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Volante",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.335Z",
@@ -1025,6 +1060,30 @@
           "quando": "2026-11-03T20:42:43.476Z",
           "quem": "PO",
           "nota": "editado: criterios"
+        },
+        {
+          "quando": "2026-11-03T21:00:04.923Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T21:00:04.945Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-03T21:00:04.969Z",
+          "quem": "PO",
+          "nota": "exceção de trilha autorizada pelo Maestro: front/src/instalar/**"
+        },
+        {
+          "quando": "2026-11-03T21:00:04.997Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     },
@@ -1048,7 +1107,7 @@
         "IM-22"
       ],
       "responsavel": "Volante",
-      "coluna": "dev",
+      "coluna": "correcao",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.356Z",
@@ -1083,6 +1142,20 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-03T20:59:48.655Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "entregue 9a73403"
+        },
+        {
+          "quando": "2026-11-03T21:02:49.762Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "convite sem máx. 64 no front; DADOS_INVALIDOS genérico"
         }
       ]
     },
@@ -1561,6 +1634,45 @@
           "de": "qa",
           "para": "concluido",
           "nota": "design aprovado pelo Maestro: instalar e avisos sempre opcionais, tela explicativa antes do pedido do sistema, confirmação ao aprovar/recusar/tirar técnico, rótulo 'Admin'"
+        }
+      ]
+    },
+    {
+      "id": "IM-23",
+      "titulo": "Ajustes visuais do feed e do post (conferência do Prancheta)",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "editar post em tela cheia como postar.md 'editar-post' (voltar, miniaturas, legenda 120 px com contador x/2200, prompts fechados 'Adicionar prompt', botão 'Salvar alterações'); conferir se a IM-11 já resolveu",
+        "confirmar apagar = diálogo central 342 px raio 16",
+        "menu do post com ícones, alça e divisor",
+        "/p/:id com seta voltar no topo",
+        "ícone 'novo-post' (quadrado com +) na barra e lateral; lateral desktop com marca (ícone 40 + InstaManager) sem repetir o cabeçalho do celular",
+        "divisores da folha de comentários e 'Não enviou' sem sublinhado"
+      ],
+      "depende": [
+        "IM-12"
+      ],
+      "responsavel": "Ponta",
+      "coluna": "pronto",
+      "historico": [
+        {
+          "quando": "2026-11-03T21:01:17.929Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-03T21:01:20.693Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-03T21:01:20.716Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
         }
       ]
     }
