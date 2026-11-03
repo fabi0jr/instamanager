@@ -683,7 +683,7 @@
         "IM-18"
       ],
       "responsavel": "Ponta",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.252Z",
@@ -755,6 +755,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou o fix ef33fe2; reteste com Bandeirinha em andamento"
+        },
+        {
+          "quando": "2026-11-03T20:57:36.209Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "QA aprovou o reteste; mergeada na main"
         }
       ]
     },
@@ -779,7 +786,7 @@
         "IM-19"
       ],
       "responsavel": "Ponta",
-      "coluna": "qa",
+      "coluna": "correcao",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.272Z",
@@ -828,6 +835,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 64eca3c; QA depois da IM-9"
+        },
+        {
+          "quando": "2026-11-03T20:57:36.232Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "correcao",
+          "nota": "voltar ao feed perde a rolagem: scrollY salvo no cleanup quando já zerou"
         }
       ]
     },
