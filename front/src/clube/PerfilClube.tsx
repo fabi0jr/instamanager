@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, ErroApi, type Me } from '../api/cliente';
+import { api, type Me } from '../api/cliente';
 import { Escudo } from '../feed/Escudo';
 import { IcGaleria } from '../feed/icones';
 import type { Post } from '../feed/tipos';
@@ -19,7 +19,7 @@ export const Inicial = ({ nome, tam }: { nome: string; tam: number }) => (
 export function PerfilClube({ id, me }: { id: string; me: Me }) {
   const [clube, setClube] = useState<Clube | 'carregando' | 'erro'>('carregando');
   const [aba, setAba] = useState<'posts' | 'historico'>('posts');
-  const [pedido, setPedido] = useState<'pendente' | 'enviando' | 'erro' | null>(null);
+  const [pedido, setPedido] = useState<'pendente' | null>(null);
   const posts = usePaginado<Post>('/posts', { clube: id });
 
   function carregar() {
@@ -51,18 +51,6 @@ export function PerfilClube({ id, me }: { id: string; me: Me }) {
   const meu = me.clube?.id === clube.id;
   const podePedir = !clube.tecnico && !meu;
 
-  async function pedir() {
-    setPedido('enviando');
-    try {
-      await api('/trocas', { method: 'POST', body: JSON.stringify({ tipo: 'ASSUMIR', clubeId: id }) });
-      setPedido('pendente');
-    } catch (e) {
-      if (e instanceof ErroApi && e.codigo === 'TROCA_PENDENTE') setPedido('pendente');
-      else if (e instanceof ErroApi && e.codigo === 'CLUBE_OCUPADO') { setPedido(null); carregar(); }
-      else setPedido('erro');
-    }
-  }
-
   return (
     <div className="clube">
       <header className="clube-topo">
@@ -81,11 +69,14 @@ export function PerfilClube({ id, me }: { id: string; me: Me }) {
         )}
         {podePedir && (
           <>
-            <button type="button" className="botao" disabled={pedido === 'pendente' || pedido === 'enviando'} onClick={pedir}>
-              {pedido === 'pendente' ? 'Pedido enviado' : 'Pedir este clube'}
-            </button>
-            {pedido === 'pendente' && <p className="giz2 centro">Aguardando o admin.</p>}
-            {pedido === 'erro' && <p role="alert" className="erro-txt">Não deu para enviar o pedido. Tente de novo.</p>}
+            {pedido === 'pendente' ? (
+              <>
+                <button type="button" className="botao" disabled>Pedido enviado</button>
+                <p className="giz2 centro">Aguardando o admin.</p>
+              </>
+            ) : (
+              <Link para={`/trocar?clube=${clube.id}`} className="botao">Pedir este clube</Link>
+            )}
           </>
         )}
       </header>

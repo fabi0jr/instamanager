@@ -39,19 +39,28 @@ test('perfil mostra técnico atual e histórico com "até hoje" na tenure aberta
   expect(screen.getByText('12/10/2026 a 02/11/2026')).toBeTruthy();
 });
 
-test('clube sem técnico mostra "Vaga aberta" e o botão de pedir', async () => {
-  const chamadas = fetchFalso({
+test('clube sem técnico mostra "Vaga aberta" e leva ao pedido em /trocar?clube=', async () => {
+  fetchFalso({
     'GET /clubes/palmeiras': { ...base, tecnico: null, historico: [] },
     'GET /posts?clube=palmeiras': { itens: [], proximo: null },
     'GET /trocas/minhas': [],
-    'POST /trocas': { status: 201, corpo: { id: 't1', status: 'PENDENTE' } },
   });
   render(<PerfilClube id="palmeiras" me={me} />);
   expect(await screen.findByText('Vaga aberta')).toBeTruthy();
   expect(screen.getByText('Ainda sem posts')).toBeTruthy();
-  fireEvent.click(screen.getByRole('button', { name: 'Pedir este clube' }));
-  await waitFor(() => expect((screen.getByRole('button', { name: 'Pedido enviado' }) as HTMLButtonElement).disabled).toBe(true));
-  expect(JSON.parse(chamadas.find((c) => c.chave === 'POST /trocas')!.body as string)).toEqual({ tipo: 'ASSUMIR', clubeId: 'palmeiras' });
+  expect(screen.getByRole('link', { name: 'Pedir este clube' }).getAttribute('href')).toBe('/trocar?clube=palmeiras');
+});
+
+test('com pedido pendente o botão vira "Pedido enviado" desabilitado', async () => {
+  fetchFalso({
+    'GET /clubes/palmeiras': { ...base, tecnico: null, historico: [] },
+    'GET /posts?clube=palmeiras': { itens: [], proximo: null },
+    'GET /trocas/minhas': [{ id: 't1', tipo: 'ASSUMIR', status: 'PENDENTE', clubeId: 'remo' }],
+  });
+  render(<PerfilClube id="palmeiras" me={me} />);
+  const botao = (await screen.findByRole('button', { name: 'Pedido enviado' })) as HTMLButtonElement;
+  expect(botao.disabled).toBe(true);
+  expect(screen.queryByRole('link', { name: 'Pedir este clube' })).toBeNull();
 });
 
 test('o próprio clube nunca mostra "Pedir este clube"', async () => {

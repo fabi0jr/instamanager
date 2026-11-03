@@ -6,6 +6,7 @@ import { Entrar } from './conta/Entrar';
 import { Esqueci } from './conta/Esqueci';
 import { NovaSenha } from './conta/NovaSenha';
 import { Perfil } from './conta/Perfil';
+import { TrocarSenha } from './conta/TrocarSenha';
 import { ListaClubes } from './clube/ListaClubes';
 import { PerfilClube } from './clube/PerfilClube';
 import { Galeria } from './galeria/Galeria';
@@ -39,6 +40,7 @@ export function App() {
         {params.id && /^\/c\/[^/]+$/.test(caminho) && <PerfilClube id={params.id} me={me} />}
         {caminho === '/clubes' && <ListaClubes />}
         {caminho === '/galeria' && <Galeria />}
+        {caminho === '/perfil/senha' && <TrocarSenha />}
         {caminho === '/perfil' && <Perfil me={me} recarregar={recarregar} />}
       </main>
       <BarraInferior clubeId={me.clube?.id} />
