@@ -5,4 +5,3 @@ allowBuilds:
   '@prisma/engines': true
   esbuild: true
   prisma: true
-storeDir: /home/fabio-junior/.local/share/pnpm-instamanager
