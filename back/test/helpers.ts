@@ -30,3 +30,11 @@ export async function convite(prisma: PrismaService) {
   const s = await prisma.setting.upsert({ where: { key: 'inviteCode' }, update: {}, create: { key: 'inviteCode', value: 'convite-teste' } });
   return s.value;
 }
+
+let ipSeq = 0;
+/** Cadastra um usuário (clubeId ou null = torcedor) e devolve id, e-mail e cookie de sessão. */
+export async function cadastrarUsuario(post: Awaited<ReturnType<typeof criarApp>>['post'], prisma: PrismaService, clubeId: string | null, nome = 'Fulano') {
+  const email = novoEmail();
+  const res = await post('/api/auth/cadastro', { convite: await convite(prisma), email, senha: 'senha-boa-123', nome, clubeId }, `10.6.${Math.floor(++ipSeq / 250)}.${(ipSeq % 250) + 1}`).expect(201);
+  return { id: res.body.id as string, email, cookie: res.headers['set-cookie'] as unknown as string[] };
+}
