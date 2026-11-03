@@ -10,8 +10,13 @@ export function useCaminho() {
   return useSyncExternalStore(assinar, () => location.pathname);
 }
 
+// parâmetros da query (?imagem=…): a tela decide o que mostrar por cima, sem trocar de rota
+export function useBusca() {
+  return new URLSearchParams(useSyncExternalStore(assinar, () => location.search));
+}
+
 export function navegar(para: string) {
-  if (para === location.pathname) return;
+  if (para === location.pathname + location.search) return;
   history.pushState(null, '', para);
   dispatchEvent(new PopStateEvent('popstate'));
 }

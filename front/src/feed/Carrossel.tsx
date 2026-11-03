@@ -49,7 +49,7 @@ export function Carrossel({ post, prioridade, aoDuploToque }: { post: Post; prio
       {total > 1 && atual < total - 1 && <button type="button" className="seta dir" aria-label="Próxima imagem" onClick={() => rolar(1)}>›</button>}
       {total > 1 && <span className="contador">{atual + 1}/{total}</span>}
       {img?.prompt && (
-        <button type="button" className="ver-prompt" onClick={() => navegar(`/galeria?imagem=${img.id}`)}>Ver prompt</button>
+        <button type="button" className="ver-prompt" onClick={() => navegar(`/galeria?imagem=${img.id}&post=${post.id}`)}>Ver prompt</button>
       )}
       {total > 1 && (
         <div className="pontos" aria-hidden="true">{post.imagens.map((im, i) => <span key={im.id} className={i === atual ? 'ativo' : ''} />)}</div>

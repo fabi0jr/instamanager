@@ -6,6 +6,9 @@ import { Entrar } from './conta/Entrar';
 import { Esqueci } from './conta/Esqueci';
 import { NovaSenha } from './conta/NovaSenha';
 import { Perfil } from './conta/Perfil';
+import { ListaClubes } from './clube/ListaClubes';
+import { PerfilClube } from './clube/PerfilClube';
+import { Galeria } from './galeria/Galeria';
 import { Feed } from './feed/Feed';
 import { PostPagina } from './feed/PostPagina';
 import { navegar, useRota } from './rotas';
@@ -36,6 +39,9 @@ export function App() {
       <main>
         {caminho === '/' && <Feed me={me} />}
         {caminho.startsWith('/p/') && params.id && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
+        {params.id && /^\/c\/[^/]+$/.test(caminho) && <PerfilClube id={params.id} me={me} />}
+        {caminho === '/clubes' && <ListaClubes />}
+        {caminho === '/galeria' && <Galeria />}
         {caminho === '/perfil' && <Perfil me={me} recarregar={recarregar} />}
       </main>
       <BarraInferior clubeId={me.clube?.id} />
