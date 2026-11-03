@@ -10,3 +10,4 @@ dist/
 
 # prints do WhatsApp (têm telefones dos amigos)
 Image*.jpeg
+uploads*/
