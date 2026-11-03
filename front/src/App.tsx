@@ -10,10 +10,7 @@ import { Feed } from './feed/Feed';
 import { PostPagina } from './feed/PostPagina';
 import { EditarPost } from './postar/EditarPost';
 import { Postar } from './postar/Postar';
-import { navegar, useRota } from './rotas';
-
-// rotas do grupo de acesso: abertas sem sessão
-const PUBLICAS = ['/entrar', '/cadastro', '/esqueci-senha', '/nova-senha'];
+import { navegar, PUBLICAS, useRota } from './rotas';
 
 export function App() {
   const { me, carregando, recarregar } = useMe();

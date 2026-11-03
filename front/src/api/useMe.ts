@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { navegar, PUBLICAS } from '../rotas';
 import { api, type Me } from './cliente';
 
 // me === null e carregando === false: sem sessão (ou API fora do ar)
@@ -18,6 +19,16 @@ export function useMe() {
       vivo = false;
     };
   }, [versao]);
+
+  // qualquer chamada que volte 401 NAO_AUTENTICADO derruba a sessão aqui
+  useEffect(() => {
+    const cair = () => {
+      setMe(null);
+      if (!PUBLICAS.includes(location.pathname)) navegar('/entrar');
+    };
+    addEventListener('sessao-expirada', cair);
+    return () => removeEventListener('sessao-expirada', cair);
+  }, []);
 
   return { me, carregando, recarregar };
 }
