@@ -56,7 +56,8 @@ export class AuthService implements OnModuleInit {
 
   async cadastrar(d: { convite: string; email: string; senha: string; nome: string; clubeId: string | null }) {
     const convite = await this.prisma.setting.findUnique({ where: { key: 'inviteCode' } });
-    if (!convite || convite.value !== d.convite) throw new ApiError(400, 'CONVITE_INVALIDO', 'Código de convite inválido.');
+    // sem diferenciar maiúsculas nem espaços nas pontas (digitado no celular); o valor guardado também é comparado em maiúsculas
+    if (!convite || convite.value.trim().toUpperCase() !== d.convite.trim().toUpperCase()) throw new ApiError(400, 'CONVITE_INVALIDO', 'Código de convite inválido.');
     const passwordHash = await hashPassword(d.senha);
     const isAdmin = d.email === process.env.ADMIN_EMAIL?.trim().toLowerCase();
     try {

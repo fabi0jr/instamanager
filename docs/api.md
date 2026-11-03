@@ -91,7 +91,7 @@ Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver 
 | `POST /api/admin/trocas/:id/aprovar` 👑 | — | `204`. Numa transação: fecha a tenure do clube antigo, solta o `coachId`, e (se `ASSUMIR`) abre a nova tenure e move o `coachId`. Clube ocupado depois do pedido → `409 CLUBE_OCUPADO`, nada muda, pedido segue `PENDENTE`. Emite `trocas.decidida`. |
 | `POST /api/admin/trocas/:id/recusar` 👑 | — | `204`. Emite `trocas.decidida`. |
 | `GET /api/admin/convite` 👑 | — | `{codigo}` |
-| `PUT /api/admin/convite` 👑 | `{codigo}` (4 a 64 caracteres) | `{codigo}`. O código antigo para de valer. |
+| `PUT /api/admin/convite` 👑 | `{codigo}` (4 a 64 caracteres) | `{codigo}`, já sem espaços nas pontas e em maiúsculas. O código antigo para de valer. O cadastro não diferencia maiúsculas de minúsculas (nem espaços nas pontas). |
 | `POST /api/admin/clubes/:id/remover-tecnico` 👑 | — | `204`: fecha a tenure e deixa a pessoa como torcedora. |
 
 Apagar post e comentário pelo admin usa as mesmas rotas de §3 e §4.
