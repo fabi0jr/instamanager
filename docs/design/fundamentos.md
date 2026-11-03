@@ -50,7 +50,7 @@ Contraste medido sobre `--im-carvao` (WCAG): giz 16,7:1 · giz-2 7,9:1 · giz-3 
 
 ## Tipografia
 
-Barlow Condensed (pesos 600, 700, 800) e Inter (400, 500, 600), OFL. Hospedar em `front/public/fonts/` com `@font-face` e `font-display: swap`. Fonte dos arquivos: pacotes `@fontsource/barlow-condensed` e `@fontsource/inter` (copiar os `.woff2` latin e latin-ext; **dependência nova só para copiar arquivo: portão do Fabio**, ou baixar os `.woff2` à mão).
+Barlow Condensed (pesos 600, 700, 800) e Inter (400, 500, 600), OFL. Arquivos `.woff2` em `front/public/fonts/` (igual ao Terrato), com `@font-face` e `font-display: swap`. Sem `@fontsource` e sem Google Fonts. Subconjuntos latin e latin-ext bastam. Pré-carregar (`<link rel="preload">`) só Inter 400 e Barlow Condensed 700, que aparecem na primeira tela.
 
 | Token | Família e peso | Tamanho/linha | Uso |
 |---|---|---|---|
@@ -67,12 +67,19 @@ Barlow Condensed (pesos 600, 700, 800) e Inter (400, 500, 600), OFL. Hospedar em
 
 Sentença normal, sem caixa-alta, exceto a sigla da pílula (3 letras) e o “IM” do selo. Linha de texto corrido: até 70 caracteres (no celular já cabe).
 
-## Logo
+## Logo (final: Prancheta)
 
-- **Selo**: círculo `--im-vermelho`, anel interno giz a 55%, “IM” em Barlow Condensed 800 (50% do diâmetro) e um apito pequeno embaixo. Com apito a partir de 96 px; abaixo disso, só “IM” (tamanhos 64, 40, 32).
-- **Ícone do app / PWA**: quadrado 160 com raio 36 (22,5%), vermelho, “IM” giz centralizado. Exportar 192 e 512 (e 512 *maskable* com o “IM” dentro de 60% do centro).
-- **Marca horizontal**: selo 96 + “InstaManager” (Barlow Condensed 800, 68) + assinatura “o jornal do grupo” (Inter 400, 16, giz-2). Área livre = metade da altura do “I”.
-- Medidas exatas e geometria do apito: board **Logo** no Penpot (exportar SVG de lá).
+Campinho visto de cima com a seta da jogada. Sem letras no símbolo: lê em 48 px e vira o ícone do PWA. Fonte da verdade: board **Logo** no Penpot. Arquivos prontos em `docs/design/logo/`.
+
+- **Símbolo** (grade 512): campo = retângulo 280 × 344, raio 30, traço 36 em `--im-giz`, com linha do meio. Seta em `--im-vermelho`, traço 46, pontas redondas, com contorno de 68 em `--im-carvao` por baixo (abre espaço onde cruza o campo). Fundo `--im-carvao`.
+- **Marca horizontal**: ícone 180 + “InstaManager” (Barlow Condensed 800, 72, −0,5 px) + “o jornal do grupo” (Inter 400, 16, giz-2). `marca-horizontal.png`.
+- **Ícone do PWA**:
+  - `icon-192.png` e `icon-512.png`: fundo `--im-carvao` com cantos de raio 112 (cantos transparentes), símbolo cheio. Fonte: `icone.svg`.
+  - `icon-maskable-512.png`: fundo carvão sem cantos, símbolo a 72% (cabe no círculo de segurança de 80%). Esse é o do `purpose: "maskable"`.
+  - `apple-touch-icon-180.png`: fundo carvão sem cantos, símbolo a 86% (o iOS arredonda sozinho).
+  - `favicon.svg`: igual ao ícone, símbolo a 108%, `<link rel="icon" type="image/svg+xml">`. Tem fundo próprio, então funciona em aba clara e escura.
+- `manifest.webmanifest`: `theme_color` e `background_color` = `#0E0F11`; ícones 192 e 512 com `purpose: "any"`, e o maskable 512 com `purpose: "maskable"`.
+- O selo redondo com apito foi descartado. Não usar “IM” como logo.
 
 ## Ícones
 
@@ -121,6 +128,6 @@ Altura 56 + área segura do iPhone, fundo `--im-superficie`, borda superior 1 px
 
 ## Pendências para o Fabio aprovar
 
-1. Direção, paleta, par de fontes e o selo com apito.
+1. Direção, paleta, par de fontes e logo Prancheta (aprovados pelo Fabio).
 2. O vermelho fica só como acento (nunca em texto corrido).
 3. Pílula do clube neutra (sem a cor do clube): o escudo já carrega a cor.
