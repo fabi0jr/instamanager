@@ -103,7 +103,8 @@ export class MeController {
     const chave = `perfil-senha:user:${req.user.id}`;
     if (dados.senhaNova) limitar(this.limiter, res, [[chave, 5, 15 * MIN]]);
     const me = toMe(await this.auth.atualizarPerfil(req.user, req.sessao.id, dados));
-    this.limiter.apagar(chave);
+    // só o acerto da senha zera; um PATCH {nome} não pode apagar os palpites errados
+    if (dados.senhaNova) this.limiter.apagar(chave);
     return me;
   }
 

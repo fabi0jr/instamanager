@@ -152,6 +152,14 @@ describe('auth (e2e)', () => {
       expect(res.body.codigo).toBe('MUITAS_TENTATIVAS');
     }, 30_000);
 
+    it('senhaAtual: PATCH {nome} com sucesso não zera os palpites errados', async () => {
+      const { cookie } = await logar();
+      const errada = () => patch(cookie, { senhaAtual: 'errada-errada', senhaNova: 'nova-senha-123' });
+      for (let i = 0; i < 5; i++) await errada().expect(400);
+      await patch(cookie, { nome: 'Outro' }).expect(200);
+      await errada().expect(429);
+    }, 30_000);
+
     it('troca nome e pushEnabled; trocar a senha derruba as outras sessões e mantém a atual', async () => {
       const { d, cookie } = await logar();
       const outra = (await post('/api/auth/entrar', { email: d.email, senha: d.senha }).expect(200)).headers['set-cookie'] as unknown as string[];
