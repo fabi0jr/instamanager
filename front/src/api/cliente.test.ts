@@ -24,7 +24,7 @@ test('api() sem corpo JSON no erro ainda lança ErroApi', async () => {
 
 test('api() guarda os campos do 400 DADOS_INVALIDOS no ErroApi', async () => {
   vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ codigo: 'DADOS_INVALIDOS', mensagem: 'x', campos: ['email', 'senha'] }), { status: 400 })));
-  const erro = await api('/auth/entrar', { method: 'POST' }).catch((e) => e as ErroApi);
+  const erro = (await api('/auth/entrar', { method: 'POST' }).catch((e) => e)) as ErroApi;
   expect(erro.campos).toEqual(['email', 'senha']);
 });
 
