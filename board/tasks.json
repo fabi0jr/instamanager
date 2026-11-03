@@ -497,7 +497,7 @@
         "IM-6"
       ],
       "responsavel": "Volante",
-      "coluna": "revisao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-03T19:33:49.209Z",
@@ -534,6 +534,20 @@
           "de": "dev",
           "para": "revisao",
           "nota": "fix 0803253"
+        },
+        {
+          "quando": "2026-11-03T20:32:04.529Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "tarefa sem tela: revisão+testes"
+        },
+        {
+          "quando": "2026-11-03T20:32:04.553Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "tarefa sem tela: revisão+testes"
         }
       ]
     },
