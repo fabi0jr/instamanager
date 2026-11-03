@@ -30,7 +30,15 @@ test('notificationclick abre a url quando não há janela', async () => {
   ouvintes.notificationclick({ notification: { close, data: { url: '/p/1' } }, waitUntil: (x: Promise<unknown>) => (p = x) });
   await p;
   expect(close).toHaveBeenCalled();
-  expect(self.clients.openWindow).toHaveBeenCalledWith('/p/1');
+  expect(self.clients.openWindow).toHaveBeenCalledWith('https://x/p/1');
+});
+
+test('notificationclick com URL de outra origem abre /', async () => {
+  const { ouvintes, self } = carregar();
+  let p: Promise<unknown> = Promise.resolve();
+  ouvintes.notificationclick({ notification: { close: vi.fn(), data: { url: 'https://mal.com' } }, waitUntil: (x: Promise<unknown>) => (p = x) });
+  await p;
+  expect(self.clients.openWindow).toHaveBeenCalledWith('/');
 });
 
 test('notificationclick foca a janela aberta e navega', async () => {
@@ -41,6 +49,6 @@ test('notificationclick foca a janela aberta e navega', async () => {
   ouvintes.notificationclick({ notification: { close: vi.fn(), data: { url: '/p/1' } }, waitUntil: (x: Promise<unknown>) => (p = x) });
   await p;
   expect(janela.focus).toHaveBeenCalled();
-  expect(janela.navigate).toHaveBeenCalledWith('/p/1');
+  expect(janela.navigate).toHaveBeenCalledWith('https://x/p/1');
   expect(self.clients.openWindow).not.toHaveBeenCalled();
 });
