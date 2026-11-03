@@ -1,0 +1,13 @@
+**/node_modules
+**/dist
+**/.vitest
+.git
+.maestri
+.superpowers
+.code-review-graph
+**/.env
+**/.env.*
+!**/.env.example
+# prints do WhatsApp (têm telefones) e uploads de desenvolvimento
+Image*.jpeg
+**/uploads*

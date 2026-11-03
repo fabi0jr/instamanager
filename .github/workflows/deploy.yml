@@ -1,4 +1,4 @@
-name: CI
+name: Verificar e implantar
 
 on:
   push:
@@ -32,8 +32,27 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --store-dir ~/.pnpm-store
       - run: pnpm --filter back db:deploy
       - run: pnpm --filter front exec tsc --noEmit
       - run: pnpm test
       - run: node --test board/board.test.mjs
+
+  implantar:
+    needs: verificar
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      # Build na própria VPS; as migrations e o seed rodam quando o back sobe.
+      - name: Implantar por SSH
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5 (fixo: a ação recebe a chave SSH)
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/projetos/instamanager
+            git pull --ff-only origin main
+            docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+            docker image prune -f
