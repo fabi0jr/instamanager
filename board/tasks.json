@@ -2186,7 +2186,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T01:41:21.365Z",
@@ -2225,6 +2225,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 3ea2e17; NÃO mergear nem publicar antes do front da onda A; deploy junto com IM-33/IM-34"
+        },
+        {
+          "quando": "2026-11-04T03:15:03.830Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar"
         }
       ]
     },
