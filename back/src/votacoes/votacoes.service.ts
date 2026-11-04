@@ -101,7 +101,7 @@ export class VotacoesService {
   private async clubeDe(tx: Pick<PrismaService, 'club' | 'post'>, tipo: VotacaoTipo, opcao: string) {
     if (tipo === 'CLUBE') return opcao;
     if (tipo === 'TECNICO') return (await tx.club.findUnique({ where: { coachId: opcao }, select: { id: true } }))?.id ?? null;
-    return (await tx.post.findUnique({ where: { id: opcao }, select: { clubId: true } }))?.clubId ?? null;
+    return (await tx.post.findFirst({ where: { id: opcao, hiddenAt: null }, select: { clubId: true } }))?.clubId ?? null; // post ocultado não ganha selo
   }
 
   private async rotulos(v: Votacao) {
@@ -109,8 +109,8 @@ export class VotacoesService {
     const nomes = new Map<string, string>();
     if (v.tipo === 'CLUBE') (await this.prisma.club.findMany({ where: { id: { in: ids } } })).forEach((c) => nomes.set(c.id, c.name));
     else if (v.tipo === 'TECNICO') (await this.prisma.user.findMany({ where: { id: { in: ids } } })).forEach((u) => nomes.set(u.id, u.name));
-    else (await this.prisma.post.findMany({ where: { id: { in: ids } } })).forEach((p) => nomes.set(p.id, curto(p.texto ?? (p.caption || 'Post sem legenda'), 60)));
-    return ids.map((id) => ({ id, rotulo: nomes.get(id) ?? id }));
+    else (await this.prisma.post.findMany({ where: { id: { in: ids }, hiddenAt: null } })).forEach((p) => nomes.set(p.id, curto(p.texto ?? (p.caption || 'Post sem legenda'), 60)));
+    return ids.map((id) => ({ id, rotulo: nomes.get(id) ?? (v.tipo === 'POST' ? 'Post indisponível' : id) }));
   }
 
   private async apurar(tx: Pick<PrismaService, 'voto'>, v: Votacao) {

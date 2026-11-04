@@ -176,6 +176,21 @@ describe('bot da zoeira, votações e selos (e2e)', () => {
       expect(await prisma.post.count({ where: { clubId: 'cbf', authorId: admin.id, texto: { contains: 'Ninguém quis' } } })).toBe(1);
     });
 
+    it('post ocultado depois de entrar na votação não vaza a legenda e não ganha selo', async () => {
+      const p0 = await prisma.post.create({ data: { clubId: c[0], authorId: tecnico0.id, caption: 'Legenda secreta' } });
+      const p1 = await prisma.post.create({ data: { clubId: c[1], authorId: tecnico1.id, caption: 'Outra' } });
+      const v = (await criar({ titulo: 'Post oculto', tipo: 'POST', opcoes: [p0.id, p1.id], prazo: amanha() }).expect(201)).body;
+      await votar(v.id, p0.id, torcedor).expect(204);
+      await com('put', `/api/admin/posts/${p0.id}/ocultar`, admin).expect(204);
+      const d = (await com('get', `/api/votacoes/${v.id}`, torcedor).expect(200)).body;
+      expect(JSON.stringify(d)).not.toContain('Legenda secreta');
+      expect(d.opcoes[0]).toEqual({ id: p0.id, rotulo: 'Post indisponível' });
+      const r = (await com('post', `/api/admin/votacoes/${v.id}/encerrar`, admin).expect(201)).body;
+      expect(JSON.stringify(r)).not.toContain('Legenda secreta');
+      expect(await prisma.selo.count({ where: { votacaoId: v.id } })).toBe(0);
+      expect(await prisma.post.count({ where: { texto: { contains: 'Legenda secreta' } } })).toBe(0);
+    });
+
     it('TECNICO dá o selo ao clube do técnico; POST dá ao clube do post; rótulos legíveis', async () => {
       const t = (await criar({ titulo: 'Técnico do mês', tipo: 'TECNICO', opcoes: [tecnico0.id, tecnico1.id], prazo: amanha() }).expect(201)).body;
       expect(t.opcoes).toEqual([{ id: tecnico0.id, rotulo: 'Técnico Zero' }, { id: tecnico1.id, rotulo: 'Técnico Um' }]);
