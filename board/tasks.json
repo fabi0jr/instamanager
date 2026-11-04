@@ -1,5 +1,5 @@
 {
-  "proximoId": 30,
+  "proximoId": 36,
   "tarefas": [
     {
       "id": "IM-1",
@@ -2103,6 +2103,228 @@
           "de": "qa",
           "para": "concluido",
           "nota": "no ar (hotfix 1.1, 8ccec97)"
+        }
+      ]
+    },
+    {
+      "id": "IM-30",
+      "titulo": "Pack 2 · Onda A: design (Prancheta)",
+      "tipo": "design",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "Penpot \"Pack 2 · Onda A\" com reações, card de texto, selo Fixado, ⋯ admin, Compartilhar, favorito, bio/capa, denunciar e Denúncias",
+        "docs/design/onda-a.md com handoff",
+        "aprovação do Maestro (delegação do Fabio)"
+      ],
+      "depende": [],
+      "responsavel": "Prancheta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-04T01:41:21.317Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T01:41:29.449Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T01:41:29.494Z",
+          "quem": "PO",
+          "nota": "atribuída a Prancheta"
+        },
+        {
+          "quando": "2026-11-04T01:41:29.538Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-31",
+      "titulo": "Onda A · back: reações, texto e fixados",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "curtida antiga vira ❤️ com mesma contagem",
+        "reagir 🔥 depois ❤️ troca; total segue 1",
+        "emoji fora da lista → 400",
+        "post de texto sem arquivos → 201; 501 caracteres → 400; sem texto nem arquivo → 400",
+        "admin fixa 3, o 4º → 409 LIMITE_FIXADOS; não-admin → 403",
+        "feed pág. 1 traz fixados sem repeti-los; apagar fixado tira dos fixados",
+        "galeria não lista post de texto",
+        "suíte e2e inteira sem regressão"
+      ],
+      "depende": [],
+      "responsavel": "Volante",
+      "coluna": "qa",
+      "historico": [
+        {
+          "quando": "2026-11-04T01:41:21.365Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T01:41:29.579Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T01:41:29.616Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-04T01:41:29.642Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T01:46:20.876Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "entregue 3ea2e17"
+        },
+        {
+          "quando": "2026-11-04T01:48:52.833Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 3ea2e17; NÃO mergear nem publicar antes do front da onda A; deploy junto com IM-33/IM-34"
+        }
+      ]
+    },
+    {
+      "id": "IM-32",
+      "titulo": "Onda A · back: hashtags, favoritos, bio/capa, denúncias e ocultar",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "tags.spec: #Contratação → contratacao; site.com/#x → []; \"# sozinho\" → []",
+        "?tag=contratacao acha #Contratação",
+        "favoritar 2x conta 1; ?favoritos=1 só traz os meus",
+        "bio 301 → 400; capa PNG → 400 IMAGEM_INVALIDA; ex-técnico PATCH bio → 403",
+        "post ocultado some de feed, galeria, clube e tag; /p/:id → 404 para não-admin; admin vê oculto:true",
+        "ocultar-para-mim some só para mim; denúncia some ao resolver; comentário ocultado some"
+      ],
+      "depende": [
+        "IM-31"
+      ],
+      "responsavel": "Volante",
+      "coluna": "pronto",
+      "historico": [
+        {
+          "quando": "2026-11-04T01:41:21.417Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T01:46:20.912Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T01:46:20.942Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        }
+      ]
+    },
+    {
+      "id": "IM-33",
+      "titulo": "Onda A · front: compartilhar, reações, texto e fixados",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "toque duplo dá ❤️; segurar abre 6 emojis",
+        "trocar reação atualiza na hora e desfaz se a API falhar",
+        "linha mostra até 3 emojis + total; post de texto renderiza sem <img>",
+        "postar em modo Texto: 0 arquivos + texto; bloqueia > 500 com contador",
+        "fixados no topo com selo, sem repetir; admin vê Fixar no ⋯",
+        "compartilhar usa navigator.share e cai no clipboard; index.html sem og de post"
+      ],
+      "depende": [
+        "IM-30",
+        "IM-31"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T01:41:29.302Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-34",
+      "titulo": "Onda A · front: hashtags, favoritos, bio/capa, denunciar e ocultar",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "#Contratação vira link /tag/contratacao; site.com/#x não",
+        "/tag/:tag com rolagem infinita",
+        "estrela favorita e filtro Favoritos (?favoritos=1)",
+        "técnico edita bio (contador 300) e troca capa (comprime 1500); ex-técnico não vê editar",
+        "denunciar com motivo opcional; ocultar para mim tira o card na hora",
+        "admin: aba Denúncias (ocultar/apagar/resolver); post oculto com selo Oculto e Mostrar"
+      ],
+      "depende": [
+        "IM-30",
+        "IM-32"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T01:41:29.357Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-35",
+      "titulo": "Onda A · QA, ensaio da migração e deploy",
+      "tipo": "qa",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "contagem de Like por post igual antes/depois, todas ❤️ (ensaio com dump de produção)",
+        "posts, comentários e clubes intactos; feed sobe com dados reais",
+        "QA em 390×844 e 1280×800 com critérios de IM-31 a IM-34 e Review Focus",
+        "backup manual, merge e deploy com aprovação do Fabio"
+      ],
+      "depende": [
+        "IM-33",
+        "IM-34"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T01:41:29.404Z",
+          "quem": "PO",
+          "nota": "criada"
         }
       ]
     }
