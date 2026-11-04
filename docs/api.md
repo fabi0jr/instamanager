@@ -229,6 +229,7 @@ Cada push respeita a sua chave: `posts` (post novo de clube), `comentarios` (com
 | `GET /api/atividade/nao-lidas` | — | `{total}` |
 | `POST /api/atividade/lidas` | — | `204`: marca todas como lidas. |
 | `GET /api/pessoas?q=` | — | até **8** `[{id, nome, avatarUrl\|null, clube: ClubeMini\|null}]` para o autocompletar do `@`: pedaço do nome, sem acento e sem diferenciar maiúsculas (quem começa com o texto vem primeiro); `%` e `_` valem como texto. `q` com menos de 2 caracteres (após `trim`, cortado em 60) → `[]`, não `400`. Sem e-mail. |
+| `GET /api/pessoas/:id?antes=` | — | Perfil público do técnico (Pack 3 · A3, IM-55): `{id, nome, avatarUrl\|null, clube: ClubeMini\|null, historico: [{clube: ClubeMini, inicio, fim\|null}], posts: Pagina<Post>}`. `historico` do mais novo ao mais velho (o atual tem `fim: null`; torcedor sem passagem → `[]`). `posts`: os posts da pessoa, 12 por página (cursor `antes`, mesmo do feed), mais novos primeiro, **sem `fixados`**, com a mesma visibilidade do feed (oculto pelo admin só o admin vê; "ocultar para mim" some só para quem ocultou). **Posts da CBF não entram** (a CBF posta pelo admin sem mostrar o nome dele). **Sem e-mail** nem outro dado de conta. `404 NAO_ENCONTRADO` para id inexistente ou inválido. |
 
 **Tipos e quem recebe** (o push continua igual; a atividade é o histórico):
 
