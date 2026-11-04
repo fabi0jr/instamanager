@@ -1,5 +1,5 @@
 {
-  "proximoId": 52,
+  "proximoId": 59,
   "tarefas": [
     {
       "id": "IM-1",
@@ -3623,6 +3623,184 @@
           "de": "qa",
           "para": "concluido",
           "nota": "deploy feito"
+        }
+      ]
+    },
+    {
+      "id": "IM-52",
+      "titulo": "Pack 3 A · design",
+      "tipo": "design",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-a.md"
+      ],
+      "depende": [],
+      "responsavel": "Prancheta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-04T22:28:27.068Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T22:28:36.958Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T22:28:36.981Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T22:28:37.050Z",
+          "quem": "PO",
+          "nota": "atribuída a Prancheta"
+        }
+      ]
+    },
+    {
+      "id": "IM-53",
+      "titulo": "Pack 3 A · back: calendário e Copa",
+      "tipo": "back",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-a.md"
+      ],
+      "depende": [],
+      "responsavel": "Volante",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-04T22:28:27.092Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T22:28:37.003Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T22:28:37.026Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T22:28:37.074Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        }
+      ]
+    },
+    {
+      "id": "IM-54",
+      "titulo": "Pack 3 A · back: bolão, pushPrefs e lembrete",
+      "tipo": "back",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-a.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T22:28:27.116Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-55",
+      "titulo": "Pack 3 A · back: perfil do técnico",
+      "tipo": "back",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-a.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T22:28:27.139Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-56",
+      "titulo": "Pack 3 A · front: perfil, calendário, Copa, pushes",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-a.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T22:28:27.162Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-57",
+      "titulo": "Pack 3 A · front: bolão e admin calendário/Copa",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-a.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T22:28:27.186Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-58",
+      "titulo": "Pack 3 A · frases, QA, ensaio e deploy",
+      "tipo": "qa",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-a.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T22:28:27.208Z",
+          "quem": "PO",
+          "nota": "criada"
         }
       ]
     }

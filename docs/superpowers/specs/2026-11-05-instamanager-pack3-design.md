@@ -50,7 +50,7 @@ O app está em uso e a liga já roda dentro dele: rodada 1 lançada, CBF, votaç
   - acertar placar no bolão: 5;
   - ganhar votação: 20.
 - **Níveis:** Estagiário (0) · Auxiliar (100) · Técnico (300) · Professor (700) · Lenda (1500) *(call)*.
-- **Conquistas automáticas:** primeira vitória · goleada (vencer por 3+) · invicto por 5 rodadas · líder · campeão da Copa · rei do bolão da rodada · viral (post com 50 reações) · primeiro story · comunicador (100 posts) *(call)*.
+- **Conquistas automáticas:** primeira vitória · goleada (vencer por 3+) · invicto por 5 rodadas · líder · campeão da Copa · rei do bolão da rodada · primeiro story · comunicador (100 posts) *(call)*.
 - O XP é calculado do histórico, o que permite recalcular tudo.
 - Uma conquista nova gera atividade, push e um post da CBF.
 
