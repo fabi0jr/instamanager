@@ -71,6 +71,7 @@
 .emoji-reacao { font-size: 24px; line-height: 1; display: inline-block; animation: pop 180ms; }
 @media (prefers-reduced-motion: reduce) { .emoji-reacao { animation: none; } }
 .seletor { position: absolute; left: 0; bottom: calc(100% + var(--im-e2)); display: flex; gap: 0; padding: 0 var(--im-e1); background: var(--im-superficie-alta); border: 1px solid var(--im-linha); border-radius: var(--im-r-pilula); z-index: 6; }
+.seletor::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: var(--im-e2); } /* ponte invisível sobre o vão até o botão: o mouse passa sem sair do wrapper */
 .seletor button { width: 44px; height: 44px; font-size: 28px; line-height: 1; background: none; border: 0; border-radius: 50%; cursor: pointer; transition: transform .12s; }
 .seletor button.minha { background: var(--im-superficie); }
 .seletor button.destaque, .seletor button:focus-visible { transform: scale(1.25); }

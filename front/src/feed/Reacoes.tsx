@@ -3,7 +3,8 @@ import { IcCurtir } from './icones';
 import { nomeDe, REACOES, type Emoji, type Post } from './tipos';
 
 const SEGURAR_MS = 350; // toque: segurar abre o seletor
-const HOVER_MS = 400; // mouse: pairar abre o seletor
+const HOVER_MS = 450; // mouse: ficar parado sobre o botão abre o seletor
+const FECHAR_MS = 300; // mouse: só fecha depois de sair do botão E do seletor (entrar em qualquer um cancela)
 
 // Aplica a reação (ou a retirada, com null) no post sem esperar o servidor: contagens, linha de emojis e minha reação.
 export function comReacao(p: Post, novo: Emoji | null): Post {
@@ -67,6 +68,7 @@ export function BotaoReagir({ minha, aoReagir }: { minha: Emoji | null; aoReagir
   }
   function clicou() {
     if (segurou.current) return void (segurou.current = false);
+    clearTimeout(timer.current); // um timer de abrir ainda pendente reabriria o seletor logo após reagir
     setAberto(false);
     aoReagir(minha ? null : '❤️');
   }
@@ -92,8 +94,9 @@ export function BotaoReagir({ minha, aoReagir }: { minha: Emoji | null; aoReagir
       className="reagir"
       ref={caixa}
       // só mouse de verdade: no celular o toque emula mouseenter e abriria o seletor em todo toque curto
-      onPointerEnter={(e) => { if (e.pointerType !== 'mouse') return; clearTimeout(timer.current); timer.current = setTimeout(() => setAberto(true), HOVER_MS); }}
-      onPointerLeave={(e) => { if (e.pointerType !== 'mouse') return; clearTimeout(timer.current); setAberto(false); }}
+      // intenção de hover: um timer só, compartilhado; entrar (botão ou seletor) cancela o que estava marcado
+      onPointerEnter={(e) => { if (e.pointerType !== 'mouse') return; clearTimeout(timer.current); if (!aberto) timer.current = setTimeout(() => setAberto(true), HOVER_MS); }}
+      onPointerLeave={(e) => { if (e.pointerType !== 'mouse') return; clearTimeout(timer.current); timer.current = setTimeout(() => setAberto(false), FECHAR_MS); }}
     >
       <button
         type="button"
