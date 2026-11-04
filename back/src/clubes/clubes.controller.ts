@@ -25,7 +25,7 @@ export class ClubesController {
   @Get()
   async listar(@Query('livres') livres?: string) {
     const clubes = await this.prisma.club.findMany({
-      where: livres === '1' ? { coachId: null, oficial: false } : {},
+      where: livres === '1' ? { coachId: null, oficial: false } : { oficial: false }, // a CBF só aparece em /clubes/cbf e como autora de posts
       include: { coach: { select: { id: true, name: true } } },
     });
     return clubes

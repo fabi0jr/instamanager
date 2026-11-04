@@ -150,6 +150,8 @@ describe('liga: CBF, rodadas, jogos e tabela (e2e)', () => {
     it('fora de /clubes?livres=1, do cadastro e das trocas; nunca recebe técnico', async () => {
       const livres = (await request(http()).get('/api/clubes?livres=1').expect(200)).body;
       expect(livres.map((x: { id: string }) => x.id)).not.toContain('cbf');
+      const todos = (await request(http()).get('/api/clubes').expect(200)).body;
+      expect(todos.map((x: { id: string }) => x.id)).not.toContain('cbf');
       const cad = await post('/api/auth/cadastro', { convite: await convite(prisma), email: novoEmail(), senha: 'senha-boa-123', nome: 'Penetra', clubeId: 'cbf' }, '10.7.7.7');
       expect(cad.status).toBe(409);
       expect(await prisma.user.count({ where: { name: 'Penetra' } })).toBe(0); // a transação voltou atrás
