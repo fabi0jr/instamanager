@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import type { Me } from '../api/cliente';
 import { guardarAviso } from '../aviso';
 import { esquecerFeed } from '../feed/Feed';
@@ -8,6 +8,7 @@ import { Link, navegar } from '../rotas';
 import { comprimir, ErroImagem } from './comprimir';
 import { enviarPost } from './enviar';
 import { Contador, LIMITE_LEGENDA, LIMITE_PROMPT, LinhasPrompt } from './LinhasPrompt';
+import { PostarTexto } from './PostarTexto';
 import './postar.css';
 
 const MAX = 10;
@@ -17,7 +18,7 @@ type Envio = { estado: 'enviando' | 'falhou'; carregado: number; total: number; 
 const mb = (n: number) => (n / 1048576).toFixed(1).replace('.', ',');
 
 let seq = 0;
-export function Postar({ me }: { me: Me }) {
+function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
   const [passo, setPasso] = useState(1);
   const [itens, setItens] = useState<Item[]>([]);
   const [legenda, setLegenda] = useState('');
@@ -172,6 +173,7 @@ export function Postar({ me }: { me: Me }) {
       {topo}
       {passo === 1 && (
         <>
+          {seletor}
           <h1>Escolha as imagens</h1>
           <p>Até {MAX} por post. Elas são reduzidas no celular antes de enviar, então sobem rápido.</p>
           <Aviso>{aviso}</Aviso>
@@ -226,4 +228,25 @@ export function Postar({ me }: { me: Me }) {
       )}
     </div>
   );
+}
+
+const CHAVE_MODO = 'im:postar-modo';
+type Modo = 'foto' | 'texto';
+
+// Foto | Texto: lembra a última escolha; o modo Texto tem um passo só
+export function Postar({ me }: { me: Me }) {
+  const [modo, setModo] = useState<Modo>(() => (localStorage.getItem(CHAVE_MODO) === 'texto' ? 'texto' : 'foto'));
+  const escolher = (m: Modo) => {
+    setModo(m);
+    localStorage.setItem(CHAVE_MODO, m);
+  };
+  const seletor = (
+    <div className="alternancia" role="radiogroup" aria-label="Tipo de post">
+      {(['foto', 'texto'] as const).map((m) => (
+        <button key={m} type="button" role="radio" aria-checked={modo === m} onClick={() => escolher(m)}>{m === 'foto' ? 'Foto' : 'Texto'}</button>
+      ))}
+    </div>
+  );
+  if (!me.clube || modo === 'foto') return <PostarFoto me={me} seletor={seletor} />;
+  return <PostarTexto me={me} seletor={seletor} />;
 }

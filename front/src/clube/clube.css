@@ -30,3 +30,6 @@
 .interruptor { width: 52px; height: 32px; min-width: 52px; border-radius: 999px; border: 1px solid var(--im-linha); background: var(--im-superficie-alta); padding: 3px; cursor: pointer; display: flex; align-items: center; }
 .interruptor span { width: 24px; height: 24px; border-radius: 50%; background: var(--im-giz-2); transition: transform .15s; } .interruptor.ligado { background: var(--im-vermelho); border-color: var(--im-vermelho); } .interruptor.ligado span { background: var(--im-giz); transform: translateX(20px); }
 .recusa { margin: var(--im-e2) 0 0; } .linha.sair { border-bottom: 0; margin-top: var(--im-e4); } .folha-form { display: flex; flex-direction: column; gap: var(--im-e3); }
+
+.grade-capas .capa-texto { display: flex; padding: var(--im-e2); background: var(--im-superficie); color: var(--im-giz); text-decoration: none; overflow: hidden; }
+.grade-capas .capa-texto > span:first-child { font: 700 18px/20px var(--im-fonte-display); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }

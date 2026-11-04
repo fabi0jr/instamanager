@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, type Me } from '../api/cliente';
 import { Escudo } from '../feed/Escudo';
-import { IcGaleria } from '../feed/icones';
+import { IcTexto, IcGaleria } from '../feed/icones';
 import type { Post } from '../feed/tipos';
 import { usePaginado } from '../paginado';
 import { Link } from '../rotas';
@@ -108,10 +108,18 @@ export function PerfilClube({ id, me }: { id: string; me: Me }) {
           <div className="grade-capas" role="list">
             {posts.itens.map((p) => (
               <div key={p.id} role="listitem">
-                <Link para={`/p/${p.id}`} aria-label={`Post de ${p.autor.nome}, ${p.clube.nome}, ${p.imagens.length} ${p.imagens.length === 1 ? 'imagem' : 'imagens'}`}>
-                  <img src={p.imagens[0].miniUrl} alt="" loading="lazy" />
-                  {p.imagens.length > 1 && <span className="multi"><IcGaleria /></span>}
-                </Link>
+                {p.imagens.length === 0 ? (
+                  // post só de texto: não tem capa, vira um quadrado com as primeiras palavras
+                  <Link para={`/p/${p.id}`} aria-label={`Post de texto de ${p.autor.nome}, ${p.clube.nome}`} className="capa-texto">
+                    <span>{p.texto ?? p.legenda}</span>
+                    <span className="multi"><IcTexto /></span>
+                  </Link>
+                ) : (
+                  <Link para={`/p/${p.id}`} aria-label={`Post de ${p.autor.nome}, ${p.clube.nome}, ${p.imagens.length} ${p.imagens.length === 1 ? 'imagem' : 'imagens'}`}>
+                    <img src={p.imagens[0].miniUrl} alt="" loading="lazy" />
+                    {p.imagens.length > 1 && <span className="multi"><IcGaleria /></span>}
+                  </Link>
+                )}
               </div>
             ))}
           </div>

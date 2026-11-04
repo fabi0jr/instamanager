@@ -22,6 +22,7 @@ export function EditarPost({ id }: { id: string }) {
   useEffect(() => {
     api<Post>(`/posts/${id}`).then(
       (p) => {
+        if (p.texto) return navegar(`/p/${id}`); // post de texto não tem legenda nem prompts para editar
         setPost(p);
         setLegenda(p.legenda);
         setPrompts(p.imagens.map((i) => i.prompt ?? ''));
@@ -44,7 +45,7 @@ export function EditarPost({ id }: { id: string }) {
       </div>
     );
 
-  const mudou = legenda !== post.legenda || prompts.some((p, i) => p !== (post.imagens[i].prompt ?? ''));
+  const mudou = legenda !== post.legenda || prompts.some((p, i) => p !== (post.imagens[i]?.prompt ?? ''));
   const estouro = legenda.length > LIMITE_LEGENDA || prompts.some((p) => p.length > LIMITE_PROMPT);
 
   function salvar() {

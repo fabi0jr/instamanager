@@ -118,7 +118,7 @@ test('post que já estava na lista mostra os dados novos depois de atualizar', a
   await screen.findByText('Legenda a');
   puxar(100, 260);
   expect(await screen.findByText('Legenda editada')).toBeTruthy();
-  expect(screen.getByText(/9 curtidas/)).toBeTruthy();
+  expect(screen.getByText(/9 reações/)).toBeTruthy();
 });
 
 test('gesto dentro da folha de comentários (.veu) não atualiza o feed', async () => {

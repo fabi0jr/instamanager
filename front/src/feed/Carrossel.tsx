@@ -4,7 +4,7 @@ import type { Post } from './tipos';
 
 // proporção do quadro = a da 1ª imagem, entre 4:5 e 1,91:1 (fora disso a imagem fica inteira dentro do quadro)
 export function proporcao(p: Post) {
-  const { largura, altura } = p.imagens[0];
+  const { largura, altura } = p.imagens[0] ?? { largura: 1, altura: 1 }; // post de texto não passa por aqui, mas não quebra
   return Math.min(1.91, Math.max(0.8, largura / altura));
 }
 
@@ -20,6 +20,7 @@ export function Carrossel({ post, prioridade, aoDuploToque }: { post: Post; prio
     }
   }
   const total = post.imagens.length;
+  if (total === 0) return null;
   const img = post.imagens[atual];
   return (
     <div className="carrossel-moldura">

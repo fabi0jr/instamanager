@@ -16,11 +16,17 @@ import fechar from '../icones/fechar.svg?raw';
 import filtro from '../icones/filtro.svg?raw';
 import lixo from '../icones/lixo.svg?raw';
 import ok from '../icones/ok.svg?raw';
+import texto from '../icones/texto.svg?raw';
+import olhoOff from '../icones/olho-off.svg?raw';
+import bandeira from '../icones/bandeira.svg?raw';
+import estrela from '../icones/estrela.svg?raw';
+import fixar from '../icones/fixar.svg?raw';
+import compartilhar from '../icones/compartilhar.svg?raw';
 
 // Ícones oficiais do board Icones (docs/design/icones, copiados para src/icones): herdam a cor por currentColor.
-const OFICIAIS = { camera, comentar, copiar, curtido, curtir, escudo, galeria, inicio, mais, 'novo-post': novoPost, perfil, 'seta-voltar': setaVoltar, seta, editar, fechar, filtro, lixo, ok };
-export function Icone({ nome }: { nome: keyof typeof OFICIAIS }) {
-  return <span className="icone" aria-hidden="true" dangerouslySetInnerHTML={{ __html: OFICIAIS[nome] }} />;
+const OFICIAIS = { camera, comentar, copiar, curtido, curtir, escudo, galeria, inicio, mais, 'novo-post': novoPost, perfil, 'seta-voltar': setaVoltar, seta, editar, fechar, filtro, lixo, ok, compartilhar, fixar, estrela, bandeira, 'olho-off': olhoOff, texto };
+export function Icone({ nome, cheio }: { nome: keyof typeof OFICIAIS; cheio?: boolean }) {
+  return <span className={cheio ? 'icone cheio' : 'icone'} aria-hidden="true" dangerouslySetInnerHTML={{ __html: OFICIAIS[nome] }} />;
 }
 
 export const IcCurtir = ({ cheio }: { cheio?: boolean }) => <Icone nome={cheio ? 'curtido' : 'curtir'} />;
@@ -36,3 +42,9 @@ export const IcFiltro = () => <Icone nome="filtro" />;
 export const IcOk = () => <Icone nome="ok" />;
 export const IcEditar = () => <Icone nome="editar" />;
 export const IcLixo = () => <Icone nome="lixo" />;
+export const IcCompartilhar = () => <Icone nome="compartilhar" />;
+export const IcFixar = () => <Icone nome="fixar" />;
+export const IcEstrela = ({ cheia }: { cheia?: boolean }) => <Icone nome="estrela" cheio={cheia} />;
+export const IcBandeira = () => <Icone nome="bandeira" />;
+export const IcOlhoOff = () => <Icone nome="olho-off" />;
+export const IcTexto = () => <Icone nome="texto" />;

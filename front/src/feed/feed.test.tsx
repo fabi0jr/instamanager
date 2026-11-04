@@ -63,25 +63,25 @@ test('feed: erro mostra Tentar de novo; vazio mostra o texto', async () => {
   expect(await screen.findByText('Ainda não tem post por aqui')).toBeTruthy();
 });
 
-test('curtir atualiza o contador na hora e desfaz se a API falhar', async () => {
+test('reagir atualiza o contador na hora e desfaz se a API falhar', async () => {
   let resolve!: (r: Response) => void;
   vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>((r) => (resolve = r))));
   render(<CardPost post={post('a')} me={me} />);
-  fireEvent.click(screen.getByRole('button', { name: 'Curtir' }));
-  expect(screen.getByText('4 curtidas')).toBeTruthy(); // antes da resposta
-  expect(screen.getByRole('button', { name: 'Descurtir' }).getAttribute('aria-pressed')).toBe('true');
+  fireEvent.click(screen.getByRole('button', { name: 'Reagir' }));
+  expect(screen.getByText('4 reações')).toBeTruthy(); // antes da resposta
+  expect(screen.getByRole('button', { name: 'Remover reação: Coração' })).toBeTruthy();
   await act(async () => resolve(new Response(JSON.stringify({ codigo: 'X' }), { status: 500 })));
-  expect(await screen.findByText('3 curtidas')).toBeTruthy();
-  expect(screen.getByRole('alert').textContent).toContain('Não deu para curtir. Tente de novo.');
+  expect(await screen.findByText('3 reações')).toBeTruthy();
+  expect(screen.getByRole('alert').textContent).toContain('Não deu para reagir. Tente de novo.');
 });
 
 test('toque duplo na imagem curte, mas nunca descurte', async () => {
-  const chamadas = fetchFalso({ 'PUT /posts/a/curtida': { status: 204 } });
+  const chamadas = fetchFalso({ 'PUT /posts/a/reacao': { status: 204 } });
   render(<CardPost post={post('a')} me={me} />);
   const img = screen.getByRole('img', { name: 'Imagem 1 de 1: Treino de hoje' });
   fireEvent.doubleClick(img);
   fireEvent.doubleClick(img);
-  await waitFor(() => expect(screen.getByText('4 curtidas')).toBeTruthy());
+  await waitFor(() => expect(screen.getByText('4 reações')).toBeTruthy());
   expect(chamadas).toHaveLength(1);
 });
 
@@ -225,13 +225,13 @@ test('ao voltar, o feed reaparece sem nova busca e na rolagem anotada, mesmo com
 
 test('curtir em /p/:id faz o feed guardado ser esquecido (volta atualizado)', async () => {
   const { PostPagina } = await import('./PostPagina');
-  const chamadas = fetchFalso({ 'GET /posts': { itens: [post('a')], proximo: null }, 'GET /posts/a': post('a'), 'PUT /posts/a/curtida': { status: 204 } });
+  const chamadas = fetchFalso({ 'GET /posts': { itens: [post('a')], proximo: null }, 'GET /posts/a': post('a'), 'PUT /posts/a/reacao': { status: 204 } });
   const { unmount } = render(<Feed me={{ ...me, id: 'esq' }} />);
   await screen.findAllByRole('article');
   unmount();
   render(<PostPagina id="a" me={{ ...me, id: 'esq' }} />);
-  fireEvent.click(await screen.findByRole('button', { name: 'Curtir' }));
-  await waitFor(() => expect(chamadas.some((c) => c.chave === 'PUT /posts/a/curtida')).toBe(true));
+  fireEvent.click(await screen.findByRole('button', { name: 'Reagir' }));
+  await waitFor(() => expect(chamadas.some((c) => c.chave === 'PUT /posts/a/reacao')).toBe(true));
   cleanup();
   render(<Feed me={{ ...me, id: 'esq' }} />);
   await waitFor(() => expect(chamadas.filter((c) => c.chave === 'GET /posts')).toHaveLength(2)); // refez a busca
@@ -255,8 +255,8 @@ test('apagar abre o diálogo central; o menu tem alça, ícones e divisor', () =
   expect(screen.getByRole('dialog').className).toContain('centro');
 });
 
-test('ícones oficiais: curtir usa curtido (cheio) quando curtiu', () => {
-  const { container } = render(<CardPost post={post('a', { curtiu: true })} me={me} />);
+test('ícones oficiais: curtir usa curtido (cheio) quando a reação é ❤️', () => {
+  const { container } = render(<CardPost post={post('a', { curtiu: true, minhaReacao: '❤️' })} me={me} />);
   expect(container.querySelector('.acoes .curtido svg')?.getAttribute('fill')).toBe('currentColor');
 });
 

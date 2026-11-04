@@ -202,3 +202,67 @@ test('editar: quem não pode editar vê o bloqueio já ao abrir', async () => {
   expect(await screen.findByText(/Você não é mais técnico deste clube/)).toBeTruthy();
   expect((screen.getByRole('button', { name: 'Salvar alterações' }) as HTMLButtonElement).disabled).toBe(true);
 });
+
+// ---- modo Texto (IM-33)
+const modoTexto = () => fireEvent.click(screen.getByRole('radio', { name: 'Texto' }));
+const campoTexto = () => screen.getByPlaceholderText('O que está rolando?');
+const publicarBtn = () => screen.getByRole('button', { name: 'Publicar' }) as HTMLButtonElement;
+
+test('modo Texto: um passo só, Publicar desabilitado vazio/só espaços, envia 0 arquivos + texto', async () => {
+  localStorage.clear();
+  render(<Postar me={tecnico} />);
+  modoTexto();
+  expect(screen.getByText('Vai sair como Palmeiras, por Lincoln.')).toBeTruthy();
+  expect(publicarBtn().disabled).toBe(true);
+  fireEvent.change(campoTexto(), { target: { value: '   ' } });
+  expect(publicarBtn().disabled).toBe(true);
+  fireEvent.change(campoTexto(), { target: { value: 'Bora #Palmeiras' } });
+  expect(screen.getByText('15/500')).toBeTruthy();
+  expect(publicarBtn().disabled).toBe(false);
+  fireEvent.click(publicarBtn());
+  await waitFor(() => expect(envios).toHaveLength(1));
+  const f = envios[0].form;
+  expect(f.get('texto')).toBe('Bora #Palmeiras');
+  expect(f.getAll('cheia')).toHaveLength(0);
+  expect(f.getAll('mini')).toHaveLength(0);
+  await waitFor(() => expect(location.pathname).toBe('/'));
+});
+
+test('modo Texto: acima de 500 mostra o contador de corte e bloqueia', () => {
+  render(<Postar me={tecnico} />);
+  modoTexto();
+  fireEvent.change(campoTexto(), { target: { value: 'a'.repeat(512) } });
+  expect(screen.getByText('512/500. Corte 12 caracteres.')).toBeTruthy();
+  expect(publicarBtn().disabled).toBe(true);
+});
+
+test('modo Texto: falha mantém o texto e oferece Tentar de novo', async () => {
+  resposta = { status: 500, corpo: '<html>' };
+  render(<Postar me={tecnico} />);
+  modoTexto();
+  fireEvent.change(campoTexto(), { target: { value: 'oi' } });
+  fireEvent.click(publicarBtn());
+  expect(await screen.findByText('Não deu para publicar. Seu texto continua aqui.')).toBeTruthy();
+  expect((campoTexto() as HTMLTextAreaElement).value).toBe('oi');
+  resposta = { status: 201, corpo: '{"id":"n"}' };
+  fireEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }));
+  await waitFor(() => expect(envios).toHaveLength(2));
+});
+
+test('a alternância Foto | Texto lembra a última escolha', () => {
+  localStorage.clear();
+  const { unmount } = render(<Postar me={tecnico} />);
+  expect(screen.getByRole('radio', { name: 'Foto' }).getAttribute('aria-checked')).toBe('true');
+  modoTexto();
+  unmount();
+  render(<Postar me={tecnico} />);
+  expect(screen.getByRole('radio', { name: 'Texto' }).getAttribute('aria-checked')).toBe('true');
+  localStorage.clear();
+});
+
+test('editar um post de texto não quebra: volta para o post (sem legenda nem prompts para editar)', async () => {
+  history.pushState(null, '', '/p/t/editar');
+  fetchFalso({ 'GET /posts/t': { id: 't', clube, autor: { id: 'u1', nome: 'Lincoln' }, legenda: '', texto: 'oi', imagens: [], curtidas: 0, curtiu: false, comentarios: 0, podeEditar: true, criadoEm: new Date().toISOString() } });
+  render(<EditarPost id="t" />);
+  await waitFor(() => expect(location.pathname).toBe('/p/t'));
+});

@@ -1,19 +1,35 @@
 import type { ClubeMini } from '../api/cliente';
 
 export type ImagemPost = { id: string; miniUrl: string; cheiaUrl: string; largura: number; altura: number; prompt: string | null };
+export const REACOES = [
+  { emoji: '❤️', nome: 'Coração' },
+  { emoji: '🔥', nome: 'Fogo' },
+  { emoji: '😂', nome: 'Risada' },
+  { emoji: '😮', nome: 'Surpresa' },
+  { emoji: '😢', nome: 'Triste' },
+  { emoji: '👏', nome: 'Palmas' },
+] as const;
+export type Emoji = (typeof REACOES)[number]['emoji'];
+export const nomeDe = (e: string) => REACOES.find((r) => r.emoji === e)?.nome ?? e;
 export type Post = {
   id: string;
   clube: ClubeMini;
   autor: { id: string; nome: string };
   legenda: string;
+  // campos do pack 2 (opcionais: o app tolera resposta de servidor antigo)
+  texto?: string | null; // post só de texto: imagens = [] e legenda = ''
+  fixado?: boolean;
+  oculto?: boolean;
   criadoEm: string;
   imagens: ImagemPost[];
   curtidas: number;
   curtiu: boolean;
+  reacoes?: { emoji: string; total: number }[]; // até 3, a mais usada primeiro
+  minhaReacao?: Emoji | null;
   comentarios: number;
   podeEditar: boolean;
 };
-export type Pagina<T> = { itens: T[]; proximo: string | null };
+export type Pagina<T> = { itens: T[]; proximo: string | null; fixados?: T[] };
 export type Comentario = {
   id: string;
   texto: string;

@@ -11,6 +11,7 @@ import type { Pagina, Post } from './tipos';
 let guardado: { meId: string; itens: Post[]; proximo: string | null; y: number; quando: number } | null = null;
 const MIN_VOLTA = 60_000; // voltar ao app antes disso não confere post novo
 const PUXAR = 80; // px de arrasto do dedo para disparar o puxar-para-atualizar
+const topoNormal = (l: Post[]) => l.find((p) => !p.fixado)?.id;
 export const esquecerFeed = () => (guardado = null); // chamar quando a lista muda por fora (ex.: post novo publicado)
 
 export function Feed({ me }: { me: Me }) {
@@ -35,7 +36,8 @@ export function Feed({ me }: { me: Me }) {
     setErroMais(false);
     try {
       const pg = await api<Pagina<Post>>('/posts' + (cursor ? `?antes=${encodeURIComponent(cursor)}` : ''));
-      setItens((l) => (cursor ? [...l, ...pg.itens] : pg.itens));
+      // fixados só vêm na 1ª página e ficam no topo; o servidor não os repete em itens
+      setItens((l) => (cursor ? [...l, ...pg.itens] : [...(pg.fixados ?? []), ...pg.itens]));
       setProximo(pg.proximo);
       setEstado('ok');
       if (!cursor) { ultima.current = Date.now(); setNovos(false); }
@@ -84,7 +86,8 @@ export function Feed({ me }: { me: Me }) {
       try {
         const pg = await api<Pagina<Post>>('/posts');
         ultima.current = Date.now();
-        if (pg.itens[0]?.id !== atual.current.itens[0]?.id) setNovos(true);
+        // compara o 1º post que não é fixado: um fixado novo no topo não é "post novo"
+        if (topoNormal([...(pg.fixados ?? []), ...pg.itens]) !== topoNormal(atual.current.itens)) setNovos(true);
       } catch {
         // sem rede ao voltar: tenta de novo na próxima volta
       } finally {
@@ -177,7 +180,7 @@ export function Feed({ me }: { me: Me }) {
           )}
         </div>
       )}
-      {itens.map((p, i) => <CardPost key={p.id} post={p} me={me} prioridade={i === 0} aoApagar={apagado} aoMudar={(n) => setItens((l) => l.map((x) => (x.id === n.id && x !== n ? n : x)))} />)}
+      {itens.map((p, i) => <CardPost key={p.id} post={p} me={me} prioridade={i === 0} aoApagar={apagado} aoReordenar={() => carregar(null)} aoMudar={(n) => setItens((l) => l.map((x) => (x.id === n.id && x !== n ? n : x)))} />)}
       {erroMais && (
         <div className="caixa-info" role="alert">
           <p>Não deu para carregar mais posts.</p>
