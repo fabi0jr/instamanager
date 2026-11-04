@@ -1,5 +1,5 @@
 {
-  "proximoId": 38,
+  "proximoId": 45,
   "tarefas": [
     {
       "id": "IM-1",
@@ -1880,7 +1880,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "correcao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T00:15:02.323Z",
@@ -1919,6 +1919,34 @@
           "de": "revisao",
           "para": "correcao",
           "nota": "VAR: cards não atualizam curtidas/comentários ao puxar; puxar dispara atrás da folha de comentários"
+        },
+        {
+          "quando": "2026-11-04T04:19:11.791Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:11.816Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:11.841Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:11.866Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "sincronizando com o estado real"
         }
       ]
     },
@@ -2253,7 +2281,7 @@
         "IM-31"
       ],
       "responsavel": "Volante",
-      "coluna": "pronto",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T01:41:21.417Z",
@@ -2271,6 +2299,34 @@
           "quando": "2026-11-04T01:46:20.942Z",
           "quem": "PO",
           "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-04T04:19:11.889Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:11.914Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:11.937Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:11.961Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "sincronizando com o estado real"
         }
       ]
     },
@@ -2293,7 +2349,7 @@
         "IM-31"
       ],
       "responsavel": "Ponta",
-      "coluna": "pronto",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T01:41:29.302Z",
@@ -2311,6 +2367,34 @@
           "quando": "2026-11-04T01:54:53.208Z",
           "quem": "PO",
           "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-04T04:19:11.984Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.009Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.034Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.058Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "sincronizando com o estado real"
         }
       ]
     },
@@ -2333,7 +2417,7 @@
         "IM-32"
       ],
       "responsavel": "Ponta",
-      "coluna": "pronto",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T01:41:29.357Z",
@@ -2351,6 +2435,34 @@
           "quando": "2026-11-04T01:54:53.287Z",
           "quem": "PO",
           "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.081Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.106Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.129Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.155Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "sincronizando com o estado real"
         }
       ]
     },
@@ -2371,7 +2483,7 @@
         "IM-34"
       ],
       "responsavel": "Bandeirinha",
-      "coluna": "pronto",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T01:41:29.404Z",
@@ -2389,12 +2501,40 @@
           "quando": "2026-11-04T02:16:00.581Z",
           "quem": "PO",
           "nota": "atribuída a Bandeirinha"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.179Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.202Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.223Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.246Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "sincronizando com o estado real"
         }
       ]
     },
     {
       "id": "IM-36",
-      "titulo": "Pack 2 · Onda B: design (Prancheta)",
+      "titulo": "Modal de Novidades da onda A",
       "tipo": "design",
       "prioridade": "media",
       "descricao": "",
@@ -2404,19 +2544,64 @@
         "aprovação do Maestro"
       ],
       "depende": [],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T03:45:55.674Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T04:18:06.230Z",
+          "quem": "PO",
+          "nota": "editado: titulo"
+        },
+        {
+          "quando": "2026-11-04T04:18:06.251Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.273Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.300Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.323Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.344Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.367Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "sincronizando com o estado real"
         }
       ]
     },
     {
       "id": "IM-37",
-      "titulo": "Onda B · back: CBF, rodadas, jogos e tabela",
+      "titulo": "Hotfix 1.3: folhas acima da barra e seletor sem piscar",
       "tipo": "back",
       "prioridade": "media",
       "descricao": "",
@@ -2431,11 +2616,359 @@
         "suíte inteira com código de saída 0"
       ],
       "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "concluido",
+      "historico": [
+        {
+          "quando": "2026-11-04T03:45:55.698Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T04:18:06.295Z",
+          "quem": "PO",
+          "nota": "editado: titulo"
+        },
+        {
+          "quando": "2026-11-04T04:18:06.318Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.391Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.414Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.435Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.457Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.482Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "sincronizando com o estado real"
+        }
+      ]
+    },
+    {
+      "id": "IM-38",
+      "titulo": "Onda B · design",
+      "tipo": "design",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver Task B0..B6 do plano docs/superpowers/plans/2026-11-04-pack2-onda-b.md"
+      ],
+      "depende": [],
+      "responsavel": "Prancheta",
+      "coluna": "concluido",
+      "historico": [
+        {
+          "quando": "2026-11-04T04:18:21.683Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T04:18:21.740Z",
+          "quem": "PO",
+          "nota": "atribuída a Prancheta"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.504Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.531Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.556Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.578Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.604Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "sincronizando com o estado real"
+        }
+      ]
+    },
+    {
+      "id": "IM-39",
+      "titulo": "Onda B · back: CBF, rodadas, jogos e tabela",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver Task B0..B6 do plano docs/superpowers/plans/2026-11-04-pack2-onda-b.md"
+      ],
+      "depende": [],
+      "responsavel": "Volante",
+      "coluna": "qa",
+      "historico": [
+        {
+          "quando": "2026-11-04T04:18:21.794Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T04:18:21.840Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.627Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.650Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.673Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.695Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "sincronizando com o estado real"
+        }
+      ]
+    },
+    {
+      "id": "IM-40",
+      "titulo": "Onda B · back: bot da zoeira, votações e selos",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver Task B0..B6 do plano docs/superpowers/plans/2026-11-04-pack2-onda-b.md"
+      ],
+      "depende": [],
+      "responsavel": "Volante",
+      "coluna": "qa",
+      "historico": [
+        {
+          "quando": "2026-11-04T04:18:21.888Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T04:18:21.938Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.719Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.741Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.764Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.786Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "sincronizando com o estado real"
+        }
+      ]
+    },
+    {
+      "id": "IM-41",
+      "titulo": "Onda B · back+infra: quem reagiu, prévia do WhatsApp, erros do front",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver Task B0..B6 do plano docs/superpowers/plans/2026-11-04-pack2-onda-b.md"
+      ],
+      "depende": [],
+      "responsavel": "Volante",
+      "coluna": "correcao",
+      "historico": [
+        {
+          "quando": "2026-11-04T04:18:22.002Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T04:18:22.056Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.811Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.837Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.860Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.886Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "sincronizando com o estado real"
+        }
+      ]
+    },
+    {
+      "id": "IM-42",
+      "titulo": "Onda B · front: Liga, CBF, selos, barra, quem reagiu, erros",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver Task B0..B6 do plano docs/superpowers/plans/2026-11-04-pack2-onda-b.md"
+      ],
+      "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-04T04:18:22.116Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T04:18:22.154Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.908Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:19:12.931Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "sincronizando com o estado real"
+        }
+      ]
+    },
+    {
+      "id": "IM-43",
+      "titulo": "Onda B · front: admin de rodadas, bot e votações",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver Task B0..B6 do plano docs/superpowers/plans/2026-11-04-pack2-onda-b.md"
+      ],
+      "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T04:18:22.196Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T04:18:22.235Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        }
+      ]
+    },
+    {
+      "id": "IM-44",
+      "titulo": "Onda B · frases, QA, ensaio e deploy",
+      "tipo": "qa",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver Task B0..B6 do plano docs/superpowers/plans/2026-11-04-pack2-onda-b.md"
+      ],
+      "depende": [],
       "responsavel": null,
       "coluna": "backlog",
       "historico": [
         {
-          "quando": "2026-11-04T03:45:55.698Z",
+          "quando": "2026-11-04T04:18:22.295Z",
           "quem": "PO",
           "nota": "criada"
         }
