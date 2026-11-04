@@ -1,7 +1,7 @@
 // Frases prontas do bot da CBF. Só zoeira de futebol: o alvo é o desempenho no jogo, nunca a pessoa.
 // `com` usa {tecnico} (só entra quando o clube tem técnico); `sem` serve para qualquer clube.
 // Variáveis por categoria: ver VARIAVEIS. O Fabio revisa esta lista (docs/bot-frases.md) antes do deploy.
-export type Categoria = 'abertura' | 'goleada' | 'derrota' | 'lanterna' | 'queda' | 'lider' | 'sequencia' | 'z4' | 'jejum' | 'empates' | 'geral';
+export type Categoria = 'abertura' | 'goleada' | 'derrota' | 'lanterna' | 'queda' | 'lider' | 'sequencia' | 'z4' | 'jejum' | 'empates' | 'geral' | 'copaAbertura' | 'copaEliminado' | 'copaPenaltis';
 
 export const VARIAVEIS: Record<Categoria, string[]> = {
   abertura: ['n'],
@@ -15,6 +15,9 @@ export const VARIAVEIS: Record<Categoria, string[]> = {
   jejum: ['clube', 'tecnico', 'n'],
   empates: ['n'],
   geral: [],
+  copaAbertura: ['fase'],
+  copaEliminado: ['clube', 'tecnico', 'outro', 'placar', 'fase'], // clube = o eliminado
+  copaPenaltis: ['clube', 'tecnico', 'outro', 'placar'], // placar = o dos pênaltis
 };
 
 export const FRASES: Record<Categoria, { sem: string[]; com: string[] }> = {
@@ -139,5 +142,33 @@ export const FRASES: Record<Categoria, { sem: string[]; com: string[] }> = {
       'O resumo é esse. Reclamações, no grupo.',
     ],
     com: [],
+  },
+  // Copa do Brasil (mata-mata de jogo único): resumo da fase
+  copaAbertura: {
+    sem: [
+      'Acabou a fase "{fase}" da Copa do Brasil! Quem sobrou segue vivo, o resto vai para casa.',
+      'Mata-mata é assim: fechou a fase "{fase}" e ninguém tem segunda chance.',
+    ],
+    com: [],
+  },
+  copaEliminado: {
+    com: [
+      '{clube} está fora da Copa: {placar} para o {outro}. {tecnico} já volta a olhar só a tabela.',
+      '{tecnico} viu o {clube} cair para o {outro} ({placar}). Em jogo único não tem revanche.',
+    ],
+    sem: [
+      'Adeus, Copa! O {clube} perdeu para o {outro} por {placar} e foi eliminado.',
+      '{outro} despachou o {clube} ({placar}). Jogo único não perdoa.',
+    ],
+  },
+  copaPenaltis: {
+    com: [
+      '{tecnico} sofreu nos pênaltis: o {clube} caiu para o {outro} por {placar}. Haja coração!',
+      '{clube} perdeu da marca da cal para o {outro} ({placar}). {tecnico} diz que foi falta de sorte.',
+    ],
+    sem: [
+      'Decidiu nos pênaltis! O {outro} passou pelo {clube} por {placar}.',
+      'Pênaltis cruéis: {clube} fora da Copa, e o {outro} avança por {placar}.',
+    ],
   },
 };

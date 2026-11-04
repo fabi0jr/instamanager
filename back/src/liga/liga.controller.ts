@@ -12,6 +12,11 @@ export class LigaController {
     return this.liga.tabela();
   }
 
+  @Get('calendario')
+  calendario() {
+    return this.liga.calendario();
+  }
+
   @Get('rodadas')
   rodadas() {
     return this.liga.rodadas();

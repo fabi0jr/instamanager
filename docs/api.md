@@ -31,6 +31,11 @@ Contrato das Tasks 3–7. Tudo sob `/api`, JSON, UTF-8. Qualquer rota fora desta
 | `EMOJI_INVALIDO` | 400 | emoji fora da lista de reações |
 | `LIMITE_FIXADOS` | 409 | fixar o 4º post |
 | `NAO_E_ADMIN` | 403 | rota 👑, ou `comoCbf` sem ser admin |
+| `PLACAR_PENDENTE` | 409 | fechar rodada/fase com jogo sem placar |
+| `FASE_FECHADA` | 409 | lançar jogos ou fechar uma fase da Copa já fechada |
+| `FASE_ABERTA` | 409 | reabrir/publicar resumo de fase aberta |
+| `ORDEM_REPETIDA` | 409 | criar fase da Copa com `ordem` já usada |
+| `CLUBE_ELIMINADO` | 409 | clube que perdeu um jogo da Copa numa fase de ordem maior |
 | `RODADA_FECHADA` | 409 | lançar jogos numa rodada fechada (ou fechar uma já fechada) |
 | `RODADA_ABERTA` | 409 | reabrir uma rodada que já está aberta |
 | `VOTACAO_ENCERRADA` | 409 | votar depois do prazo ou da votação encerrada; encerrar de novo |
@@ -132,9 +137,9 @@ Pontos corridos com os 20 clubes, 38 rodadas (já criadas, abertas). A tabela é
 | Rota | Corpo | Resposta |
 |---|---|---|
 | `GET /api/liga/tabela` | — | `Linha[]` por posição: `{clubeId, nome, posicao, P, J, V, E, D, GP, GC, SG, ultimos}`. `ultimos`: até 5 resultados `'V'\|'E'\|'D'`, do jogo mais recente (maior número de rodada) ao mais antigo. |
-| `GET /api/liga/rodadas` | — | `[{numero, fechada, resumoPublicado, resumoPostId: string\|null, jogos: [{id, mandante: {id,nome,escudoUrl}, visitante, golsMandante, golsVisitante}]}]`, 38 itens. |
-| `PUT /api/admin/rodadas/:n/jogos` 👑 | `{jogos: [{mandanteId, visitanteId, golsMandante, golsVisitante}]}` (até 10) | `204`. **Substitui todos** os jogos da rodada `n` (lista vazia limpa). Só com a rodada aberta (`409 RODADA_FECHADA`). `400 DADOS_INVALIDOS` e nada gravado se: clube em 2 jogos da mesma rodada (inclui jogo repetido), clube contra si mesmo, clube inexistente ou a CBF, placar fora de 0–99 ou não inteiro. `404` para `n` fora de 1–38. |
-| `POST /api/admin/rodadas/:n/fechar` 👑 | — | `204`; passa a contar na tabela. `409 RODADA_FECHADA` se já fechada. Emite `liga.rodadaFechada(n)`. |
+| `GET /api/liga/rodadas` | — | `[{numero, fechada, resumoPublicado, resumoPostId: string\|null, prazoPalpite: ISO\|null, jogos: [{id, mandante: {id,nome,escudoUrl}, visitante, golsMandante, golsVisitante}]}]`, 38 itens. |
+| `PUT /api/admin/rodadas/:n/jogos` 👑 | `{jogos: [{mandanteId, visitanteId, golsMandante, golsVisitante}]}` (até 10) | `204`. **Substitui todos** os jogos da rodada `n` (lista vazia limpa). Só com a rodada aberta (`409 RODADA_FECHADA`). `400 DADOS_INVALIDOS` e nada gravado se: clube em 2 jogos da mesma rodada (inclui jogo repetido), clube contra si mesmo, clube inexistente ou a CBF, placar fora de 0–99 ou não inteiro, ou só um dos lados nulo. **Jogo agendado:** `golsMandante` e `golsVisitante` `null` (ou ausentes) nos dois lados; ele aparece em `/liga/rodadas` com gols `null`, **não conta na tabela** e impede o fechamento da rodada. `404` para `n` fora de 1–38. |
+| `POST /api/admin/rodadas/:n/fechar` 👑 | — | `204`; passa a contar na tabela. `409 RODADA_FECHADA` se já fechada. `409 PLACAR_PENDENTE` se algum jogo da rodada está sem placar (a rodada continua aberta). Emite `liga.rodadaFechada(n)`. |
 | `POST /api/admin/rodadas/:n/reabrir` 👑 | — | `204`; sai da tabela até fechar de novo (o post do bot que já saiu não muda). `409 RODADA_ABERTA` se já aberta. |
 
 ### Bot da zoeira (Task B2) 👑
@@ -145,6 +150,29 @@ Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
 |---|---|---|
 | `POST /api/admin/rodadas/:n/previa` 👑 | — | `201 {texto, citados}`. `texto`: 3 a 6 frases, uma por linha, até 500 caracteres; `citados`: ids dos técnicos que aparecem pelo nome. Não grava nada; chamar de novo sorteia de novo. `409 RODADA_ABERTA` se a rodada não está fechada, `404` para `n` fora de 1–38. |
 | `POST /api/admin/rodadas/:n/publicar` 👑 | `{texto, citados?}`: `texto` 1–500 (o admin pode ter editado); `citados`: os ids que a prévia devolveu | `201 Post`: post de texto do clube `cbf`, autor = o admin. **Push:** todos (menos o admin e os citados) recebem `CBF` / `Saiu o resumo da rodada N`, sem o nome do admin; os citados recebem só `A CBF citou você`. Vale como citado o id que é técnico de clube que jogou a rodada **e** cujo nome ainda aparece, como palavra inteira, no texto final; sem `citados`, ninguém é citado. `400` se o texto for inválido ou `citados` não for lista, `409 RODADA_ABERTA`. Não emite `posts.criado` (o push é este). **Um resumo por rodada:** publicar de novo → `409 RESUMO_JA_PUBLICADO` (reabrir a rodada não libera; apagar o post do resumo, sim). `GET /api/liga/rodadas` traz `resumoPublicado` (boolean) e `resumoPostId` (id do post, para linkar `/p/:id`; `null` se não publicado). O corpo do 409 não traz o id: use o da lista. |
+
+### Calendário e prazo de palpite (Pack 3 · A1, IM-53) 🔒
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `PUT /api/admin/rodadas/:n/prazo` 👑 | `{prazoPalpite: ISO\|null}` | `204`. `null` tira o prazo (sem prazo não dá para palpitar). `400` se não for data ISO nem `null`; `404` para `n` fora de 1–38. Vale com a rodada aberta ou fechada. |
+| `GET /api/liga/calendario` | — | Próximos jogos **sem placar**: Brasileirão de rodada aberta + Copa de fase aberta. `[{tipo: 'BRASILEIRAO'\|'COPA', id, rodada: number\|null, fase: {id,nome}\|null, prazoPalpite: ISO\|null, mandante: {id,nome,escudoUrl}, visitante}]`. Ordem: prazo mais próximo primeiro (sem prazo por último), depois rodada/ordem da fase. `id` é o do `Jogo` ou do `CopaJogo`. |
+
+### Copa do Brasil (Pack 3 · A1, IM-53) 🔒
+
+Mata-mata de **jogo único**; as fases (ex.: "Oitavas") e os confrontos são lançados pelo admin. A CBF não entra; cada clube aparece **no máximo uma vez por fase**; um clube que **perdeu** um jogo (placar, ou pênaltis no empate) não pode estar numa fase de `ordem` maior (`409 CLUBE_ELIMINADO`; vale nos dois sentidos, então mudar um placar que eliminaria quem já joga adiante também dá 409). O vencedor é **calculado** (placar; no empate, pênaltis), nada fica guardado.
+
+Placar: `golsMandante`/`golsVisitante` de 0 a 99, ou `null` nos dois (agendado). Se o jogo termina **empatado**, `penaltisMandante`/`penaltisVisitante` (0–99, não podem empatar) são obrigatórios; fora disso devem ser `null`/ausentes. Qualquer violação → `400 DADOS_INVALIDOS`.
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `GET /api/copa` | — | `[{fase: {id,nome,ordem,prazoPalpite,fechada,resumoPublicado,resumoPostId}, jogos: [{id, mandante: ClubeMini, visitante, golsMandante, golsVisitante, penaltisMandante, penaltisVisitante, vencedor: ClubeMini\|null}]}]`, fases por `ordem`. `vencedor` é `null` sem placar. |
+| `POST /api/admin/copa/fases` 👑 | `{nome, ordem}`: nome 1–60, ordem inteira 1–99 | `201 {id, nome, ordem}`. `409 ORDEM_REPETIDA`. |
+| `PUT /api/admin/copa/fases/:id/jogos` 👑 | `{jogos: [{mandanteId, visitanteId, golsMandante, golsVisitante, penaltisMandante, penaltisVisitante}]}` (até 10) | `204`. **Substitui todos** os jogos da fase (lista vazia limpa). Só com a fase aberta (`409 FASE_FECHADA`: placar de fase fechada não muda). `400` (clube inexistente ou a CBF, clube duas vezes, contra si mesmo, placar/pênaltis inválidos, nada gravado), `409 CLUBE_ELIMINADO`, `404` fase inexistente. |
+| `PUT /api/admin/copa/fases/:id/prazo` 👑 | `{prazoPalpite: ISO\|null}` | `204`. `400`/`404` como o da rodada. |
+| `POST /api/admin/copa/fases/:id/fechar` 👑 | — | `201 {texto, citados}`: **fecha** a fase e devolve a prévia do resumo do bot (mesmo formato da prévia da rodada, frases de mata-mata em `docs/bot-frases.md`; não publica). `409 PLACAR_PENDENTE` se não houver jogos ou faltar placar/pênaltis (continua aberta), `409 FASE_FECHADA`. |
+| `POST /api/admin/copa/fases/:id/reabrir` 👑 | — | `204`. `409 FASE_ABERTA`. |
+| `POST /api/admin/copa/fases/:id/publicar` 👑 | `{texto, citados?}` (igual ao da rodada) | `201 Post` da CBF; push `CBF` / `Saiu o resumo da fase <nome>` para todos (menos admin e citados), `A CBF citou você` para os citados. **Um resumo por fase:** o segundo → `409 RESUMO_JA_PUBLICADO` (apagar o post libera). `409 FASE_ABERTA` se a fase não foi fechada. |
 
 ## 4c. Votações e selos (Task B2) 🔒
 

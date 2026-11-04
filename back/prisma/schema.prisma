@@ -87,6 +87,8 @@ model Club {
   transfers TransferRequest[]
   mandante  Jogo[]            @relation("mandante")
   visitante Jogo[]            @relation("visitante")
+  copaMandante  CopaJogo[]    @relation("copaMandante")
+  copaVisitante CopaJogo[]    @relation("copaVisitante")
   selos     Selo[]
 }
 
@@ -94,6 +96,7 @@ model Club {
 model Rodada {
   numero    Int       @id
   fechadaEm DateTime?
+  prazoPalpite DateTime? // null = ainda não dá para palpitar
   jogos     Jogo[]
   // post do resumo da CBF (null = ainda não publicado); se o post for apagado, a rodada volta a aceitar resumo
   resumoPostId String? @db.Uuid
@@ -105,14 +108,43 @@ model Jogo {
   rodadaNumero  Int
   mandanteId    String
   visitanteId   String
-  golsMandante  Int
-  golsVisitante Int
+  golsMandante  Int? // null nos dois = jogo agendado
+  golsVisitante Int?
   rodada        Rodada @relation(fields: [rodadaNumero], references: [numero], onDelete: Cascade)
   mandante      Club   @relation("mandante", fields: [mandanteId], references: [id])
   visitante     Club   @relation("visitante", fields: [visitanteId], references: [id])
 
   @@unique([rodadaNumero, mandanteId])
   @@unique([rodadaNumero, visitanteId])
+}
+
+// Copa do Brasil: mata-mata de jogo único, fases lançadas pelo admin (ordem maior = fase mais adiante).
+model CopaFase {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome         String
+  ordem        Int       @unique
+  prazoPalpite DateTime?
+  fechadaEm    DateTime?
+  jogos        CopaJogo[]
+  resumoPostId String?   @unique @db.Uuid
+  resumoPost   Post?     @relation(fields: [resumoPostId], references: [id], onDelete: SetNull)
+}
+
+model CopaJogo {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  faseId           String   @db.Uuid
+  mandanteId       String
+  visitanteId      String
+  golsMandante     Int?
+  golsVisitante    Int?
+  penaltisMandante  Int? // só quando o jogo termina empatado
+  penaltisVisitante Int?
+  fase             CopaFase @relation(fields: [faseId], references: [id], onDelete: Cascade)
+  mandante         Club     @relation("copaMandante", fields: [mandanteId], references: [id])
+  visitante        Club     @relation("copaVisitante", fields: [visitanteId], references: [id])
+
+  @@unique([faseId, mandanteId])
+  @@unique([faseId, visitanteId])
 }
 
 model CoachTenure {
@@ -130,6 +162,7 @@ model CoachTenure {
 model Post {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   resumoDe  Rodada[]
+  resumoDeCopa CopaFase?
   notificacoes Notificacao[]
   clubId    String
   authorId  String    @db.Uuid // técnico que publicou

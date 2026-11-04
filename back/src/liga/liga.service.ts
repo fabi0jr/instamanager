@@ -8,18 +8,28 @@ import { PostsService } from '../posts/posts.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { PushService } from '../push/push.service.js';
 import { LigaEventos } from './liga.eventos.js';
-import { calcularTabela, type Linha } from './tabela.js';
+import { calcularTabela, type JogoFechado, type Linha } from './tabela.js';
 
 const RODADAS = 38;
 const MAX_GOLS = 99;
 const jaPublicado = () => new ApiError(409, 'RESUMO_JA_PUBLICADO', 'O resumo desta rodada já foi publicado.');
 const invalido = (msg: string, campo = 'jogos') => new ApiError(400, 'DADOS_INVALIDOS', msg, [campo]);
 const clubeMini = (c: { id: string; name: string; crestPath: string }) => ({ id: c.id, nome: c.name, escudoUrl: c.crestPath });
-const gols = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= MAX_GOLS;
+export const gols = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= MAX_GOLS;
 
-const paraFechado = (j: { rodadaNumero: number; mandanteId: string; visitanteId: string; golsMandante: number; golsVisitante: number }) => ({ rodada: j.rodadaNumero, mandanteId: j.mandanteId, visitanteId: j.visitanteId, golsMandante: j.golsMandante, golsVisitante: j.golsVisitante });
+const paraFechado = (j: { rodadaNumero: number; mandanteId: string; visitanteId: string; golsMandante: number | null; golsVisitante: number | null }) => ({ rodada: j.rodadaNumero, mandanteId: j.mandanteId, visitanteId: j.visitanteId, golsMandante: j.golsMandante, golsVisitante: j.golsVisitante });
 const apareceInteiro = (nome: string, texto: string) => new RegExp(`(?<![\\p{L}\\p{N}])${nome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'iu').test(texto);
-type JogoEntrada = { mandanteId: string; visitanteId: string; golsMandante: number; golsVisitante: number };
+type JogoEntrada = { mandanteId: string; visitanteId: string; golsMandante: number | null; golsVisitante: number | null };
+const comPlacar = (j: { golsMandante: unknown }) => j.golsMandante !== null;
+
+/** `{prazoPalpite: ISO | null}`. Exportada: a Copa usa a mesma regra. */
+export function lerPrazo(corpo: unknown): Date | null {
+  const v = typeof corpo === 'object' && corpo ? (corpo as { prazoPalpite?: unknown }).prazoPalpite : undefined;
+  if (v === null) return null;
+  const d = typeof v === 'string' ? new Date(v) : null;
+  if (!d || Number.isNaN(d.getTime())) throw invalido('prazoPalpite precisa ser uma data ISO (ou null para tirar o prazo).', 'prazoPalpite');
+  return d;
+}
 
 @Injectable()
 export class LigaService {
@@ -55,7 +65,7 @@ export class LigaService {
       this.prisma.club.findMany({ where: { coach: { isNot: null } }, include: { coach: { select: { id: true, name: true } } } }),
     ]);
     const tecnicos = Object.fromEntries(clubes.map((c) => [c.id, { id: c.coach!.id, nome: c.coach!.name }]));
-    return montarResumo({ numero: n, jogos: jogos.map(paraFechado), antes, depois, tecnicos });
+    return montarResumo({ numero: n, jogos: jogos.filter(comPlacar).map(paraFechado) as JogoFechado[], antes, depois, tecnicos });
   }
 
   /**
@@ -106,6 +116,7 @@ export class LigaService {
       fechada: r.fechadaEm !== null,
       resumoPublicado: r.resumoPostId !== null,
       resumoPostId: r.resumoPostId,
+      prazoPalpite: r.prazoPalpite,
       jogos: r.jogos.map((j) => ({ id: j.id, mandante: clubeMini(j.mandante), visitante: clubeMini(j.visitante), golsMandante: j.golsMandante, golsVisitante: j.golsVisitante })),
     }));
   }
@@ -132,9 +143,32 @@ export class LigaService {
   async fechar(n: number) {
     await this.prisma.$transaction(async (tx) => {
       await this.travar(tx, n); // recusa rodada inexistente (404) ou já fechada (409)
+      if (await tx.jogo.count({ where: { rodadaNumero: n, golsMandante: null } })) throw new ApiError(409, 'PLACAR_PENDENTE', 'Há jogo sem placar nesta rodada. Lance todos os placares antes de fechar.');
       await tx.rodada.update({ where: { numero: n }, data: { fechadaEm: new Date() } });
     });
     this.eventos.emit('liga.rodadaFechada', n);
+  }
+
+  /** Prazo do palpite da rodada (ISO ou null para tirar). */
+  async definirPrazo(n: number, corpo: unknown) {
+    const prazo = lerPrazo(corpo);
+    if (!Number.isInteger(n)) throw new ApiError(404, 'NAO_ENCONTRADO', 'Rodada não encontrada.');
+    const { count } = await this.prisma.rodada.updateMany({ where: { numero: n }, data: { prazoPalpite: prazo } });
+    if (count === 0) throw new ApiError(404, 'NAO_ENCONTRADO', 'Rodada não encontrada.');
+  }
+
+  /** Próximos jogos sem placar (Brasileirão de rodada aberta + Copa de fase aberta), por prazo e depois por rodada/fase. */
+  async calendario() {
+    const [rodadas, fases] = await Promise.all([
+      this.prisma.rodada.findMany({ where: { fechadaEm: null, jogos: { some: { golsMandante: null } } }, include: { jogos: { where: { golsMandante: null }, include: { mandante: true, visitante: true }, orderBy: { id: 'asc' } } } }),
+      this.prisma.copaFase.findMany({ where: { fechadaEm: null }, include: { jogos: { where: { golsMandante: null }, include: { mandante: true, visitante: true }, orderBy: { id: 'asc' } } } }),
+    ]);
+    const itens = [
+      ...rodadas.flatMap((r) => r.jogos.map((j) => ({ ord: r.numero, prazoPalpite: r.prazoPalpite, tipo: 'BRASILEIRAO' as const, id: j.id, rodada: r.numero, fase: null, mandante: clubeMini(j.mandante), visitante: clubeMini(j.visitante) }))),
+      ...fases.flatMap((f) => f.jogos.map((j) => ({ ord: f.ordem, prazoPalpite: f.prazoPalpite, tipo: 'COPA' as const, id: j.id, rodada: null, fase: { id: f.id, nome: f.nome }, mandante: clubeMini(j.mandante), visitante: clubeMini(j.visitante) }))),
+    ];
+    const t = (d: Date | null) => d?.getTime() ?? Infinity;
+    return itens.sort((a, b) => t(a.prazoPalpite) - t(b.prazoPalpite) || a.ord - b.ord).map(({ ord: _ord, ...i }) => i);
   }
 
   async reabrir(n: number) {
@@ -161,12 +195,13 @@ export class LigaService {
       const { mandanteId, visitanteId, golsMandante, golsVisitante } = j ?? {};
       if (typeof mandanteId !== 'string' || typeof visitanteId !== 'string' || !mandanteId || !visitanteId) throw invalido('Cada jogo precisa de mandanteId e visitanteId.');
       if (mandanteId === visitanteId) throw invalido('Um clube não joga contra si mesmo.');
-      if (!gols(golsMandante) || !gols(golsVisitante)) throw invalido(`O placar vai de 0 a ${MAX_GOLS}, em números inteiros.`);
+      const agendado = (golsMandante ?? null) === null && (golsVisitante ?? null) === null; // jogo agendado: sem placar
+      if (!agendado && (!gols(golsMandante) || !gols(golsVisitante))) throw invalido(`O placar vai de 0 a ${MAX_GOLS}, em números inteiros, ou nulo nos dois lados (jogo agendado).`);
       for (const id of [mandanteId, visitanteId]) {
         if (vistos.has(id)) throw invalido('Cada clube joga no máximo uma vez por rodada.');
         vistos.add(id);
       }
-      return { mandanteId, visitanteId, golsMandante, golsVisitante };
+      return { mandanteId, visitanteId, golsMandante: agendado ? null : (golsMandante as number), golsVisitante: agendado ? null : (golsVisitante as number) };
     });
   }
 }
