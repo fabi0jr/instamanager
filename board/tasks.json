@@ -1,5 +1,5 @@
 {
-  "proximoId": 45,
+  "proximoId": 52,
   "tarefas": [
     {
       "id": "IM-1",
@@ -3153,6 +3153,184 @@
           "de": "qa",
           "para": "concluido",
           "nota": "deploy feito"
+        }
+      ]
+    },
+    {
+      "id": "IM-45",
+      "titulo": "Onda C · design",
+      "tipo": "design",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-04-pack2-onda-c.md"
+      ],
+      "depende": [],
+      "responsavel": "Prancheta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-04T12:28:19.479Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T12:28:29.685Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T12:28:29.718Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T12:28:29.816Z",
+          "quem": "PO",
+          "nota": "atribuída a Prancheta"
+        }
+      ]
+    },
+    {
+      "id": "IM-46",
+      "titulo": "Onda C · back: atividade e menções",
+      "tipo": "back",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-04-pack2-onda-c.md"
+      ],
+      "depende": [],
+      "responsavel": "Volante",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-04T12:28:19.545Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T12:28:29.749Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T12:28:29.780Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T12:28:29.849Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        }
+      ]
+    },
+    {
+      "id": "IM-47",
+      "titulo": "Onda C · back: busca",
+      "tipo": "back",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-04-pack2-onda-c.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T12:28:19.604Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-48",
+      "titulo": "Onda C · back+infra: stories e vídeo (ffmpeg)",
+      "tipo": "back",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-04-pack2-onda-c.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T12:28:19.656Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-49",
+      "titulo": "Onda C · front: atividade, menções, busca, barra",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-04-pack2-onda-c.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T12:28:19.712Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-50",
+      "titulo": "Onda C · front: stories e vídeo",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-04-pack2-onda-c.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T12:28:19.764Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-51",
+      "titulo": "Onda C · QA, ensaio e deploy",
+      "tipo": "qa",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-04-pack2-onda-c.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T12:28:19.813Z",
+          "quem": "PO",
+          "nota": "criada"
         }
       ]
     }
