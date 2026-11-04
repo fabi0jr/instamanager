@@ -11,6 +11,7 @@ import { TrocarSenha } from './conta/TrocarSenha';
 import { ListaClubes } from './clube/ListaClubes';
 import { EditarClube } from './clube/EditarClube';
 import { PerfilClube } from './clube/PerfilClube';
+import { AvisoVotacao, Votar } from './votacoes/Votacoes';
 import { Liga } from './liga/Liga';
 import { Galeria } from './galeria/Galeria';
 import { Feed } from './feed/Feed';
@@ -61,13 +62,14 @@ export function App() {
     }
     return (
       <main className={telaCheia ? 'tela-cheia' : ''}>
-        {caminho === '/' && <Feed me={me} />}
+        {caminho === '/' && <><AvisoVotacao /><Feed me={me} /></>}
         {params.id && /^\/p\/[^/]+$/.test(caminho) && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
         {params.id && /^\/p\/[^/]+\/editar$/.test(caminho) && <div className="post-pagina"><EditarPost id={params.id} /></div>}
         {params.id && /^\/c\/[^/]+$/.test(caminho) && <PerfilClube id={params.id} me={me} />}
         {params.id && /^\/c\/[^/]+\/editar$/.test(caminho) && <EditarClube id={params.id} me={me} />}
         {params.tag && /^\/tag\/[^/]+$/.test(caminho) && <Tag tag={params.tag} />}
         {caminho === '/clubes' && <ListaClubes />}
+        {params.id && /^\/votacoes\/[^/]+$/.test(caminho) && <Votar id={params.id} />}
         {caminho === '/liga' && <Liga me={me} />}
         {caminho === '/galeria' && <Galeria />}
         {caminho === '/postar' && <Postar me={me} />}

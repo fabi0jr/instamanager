@@ -4,12 +4,13 @@ import '../feed/feed.css';
 import { Botao } from '../conta/ui';
 
 // Confirmação de ação sem volta. O foco abre no "Voltar" (nunca no botão destrutivo), Esc fecha e o foco volta a quem abriu.
-export function Dialogo({ titulo, texto, acao, perigo, ocupado, aoConfirmar, aoVoltar }: {
+export function Dialogo({ titulo, texto, acao, perigo, ocupado, voltarRotulo = 'Voltar', aoConfirmar, aoVoltar }: {
   titulo: string;
   texto: string;
   acao: string;
   perigo?: boolean;
   ocupado?: boolean;
+  voltarRotulo?: string;
   aoConfirmar: () => void;
   aoVoltar: () => void;
 }) {
@@ -39,7 +40,7 @@ export function Dialogo({ titulo, texto, acao, perigo, ocupado, aoConfirmar, aoV
         <h2 id={id + 't'}>{titulo}</h2>
         <p id={id + 'd'} className="giz2">{texto}</p>
         <Botao className={perigo ? 'perigo' : ''} onClick={aoConfirmar} carregando={ocupado ? 'Enviando…' : undefined}>{acao}</Botao>
-        <button ref={voltar} type="button" className="botao secundario" disabled={ocupado} onClick={aoVoltar}>Voltar</button>
+        <button ref={voltar} type="button" className="botao secundario" disabled={ocupado} onClick={aoVoltar}>{voltarRotulo}</button>
       </div>
     </div>,
     document.body, // fora do #rolagem: acima da barra inferior
