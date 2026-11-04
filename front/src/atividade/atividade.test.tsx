@@ -72,3 +72,10 @@ test('troca decidida mostra aprovado/recusado quando o back manda o status; sem 
   expect(screen.getByText('Seu pedido de troca foi decidido.')).toBeTruthy();
   expect(document.querySelector('a[href="/c/vasco"]')).toBeTruthy();
 });
+
+test('troca decidida de pedido para sair (clube null) abre o Perfil', async () => {
+  fetchFalso({ 'GET /atividade': { itens: [item('t', 'TROCA_DECIDIDA', { ator: null, post: null, troca: { status: 'APROVADA', clube: null } })], proximo: null }, 'POST /atividade/lidas': { status: 204 } });
+  render(<Atividade />);
+  expect(await screen.findByText('Seu pedido de troca foi aprovado.')).toBeTruthy();
+  expect(document.querySelector('a[href="/perfil"]')).toBeTruthy();
+});
