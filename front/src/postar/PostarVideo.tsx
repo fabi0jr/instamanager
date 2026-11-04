@@ -63,7 +63,7 @@ export function PostarVideo({ me, seletor, aoConteudo }: { me: Me; seletor: Reac
         if (e.codigo === 'CANCELADO') return;
         registrarErro(`falha ao publicar vídeo: ${e.codigo ?? e.message}`);
         const v: CodigoVideo | null = codigoDeVideo(e.status, e.codigo);
-        setErro(v ? ERROS_VIDEO[v]() : e.codigo === 'NAO_E_ADMIN' ? { titulo: 'Só o admin pode postar como CBF', texto: 'Seu acesso mudou. Publique pelo seu clube.' } : { titulo: 'Não deu para publicar', texto: 'Confira a conexão e tente de novo. O vídeo continua escolhido.' });
+        setErro(v ? ERROS_VIDEO[v]() : e.codigo === 'SEM_CLUBE' ? { titulo: 'Você não pode publicar agora', texto: 'Você deixou de ser técnico de um clube, então não dá para publicar. Nada foi enviado.' } : e.codigo === 'NAO_E_ADMIN' ? { titulo: 'Só o admin pode postar como CBF', texto: 'Seu acesso mudou. Publique pelo seu clube.' } : { titulo: 'Não deu para publicar', texto: 'Confira a conexão e tente de novo. O vídeo continua escolhido.' });
         setPasso(v ? 1 : 2);
         if (v) { setArquivo(null); setUrl(''); }
       },
@@ -87,10 +87,10 @@ export function PostarVideo({ me, seletor, aoConteudo }: { me: Me; seletor: Reac
         ) : (
           <>
             <div className="barra-indet" aria-hidden="true"><span /></div>
-            <p className="giz2">Isso leva até 1 minuto. Se você sair agora, o post não é publicado.</p>
+            <p className="giz2">Já recebemos o vídeo; ele aparece em instantes. O servidor está preparando o vídeo (até 1 minuto).</p>
           </>
         )}
-        <button type="button" className="botao fantasma" onClick={() => { cancelar.current?.(); setPasso(2); }}>Cancelar envio</button>
+        {fase === 'enviando' && <button type="button" className="botao fantasma" onClick={() => { cancelar.current?.(); setPasso(2); }}>Cancelar envio</button>}
       </div>
     );
 

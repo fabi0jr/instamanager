@@ -56,10 +56,11 @@ test('criar story vídeo: envio com progresso e depois "Convertendo vídeo…"',
   expect(await screen.findByText('0:18')).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: 'Publicar story' }));
   expect(await screen.findByText('Convertendo vídeo…')).toBeTruthy();
-  expect(screen.getByText(/Leva até 1 minuto/)).toBeTruthy();
+  expect(screen.getByText(/Já recebemos o vídeo; ele aparece em instantes/)).toBeTruthy();
   expect(envios[0].get('video')).toBeTruthy();
-  fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
-  expect(ultimo!.abort).toHaveBeenCalled();
+  // upload terminou: o back publica de qualquer jeito, então não há mais Cancelar
+  expect(screen.queryByRole('button', { name: /Cancelar/ })).toBeNull();
+  expect(ultimo!.abort).not.toHaveBeenCalled();
 });
 
 test('vídeo > 60 MB e > 30 s são avisados antes de enviar', async () => {
@@ -93,4 +94,15 @@ test('torcedor vê "Só técnico de clube posta story"; admin sem clube posta co
   escolher('Escolher foto', arquivo('a.jpg', 'image/jpeg'));
   fireEvent.click(await screen.findByRole('button', { name: 'Publicar story' }));
   await waitFor(() => expect(envios[0]?.get('comoCbf')).toBe('true'));
+});
+
+test('erro que não é de vídeo não oferece "Escolher outro vídeo": mostra "Entendi" e volta à prévia', async () => {
+  resposta = { status: 500, corpo: '{}' };
+  render(<CriarStory me={tecnico} />);
+  escolher('Escolher foto', arquivo('a.jpg', 'image/jpeg'));
+  fireEvent.click(await screen.findByRole('button', { name: 'Publicar story' }));
+  expect(await screen.findByText('Não deu para publicar')).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Escolher outro vídeo' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Entendi' }));
+  expect(screen.getByRole('button', { name: 'Publicar story' })).toBeTruthy();
 });

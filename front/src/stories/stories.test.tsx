@@ -112,3 +112,19 @@ test('vídeo começa mudo, com dica e botão de som', async () => {
   expect(document.querySelector('video')!.muted).toBe(false);
   expect(screen.getByRole('button', { name: 'Desligar o som' })).toBeTruthy();
 });
+
+test('tocar no véu da folha "Visto por" ou do diálogo não avança o story (eventos de portal)', async () => {
+  const chamadas = await abrir([faixa('santos', [story('a'), story('b')])], me, 'santos');
+  const img = () => document.querySelector<HTMLImageElement>('.midia')!.src;
+  fireEvent.click(await screen.findByRole('button', { name: /Visto por 2/ }));
+  const veu = document.body.querySelector<HTMLElement>('body > .veu')!;
+  fireEvent.pointerDown(veu, { clientX: 300, clientY: 100 });
+  fireEvent.click(veu, { clientX: 300 }); // clique no véu fecha a folha, mas não é toque no story
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: /Visto por/ })).toBeNull());
+  expect(img()).toContain('/a.jpg');
+  expect(chamadas.some((c) => c.chave === 'PUT /stories/b/visto')).toBe(false);
+  fireEvent.click(screen.getByRole('button', { name: 'Apagar story' }));
+  fireEvent.click(document.body.querySelector<HTMLElement>('body > .veu')!, { clientX: 300 });
+  await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+  expect(img()).toContain('/a.jpg');
+});

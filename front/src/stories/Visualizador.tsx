@@ -113,14 +113,19 @@ export function Visualizador({ clubeId, me }: { clubeId: string; me: Me }) {
     return () => document.removeEventListener('keydown', tecla);
   }); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Folha e Dialogo vão por portal, mas os eventos do React sobem pela árvore até aqui: só vale o que nasceu dentro do visualizador
+  const dentro = (e: { currentTarget: Element; target: EventTarget }) => e.currentTarget.contains(e.target as Node);
   function apertou(e: PointerEvent) {
+    if (!dentro(e)) return;
     toque.current = { x: e.clientX, y: e.clientY, segurou: false, t: setTimeout(() => { if (toque.current) toque.current.segurou = true; setSegurando(true); }, 250) };
   }
   function moveu(e: PointerEvent) {
+    if (!dentro(e)) return;
     const t = toque.current;
     if (t) setArrasto(Math.max(0, e.clientY - t.y));
   }
-  function soltou() {
+  function soltou(e: PointerEvent) {
+    if (!dentro(e)) return;
     const t = toque.current;
     clearTimeout(t?.t);
     setSegurando(false);
@@ -128,6 +133,7 @@ export function Visualizador({ clubeId, me }: { clubeId: string; me: Me }) {
     setArrasto(0);
   }
   function clicou(e: MouseEvent<HTMLDivElement>) {
+    if (!dentro(e)) return;
     const t = toque.current;
     toque.current = null;
     if (t?.segurou || arrasto > 10) return; // segurar e arrastar não contam como toque

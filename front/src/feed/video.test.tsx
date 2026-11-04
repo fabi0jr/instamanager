@@ -76,3 +76,29 @@ test('trocar de aba em /postar com conteúdo pede confirmação para descartar; 
   expect(screen.getByRole('radio', { name: 'Foto' }).getAttribute('aria-checked')).toBe('true');
   expect(screen.queryByPlaceholderText('O que está rolando?')).toBeNull();
 });
+
+test('postar vídeo: convertendo não tem Cancelar; 403 SEM_CLUBE mostra a mensagem certa', async () => {
+  localStorage.setItem('im:postar-modo', 'video');
+  const estado = { parar: true };
+  class Xhr { upload: { onprogress?: (e: unknown) => void } = {}; status = 403; responseText = '{"codigo":"SEM_CLUBE"}'; onload?: () => void; open = vi.fn(); send() { queueMicrotask(() => { this.upload.onprogress?.({ lengthComputable: true, loaded: 10, total: 10 }); if (!estado.parar) this.onload?.(); }); } }
+  vi.stubGlobal('XMLHttpRequest', Xhr);
+  vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:x'), revokeObjectURL: vi.fn() }));
+  fetchFalso({});
+  const enviar = async () => {
+    fireEvent.change(screen.getByLabelText('Escolher vídeo'), { target: { files: [new File(['x'], 'v.mov', { type: 'video/quicktime' })] } });
+    await screen.findByText(/converte ao publicar/);
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar' }));
+  };
+  render(<Postar me={me} />);
+  await enviar();
+  expect(await screen.findByText('Convertendo vídeo…')).toBeTruthy();
+  expect(screen.getByText(/Já recebemos o vídeo; ele aparece em instantes/)).toBeTruthy();
+  expect(screen.queryByRole('button', { name: /Cancelar/ })).toBeNull();
+  cleanup();
+  estado.parar = false;
+  render(<Postar me={me} />);
+  await enviar();
+  expect(await screen.findByText('Você não pode publicar agora')).toBeTruthy();
+  expect(screen.queryByText('Não deu para publicar')).toBeNull();
+});

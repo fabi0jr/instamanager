@@ -17,7 +17,7 @@ type Fase = 'escolher' | 'previa' | 'enviando' | 'convertendo';
 export function CriarStory({ me }: { me: Me }) {
   const [fase, setFase] = useState<Fase>('escolher');
   const [midia, setMidia] = useState<Midia | null>(null);
-  const [erro, setErro] = useState<{ titulo: string; texto: string; acao?: 'clubes' } | null>(null);
+  const [erro, setErro] = useState<{ titulo: string; texto: string; acao?: 'clubes' | 'video' | 'entendi' } | null>(null);
   const [cbf, setCbf] = useState(!me.clube);
   const [pct, setPct] = useState({ carregado: 0, total: 0 });
   const cancelar = useRef<(() => void) | null>(null);
@@ -35,7 +35,7 @@ export function CriarStory({ me }: { me: Me }) {
       </div>
     );
 
-  const mostrarErro = (c: CodigoVideo, s?: number) => setErro(ERROS_VIDEO[c](s));
+  const mostrarErro = (c: CodigoVideo, s?: number) => setErro({ ...ERROS_VIDEO[c](s), acao: 'video' });
 
   async function escolher(e: ChangeEvent<HTMLInputElement>, tipo: 'foto' | 'video') {
     const arquivo = e.target.files?.[0];
@@ -45,13 +45,13 @@ export function CriarStory({ me }: { me: Me }) {
     if (tipo === 'foto') {
       try {
         const { blob } = await comprimir(arquivo, 1600);
-        if (blob.size > 3 * 1024 * 1024) return setErro({ titulo: 'Essa imagem ficou grande demais', texto: 'Escolha outra foto.' });
+        if (blob.size > 3 * 1024 * 1024) return setErro({ titulo: 'Essa imagem ficou grande demais', texto: 'Escolha outra foto.', acao: 'entendi' });
         if (url.current) URL.revokeObjectURL(url.current);
         url.current = URL.createObjectURL(blob);
         setMidia({ tipo, blob, url: url.current, nome: arquivo.name });
         setFase('previa');
       } catch (er) {
-        setErro({ titulo: 'Não deu para ler essa imagem', texto: er instanceof ErroImagem ? 'Escolha outra imagem ou exporte como JPEG.' : 'Tente de novo.' });
+        setErro({ titulo: 'Não deu para ler essa imagem', texto: er instanceof ErroImagem ? 'Escolha outra imagem ou exporte como JPEG.' : 'Tente de novo.', acao: 'entendi' });
       }
       return;
     }
@@ -84,7 +84,7 @@ export function CriarStory({ me }: { me: Me }) {
         const v = codigoDeVideo(e.status, e.codigo);
         if (v) mostrarErro(v);
         else if (e.status === 403) setErro({ titulo: 'Só técnico de clube posta story', texto: 'Seu acesso mudou. Nada foi publicado.', acao: 'clubes' });
-        else setErro({ titulo: 'Não deu para publicar', texto: 'Confira a conexão e tente de novo.' });
+        else setErro({ titulo: 'Não deu para publicar', texto: 'Confira a conexão e tente de novo.', acao: 'entendi' });
         setFase('previa');
       },
     );
@@ -101,7 +101,7 @@ export function CriarStory({ me }: { me: Me }) {
         <div className="caixa-info caixa-erro-video" role="alert">
           <h2>{erro.titulo}</h2>
           <p className="giz2">{erro.texto}</p>
-          {erro.acao === 'clubes' ? <Link para="/clubes" className="botao">Ver clubes livres</Link> : <button type="button" className="botao" onClick={() => { setErro(null); setMidia(null); setFase('escolher'); }}>Escolher outro vídeo</button>}
+          {erro.acao === 'clubes' ? <Link para="/clubes" className="botao">Ver clubes livres</Link> : erro.acao === 'video' ? <button type="button" className="botao" onClick={() => { setErro(null); setMidia(null); setFase('escolher'); }}>Escolher outro vídeo</button> : <button type="button" className="botao" onClick={() => setErro(null)}>Entendi</button>}
         </div>
       )}
       {fase === 'escolher' && !erro && (
@@ -144,8 +144,7 @@ export function CriarStory({ me }: { me: Me }) {
         <div className="caixa-info" role="status">
           <h2>Convertendo vídeo…</h2>
           <div className="barra-indet" aria-hidden="true"><span /></div>
-          <p className="giz2">O envio acabou. Agora o servidor prepara o vídeo para tocar em qualquer celular. Leva até 1 minuto.</p>
-          <button type="button" className="botao secundario" onClick={parar}>Cancelar</button>
+          <p className="giz2">Já recebemos o vídeo; ele aparece em instantes. O servidor está preparando o vídeo para tocar em qualquer celular (até 1 minuto).</p>
         </div>
       )}
     </div>
