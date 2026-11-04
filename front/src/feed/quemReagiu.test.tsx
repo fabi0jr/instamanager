@@ -53,3 +53,10 @@ test('erro mostra "Tentar de novo"; 404 fecha a folha com o aviso de post indisp
   expect(await screen.findByText('Este post não está mais disponível')).toBeTruthy();
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 });
+
+test('post da CBF mostra "Comunicado oficial" e nunca "por <admin>"', () => {
+  fetchFalso({});
+  render(<CardPost post={{ ...post, clube: { id: 'cbf', nome: 'CBF', escudoUrl: '/escudos/cbf.svg' }, autor: { id: 'a1', nome: 'FabioAdmin' } }} me={me} />);
+  expect(screen.getByText(/Comunicado oficial/)).toBeTruthy();
+  expect(screen.queryByText(/FabioAdmin/)).toBeNull();
+});

@@ -168,7 +168,7 @@ export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoAp
           <Escudo src={post.clube.escudoUrl} tam={40} />
           <span>
             <strong className="nome-clube">{post.clube.nome}</strong>
-            <span className="giz2 legenda-s">por {post.autor.nome} · {haQuanto(post.criadoEm)}</span>
+            <span className="giz2 legenda-s">{post.clube.id === 'cbf' ? 'Comunicado oficial' : `por ${post.autor.nome}`} · {haQuanto(post.criadoEm)}</span>
           </span>
         </Link>
         <button type="button" aria-label="Mais opções" onClick={() => setMenu('menu')}><IcMais /></button>

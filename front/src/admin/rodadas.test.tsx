@@ -176,3 +176,11 @@ test('publicar: 409 RESUMO_JA_PUBLICADO conta como sucesso (sem erro, volta à l
   await waitFor(() => expect(location.pathname).toBe('/admin/rodadas'));
   expect(screen.queryByText('Não deu para publicar. Tente de novo.')).toBeNull();
 });
+
+test('admin de votações lista também as encerradas com o vencedor', async () => {
+  fetchFalso({ 'GET /votacoes': [], 'GET /votacoes?encerradas=1': [{ id: 'v0', titulo: 'Técnico de outubro', tipo: 'TECNICO', prazo: '2026-10-30T12:00:00Z', aberta: false, encerrada: true, opcoes: [], meuVoto: null, vencedor: 'Abel e Rita' }] });
+  history.replaceState(null, '', '/admin/votacoes');
+  tela('/admin/votacoes');
+  expect(await screen.findByText('Técnico de outubro')).toBeTruthy();
+  expect(screen.getByText('Encerrada · Venceu: Abel e Rita')).toBeTruthy();
+});

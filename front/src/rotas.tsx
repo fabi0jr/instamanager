@@ -71,3 +71,7 @@ export function useRota() {
   }
   return { caminho, params };
 }
+
+// rotas que existem; qualquer outra mostra "Não achamos essa página" (nunca tela em branco)
+const CONHECIDAS = [/^\/$/, /^\/p\/[^/]+(\/editar)?$/, /^\/c\/[^/]+(\/editar)?$/, /^\/tag\/[^/]+$/, /^\/votacoes\/[^/]+$/, /^\/(clubes|galeria|liga|postar|perfil|perfil\/senha|trocar|instalar|avisos)$/, /^\/admin(\/.*)?$/];
+export const rotaConhecida = (caminho: string) => CONHECIDAS.some((r) => r.test(caminho));

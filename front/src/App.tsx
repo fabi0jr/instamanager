@@ -21,7 +21,7 @@ import { lerVolta } from './instalar/volta';
 import { PostPagina } from './feed/PostPagina';
 import { EditarPost } from './postar/EditarPost';
 import { Postar } from './postar/Postar';
-import { emEdicao, navegar, PUBLICAS, useRota } from './rotas';
+import { emEdicao, navegar, PUBLICAS, rotaConhecida, useRota, voltar } from './rotas';
 import { Novidades } from './Novidades';
 import { Tag } from './tag/Tag';
 import { Trocar } from './trocas/Trocar';
@@ -62,6 +62,13 @@ export function App() {
     }
     return (
       <main className={telaCheia ? 'tela-cheia' : ''}>
+        {!rotaConhecida(caminho) && (
+          <div className="caixa-info nao-achada" role="alert" style={{ margin: 16 }}>
+            <h2>Não achamos essa página</h2>
+            <p className="giz2">O endereço não existe ou mudou.</p>
+            <button type="button" className="botao" onClick={() => voltar('/')}>Voltar</button>
+          </div>
+        )}
         {caminho === '/' && <><AvisoVotacao /><Feed me={me} /></>}
         {params.id && /^\/p\/[^/]+$/.test(caminho) && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
         {params.id && /^\/p\/[^/]+\/editar$/.test(caminho) && <div className="post-pagina"><EditarPost id={params.id} /></div>}

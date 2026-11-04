@@ -22,3 +22,4 @@
 .jogos { list-style: none; margin: 0; padding: 0; } .jogos li { display: grid; grid-template-columns: 1fr 22px auto 22px 1fr; align-items: center; gap: var(--im-e2); min-height: 56px; border-bottom: 1px solid var(--im-linha); }
 .jogos .time { font: 500 15px var(--im-fonte-texto); } .jogos .mandante { text-align: right; } .jogos .ganhou { font-weight: 700; } .jogos .perdeu { color: var(--im-giz-2); }
 .jogos .placar { font: 700 24px var(--im-fonte-display); min-width: 64px; text-align: center; } .jogos.parcial .placar { color: var(--im-giz-2); }
+.tabela-liga th:last-child, .tabela-liga td:last-child { min-width: 72px; padding-right: var(--im-e3); } .tabela-liga thead th:last-child { white-space: nowrap; }

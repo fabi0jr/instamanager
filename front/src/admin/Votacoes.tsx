@@ -14,9 +14,11 @@ export function VotacoesAdmin() {
   const [encerrar, setEncerrar] = useState<Votacao | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [aviso, setAviso] = useState('');
+  const [encerradas, setEncerradas] = useState<Votacao[]>([]);
   function carregar() {
     setLista('carregando');
     api<Votacao[]>('/votacoes').then(setLista, () => setLista('erro'));
+    api<Votacao[]>('/votacoes?encerradas=1').then((l) => setEncerradas(Array.isArray(l) ? l : []), () => setEncerradas([]));
   }
   useEffect(carregar, []);
   async function confirmar() {
@@ -27,6 +29,7 @@ export function VotacoesAdmin() {
       const g = v.resultado ? vencedores(v.resultado) : [];
       setAviso(g.length ? `Votação encerrada. Selo criado para ${g.map((x) => x.rotulo).join(' e ')}.` : 'Votação encerrada. Ninguém votou, então não houve selo.');
       setLista((l) => (Array.isArray(l) ? l.filter((x) => x.id !== v.id) : l));
+      setEncerradas((l) => [{ ...v, vencedor: g.map((x) => x.rotulo).join(' e ') || null }, ...l]);
     } catch {
       setAviso('Não deu para encerrar. Confira a conexão e tente de novo.');
     } finally {
@@ -52,6 +55,19 @@ export function VotacoesAdmin() {
             </li>
           ))}
         </ul>
+      )}
+      {encerradas.length > 0 && (
+        <>
+          <p className="giz2 legenda-s">ENCERRADAS</p>
+          <ul className="pedidos">
+            {encerradas.map((v) => (
+              <li key={v.id} className="cartao-pedido">
+                <strong>{v.titulo}</strong>
+                <span className="giz2">Encerrada · {v.vencedor ? `Venceu: ${v.vencedor}` : 'Sem votos'}</span>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
       {encerrar && <Dialogo titulo={`Encerrar “${encerrar.titulo}”?`} texto="A CBF posta o resultado e o vencedor ganha o selo no perfil do clube. Não dá para desfazer." acao="Encerrar agora" voltarRotulo="Cancelar" ocupado={ocupado} aoConfirmar={confirmar} aoVoltar={() => setEncerrar(null)} />}
     </div>
