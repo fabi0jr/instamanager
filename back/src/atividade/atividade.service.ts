@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { UserComClube } from '../auth/auth.service.js';
 import type { NotificacaoTipo } from '../generated/prisma/client.js';
+import { escaparLike } from '../like.js';
 import { comNomes, extrairMencoes, resolverMencoes } from '../mencoes.js';
 import { codificarCursor, decodificarCursor } from '../posts/cursor.js';
 import { ondeVisivel } from '../posts/visibilidade.js';
@@ -12,8 +13,6 @@ const RESUMO_MAX = 80;
 const PESSOAS_MAX = 8;
 const INDISPONIVEL = 'Post indisponível';
 const curto = (t: string) => (t.length > RESUMO_MAX ? `${t.slice(0, RESUMO_MAX - 1)}…` : t);
-// % e _ do que a pessoa digitou valem como texto
-const escapar = (q: string) => q.replace(/[\\%_]/g, '\\$&');
 
 type Extra = { atorId?: string; postId?: string; comentarioId?: string; votacaoId?: string };
 
@@ -105,15 +104,16 @@ export class AtividadeService {
     await this.prisma.notificacao.updateMany({ where: { userId, lidaEm: null }, data: { lidaEm: new Date() } });
   }
 
-  /** Autocompletar de @: nome sem acento e sem diferenciar maiúsculas; quem começa com o texto vem primeiro. */
-  async pessoas(q: unknown) {
+  /** Pessoas por pedaço do nome, sem acento e sem diferenciar maiúsculas; quem começa com o texto vem primeiro. `q` curto demais → vazio. */
+  async pessoas(q: unknown, limite = PESSOAS_MAX, pular = 0) {
     const t = typeof q === 'string' ? q.trim().slice(0, 60) : '';
     if (t.length < 2) return [];
+    const p = escaparLike(t);
     const achados = await this.prisma.$queryRaw<{ id: string }[]>`
       SELECT id FROM "User"
-      WHERE lower(unaccent(name)) LIKE '%' || lower(unaccent(${escapar(t)})) || '%'
-      ORDER BY (lower(unaccent(name)) LIKE lower(unaccent(${escapar(t)})) || '%') DESC, name ASC, id ASC
-      LIMIT ${PESSOAS_MAX}`;
+      WHERE lower(unaccent(name)) LIKE '%' || lower(unaccent(${p})) || '%'
+      ORDER BY (lower(unaccent(name)) LIKE lower(unaccent(${p})) || '%') DESC, name ASC, id ASC
+      LIMIT ${limite} OFFSET ${pular}`;
     const us = await this.prisma.user.findMany({ where: { id: { in: achados.map((a) => a.id) } }, include: { club: { select: { id: true, name: true, crestPath: true } } } });
     return achados.flatMap(({ id }) => us.filter((u) => u.id === id)).map((u) => ({ id: u.id, nome: u.name, avatarUrl: u.avatarPath, clube: u.club && { id: u.club.id, nome: u.club.name, escudoUrl: u.club.crestPath } }));
   }

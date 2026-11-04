@@ -6,12 +6,14 @@ import type { UserComClube } from '../auth/auth.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { codificarCursor, decodificarCursor, UUID } from './cursor.js';
 import { apagarImagem, dimensoesJpeg, ehJpeg, salvarImagem } from './imagens.js';
+import { escaparLike } from '../like.js';
 import { PostsEventos } from './posts.eventos.js';
 import { normalizarTag } from './tags.js';
 import { comentariosVisiveis, ondeVisivel } from './visibilidade.js';
 
 const POR_PAGINA = 12;
 const POR_PAGINA_GALERIA = 24;
+const POR_PAGINA_BUSCA = 20;
 const LEGENDA_MAX = 2200;
 const PROMPT_MAX = 4000;
 const MAX_IMAGENS = 10;
@@ -31,6 +33,18 @@ const incluir = ({ id: userId, isAdmin }: { id: string; isAdmin: boolean }) =>
 type PostCompleto = Prisma.PostGetPayload<{ include: ReturnType<typeof incluir> }>;
 type Reacoes = { emoji: string; total: number }[];
 
+const imagemGaleria = {
+  post: { select: { createdAt: true, club: true } },
+} as const;
+const itemGaleria = (i: { id: string; postId: string; thumbPath: string; fullPath: string; prompt: string | null; post: { club: { id: string; name: string; crestPath: string } }; favorites: unknown[] }) => ({
+  imagemId: i.id,
+  postId: i.postId,
+  miniUrl: i.thumbPath,
+  cheiaUrl: i.fullPath,
+  prompt: i.prompt,
+  clube: clubeMini(i.post.club),
+  favorito: i.favorites.length > 0,
+});
 const clubeMini = (c: { id: string; name: string; crestPath: string }) => ({ id: c.id, nome: c.name, escudoUrl: c.crestPath });
 const naoEncontrado = () => new ApiError(404, 'NAO_ENCONTRADO', 'Não encontramos o que você procurou.');
 const invalido = (mensagem: string, campo: string) => new ApiError(400, 'DADOS_INVALIDOS', mensagem, [campo]);
@@ -280,13 +294,46 @@ export class PostsService {
       },
       orderBy: [{ post: { createdAt: 'desc' } }, { id: 'desc' }],
       take: POR_PAGINA_GALERIA + 1,
-      include: { post: { select: { createdAt: true, club: true } }, favorites: { where: { userId: user.id }, select: { userId: true } } },
+      include: { ...imagemGaleria, favorites: { where: { userId: user.id }, select: { userId: true } } },
     });
     const pagina = imagens.slice(0, POR_PAGINA_GALERIA);
     const ultima = pagina.at(-1);
     return {
-      itens: pagina.map((i) => ({ imagemId: i.id, postId: i.postId, miniUrl: i.thumbPath, cheiaUrl: i.fullPath, prompt: i.prompt, clube: clubeMini(i.post.club), favorito: i.favorites.length > 0 })),
+      itens: pagina.map(itemGaleria),
       proximo: imagens.length > POR_PAGINA_GALERIA && ultima ? codificarCursor(ultima.post.createdAt, ultima.id) : null,
     };
+  }
+
+  /**
+   * Busca em posts (legenda e texto) ou nos prompts das imagens: sem acento, sem diferenciar maiúsculas, `%`/`_` literais, sempre parametrizada.
+   * Mesma visibilidade do feed; 20 por página, cursor `antes` como o do feed.
+   * shortcut: varre todos os posts/prompts para achar os ids, ok para uma liga de amigos; indexar (pg_trgm) se passar de ~10 mil posts.
+   */
+  async pesquisar(user: UserComClube, tipo: 'posts' | 'prompts', q: string, antes?: string) {
+    const c = decodificarCursor(antes);
+    const p = escaparLike(q);
+    const visivel = ondeVisivel(user.id, user.isAdmin);
+    const depois = (campo: string) => (c ? { OR: [{ [campo]: { lt: c.criadoEm } }, { [campo]: c.criadoEm, id: { lt: c.id } }] } : {});
+    if (tipo === 'posts') {
+      const ids = (await this.prisma.$queryRaw<{ id: string }[]>`SELECT id FROM "Post" WHERE lower(unaccent(caption || ' ' || coalesce(texto, ''))) LIKE '%' || lower(unaccent(${p})) || '%'`).map((r) => r.id);
+      const posts = await this.prisma.post.findMany({ where: { ...visivel, id: { in: ids }, ...depois('createdAt') }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: POR_PAGINA_BUSCA + 1, include: incluir(user) });
+      const pagina = posts.slice(0, POR_PAGINA_BUSCA);
+      const ultimo = pagina.at(-1);
+      return { itens: await this.jsonDe(pagina, user), proximo: posts.length > POR_PAGINA_BUSCA && ultimo ? codificarCursor(ultimo.createdAt, ultimo.id) : null };
+    }
+    const ids = (await this.prisma.$queryRaw<{ id: string }[]>`SELECT id FROM "PostImage" WHERE prompt IS NOT NULL AND lower(unaccent(prompt)) LIKE '%' || lower(unaccent(${p})) || '%'`).map((r) => r.id);
+    const imagens = await this.prisma.postImage.findMany({
+      where: {
+        id: { in: ids },
+        post: visivel,
+        ...(c && { OR: [{ post: { createdAt: { lt: c.criadoEm } } }, { post: { createdAt: c.criadoEm }, id: { lt: c.id } }] }),
+      },
+      orderBy: [{ post: { createdAt: 'desc' } }, { id: 'desc' }],
+      take: POR_PAGINA_BUSCA + 1,
+      include: { ...imagemGaleria, favorites: { where: { userId: user.id }, select: { userId: true } } },
+    });
+    const pagina = imagens.slice(0, POR_PAGINA_BUSCA);
+    const ultima = pagina.at(-1);
+    return { itens: pagina.map(itemGaleria), proximo: imagens.length > POR_PAGINA_BUSCA && ultima ? codificarCursor(ultima.post.createdAt, ultima.id) : null };
   }
 }
