@@ -1,0 +1,12 @@
+/* Atividade (docs/design/onda-c.md §2) */
+.atividade { max-width: 640px; margin: 0 auto; } .atividade h1 { font: 800 26px/30px var(--im-fonte-display); }
+.secao-ativ { font: 600 20px var(--im-fonte-display); margin: var(--im-e4) 0 var(--im-e2); }
+.lista-ativ { list-style: none; margin: 0; padding: 0; }
+.item-ativ { position: relative; display: flex; align-items: center; gap: var(--im-e3); min-height: 72px; padding: var(--im-e2) 0; border-bottom: 1px solid var(--im-linha); color: var(--im-giz); text-decoration: none; }
+.item-ativ.nova { background: var(--im-superficie); }
+.ponto-novo { position: absolute; left: 0; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--im-vermelho); } .item-ativ.nova { padding-left: var(--im-e4); }
+.av-ativ { position: relative; flex: none; width: 44px; height: 44px; } .av-ativ > img, .av-inicial-ativ { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: var(--im-superficie-alta); display: grid; place-items: center; font: 700 18px var(--im-fonte-display); }
+.av-ativ > img[src$='cbf.svg'] { border-radius: 0; background: none; width: 36px; }
+.selo-tipo { position: absolute; right: -4px; bottom: -4px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: var(--im-superficie); border: 2px solid var(--im-carvao); } .selo-tipo svg { width: 14px; height: 14px; stroke-width: 2; }
+.corpo-ativ { flex: 1; min-width: 0; display: flex; flex-direction: column; } .texto-ativ { font: 400 14px/18px var(--im-fonte-texto); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } .texto-ativ b { font-weight: 600; }
+.mini-ativ { flex: none; width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: var(--im-superficie-alta); } .mini-ativ.vazia { display: grid; place-items: center; color: var(--im-giz-3); }

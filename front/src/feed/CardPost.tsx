@@ -26,13 +26,13 @@ type Props = {
 };
 
 // Post só de texto: o tamanho cai com o comprimento (28/34, 24/32, 20/28); corta em 8 linhas com "mais"
-function BlocoTexto({ texto, aoDuploToque }: { texto: string; aoDuploToque: () => void }) {
+function BlocoTexto({ texto, mencoes, aoDuploToque }: { texto: string; mencoes?: Post['mencoes']; aoDuploToque: () => void }) {
   const [aberto, setAberto] = useState(false);
   const tam = texto.length <= 80 ? 'texto-g' : texto.length <= 200 ? 'texto-m' : 'texto-p';
   const longa = texto.length > 200 || texto.includes('\n');
   return (
     <div className="bloco-texto" onDoubleClick={aoDuploToque}>
-      <p className={`${tam} ${aberto ? '' : 'corta8'}`}><Texto>{texto}</Texto></p>
+      <p className={`${tam} ${aberto ? '' : 'corta8'}`}><Texto mencoes={mencoes}>{texto}</Texto></p>
       {longa && !aberto && <button type="button" className="link giz2" onClick={() => setAberto(true)}>mais</button>}
     </div>
   );
@@ -175,7 +175,7 @@ export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoAp
       </header>
 
       {post.texto ? (
-        <BlocoTexto texto={post.texto} aoDuploToque={duploToque} />
+        <BlocoTexto texto={post.texto} mencoes={post.mencoes} aoDuploToque={duploToque} />
       ) : (
         <Carrossel post={post} prioridade={prioridade} aoDuploToque={duploToque} />
       )}
@@ -194,7 +194,7 @@ export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoAp
       {post.legenda && (
         <div className="legenda-bloco">
           <p className={`legenda-post ${expandida ? '' : 'corta'}`}>
-            <strong>{post.autor.nome}</strong> <Texto>{post.legenda}</Texto>
+            <strong>{post.autor.nome}</strong> <Texto mencoes={post.mencoes}>{post.legenda}</Texto>
           </p>
           {longa && !expandida && <button type="button" className="link giz2" onClick={() => setExpandida(true)}>mais</button>}
         </div>

@@ -7,6 +7,8 @@ import { Folha } from '../feed/Folha';
 import { Link, navegar } from '../rotas';
 import { comprimir, ErroImagem } from './comprimir';
 import { registrarErro } from '../erros';
+import { Autocompletar } from '../mencoes/Autocompletar';
+import { useMencoes } from '../mencoes/mencoes';
 import { ComoCbf, MSG_SEM_ADMIN, quemPosta } from './ComoCbf';
 import { enviarPost } from './enviar';
 import { Contador, LIMITE_LEGENDA, LIMITE_PROMPT, LinhasPrompt } from './LinhasPrompt';
@@ -28,6 +30,8 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
   const [aviso, setAviso] = useState('');
   const [sair, setSair] = useState(false);
   const [cbf, setCbf] = useState(!me.clube); // admin sem clube só posta como CBF
+  const campoLegenda = useRef<HTMLTextAreaElement>(null);
+  const mencoes = useMencoes();
   const [envio, setEnvio] = useState<Envio | null>(null);
   const cancelar = useRef<(() => void) | null>(null);
   const { bloqueado } = useEnvio();
@@ -85,12 +89,12 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
   const preparando = itens.filter((i) => i.estado === 'preparando').length;
   const comConteudo = itens.length > 0 || legenda.length > 0;
   const textos = prontas.map((i) => prompts[i.id] ?? '');
-  const estouro = legenda.length > LIMITE_LEGENDA || textos.some((t) => t.length > LIMITE_PROMPT);
+  const estouro = mencoes.serializar(legenda).length > LIMITE_LEGENDA || textos.some((t) => t.length > LIMITE_PROMPT);
 
   function publicar(comoCbf = cbf) {
     const f = new FormData();
     if (comoCbf) f.append('comoCbf', 'true');
-    f.append('legenda', legenda);
+    f.append('legenda', mencoes.serializar(legenda));
     f.append('prompts', JSON.stringify(textos.map((t) => t.trim() || null)));
     prontas.forEach((i, n) => {
       f.append('cheia', i.cheia!, `cheia-${n}.jpg`);
@@ -223,7 +227,10 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
           <p className={cbf ? 'cbf-frase' : 'giz2'}>{quemPosta(me, cbf)}</p>
           <ComoCbf me={me} ligado={cbf} aoMudar={setCbf} fixo={!me.clube} />
           <label htmlFor="legenda">Legenda</label>
-          <textarea id="legenda" rows={5} value={legenda} aria-invalid={legenda.length > LIMITE_LEGENDA || undefined} onChange={(e) => setLegenda(e.target.value)} />
+          <div className="mencao-ancora">
+            <Autocompletar valor={legenda} aoMudar={setLegenda} campo={campoLegenda} mencoes={mencoes} />
+            <textarea ref={campoLegenda} id="legenda" rows={5} value={legenda} aria-invalid={legenda.length > LIMITE_LEGENDA || undefined} onKeyDown={(e) => mencoes.teclado(e, legenda, setLegenda)} onChange={(e) => setLegenda(e.target.value)} />
+          </div>
           <Contador texto={legenda} limite={LIMITE_LEGENDA} />
           <LinhasPrompt linhas={prontas.map((i) => ({ id: String(i.id), miniUrl: i.miniUrl! }))} prompts={textos} aoMudar={(n, v) => setPrompts({ ...prompts, [prontas[n].id]: v })} />
           <div className="acao-fixa">

@@ -13,3 +13,4 @@
 
 .detalhe-topo .estrela { margin-left: auto; background: none; border: 0; color: var(--im-giz-2); } .detalhe-topo .estrela.ligada { color: var(--im-amarelo); }
 .chip.ligado { border: 1.5px solid var(--im-giz); } .chip[aria-pressed='true'] .icone { color: var(--im-amarelo); } .chip-linha { display: flex; gap: var(--im-e2); flex-wrap: wrap; }
+.topo-galeria { display: flex; align-items: center; justify-content: space-between; padding-right: var(--im-e2); } .busca-galeria { width: 44px; height: 44px; display: grid; place-items: center; color: var(--im-giz); }

@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useMe } from './api/useMe';
 import { BarraInferior } from './BarraInferior';
 import { Admin } from './admin/Admin';
+import { Atividade } from './atividade/Atividade';
+import { Busca } from './busca/Busca';
 import { Cadastro } from './conta/Cadastro';
 import { Entrar } from './conta/Entrar';
 import { Esqueci } from './conta/Esqueci';
@@ -78,6 +80,8 @@ export function App() {
         {caminho === '/clubes' && <ListaClubes />}
         {params.id && /^\/votacoes\/[^/]+$/.test(caminho) && <Votar id={params.id} />}
         {caminho === '/liga' && <Liga me={me} />}
+        {caminho === '/atividade' && <Atividade />}
+        {caminho === '/busca' && <Busca />}
         {caminho === '/galeria' && <Galeria />}
         {caminho === '/postar' && <Postar me={me} />}
         {caminho === '/perfil/senha' && <TrocarSenha pushEnabled={me.pushEnabled} />}
