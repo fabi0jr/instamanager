@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, type Me } from '../api/cliente';
+import { marcarNovidadesVistas } from '../novidades';
 import { Link } from '../rotas';
 import { Alerta, Aviso, Botao, Campo, errosDosCampos, useEnvio, useFocoNoErro } from './ui';
 
@@ -58,6 +59,7 @@ export function Cadastro({ aoEntrar }: { aoEntrar: () => void }) {
           method: 'POST',
           body: JSON.stringify({ convite: d.convite.trim(), email: d.email, senha: d.senha, nome: d.nome.trim(), clubeId: escolha === TORCEDOR ? null : escolha }),
         });
+        marcarNovidadesVistas(); // conta nova não precisa ver o que mudou
         aoEntrar();
       },
       (erro) => {

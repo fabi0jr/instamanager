@@ -20,6 +20,7 @@ import { PostPagina } from './feed/PostPagina';
 import { EditarPost } from './postar/EditarPost';
 import { Postar } from './postar/Postar';
 import { emEdicao, navegar, PUBLICAS, useRota } from './rotas';
+import { Novidades } from './Novidades';
 import { Tag } from './tag/Tag';
 import { Trocar } from './trocas/Trocar';
 
@@ -80,6 +81,7 @@ export function App() {
   return (
     <>
       <div id="rolagem">{tela}</div>
+      {comBarra && <Novidades caminho={caminho} />}
       {comBarra && me && <BarraInferior clubeId={me.clube?.id} soDesktop={telaCheia} />}
     </>
   );
