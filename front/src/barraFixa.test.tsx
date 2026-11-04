@@ -84,3 +84,7 @@ test('rolagem infinita observa o contêiner (root), não o documento', async () 
   render(<Feed me={me} />, { container: el });
   await waitFor(() => expect(roots).toContain(el));
 });
+
+test('CSS: #root tem altura (senão #rolagem cresce com o conteúdo e nada rola)', () => {
+  expect(readFileSync('src/tokens.css', 'utf8')).toMatch(/#root\s*\{[^}]*height:\s*100%/);
+});
