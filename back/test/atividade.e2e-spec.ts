@@ -198,7 +198,7 @@ describe('atividade e menções (e2e)', () => {
     const t = (await com('post', '/api/trocas', outro).send({ tipo: 'ASSUMIR', clubeId: c[2] }).expect(201)).body;
     await com('post', `/api/admin/trocas/${t.id}/recusar`, admin).expect(204);
     await esperar();
-    expect(await itens(outro)).toMatchObject([{ tipo: 'TROCA_DECIDIDA', ator: null, post: null }]);
+    expect(await itens(outro)).toMatchObject([{ tipo: 'TROCA_DECIDIDA', ator: null, post: null, troca: { status: 'RECUSADA', clube: { id: c[2], nome: 'Teste atividade 3', escudoUrl: '/escudos/generico.svg' } } }]);
     const v = (await com('post', '/api/admin/votacoes', admin).send({ titulo: 'Melhor da rodada', tipo: 'CLUBE', opcoes: [c[0], c[1]], prazo: new Date(Date.now() + 86_400_000).toISOString() }).expect(201)).body;
     await com('post', `/api/votacoes/${v.id}/voto`, torcedor).send({ opcao: c[0] }).expect(204);
     await com('post', `/api/admin/votacoes/${v.id}/encerrar`, admin).expect(201);
@@ -206,6 +206,14 @@ describe('atividade e menções (e2e)', () => {
     expect(await itens(torcedor)).toMatchObject([{ tipo: 'VOTACAO_RESULTADO', votacao: { id: v.id, titulo: 'Melhor da rodada' } }]);
     expect(await tipos(admin)).toEqual([]);
     await prisma.coachTenure.deleteMany({ where: { userId: outro.id } });
+  });
+
+  it('TROCA_DECIDIDA aprovada de saída: troca {status: APROVADA, clube: null}', async () => {
+    const t = (await com('post', '/api/trocas', tecnico1).send({ tipo: 'SAIR' }).expect(201)).body;
+    await com('post', `/api/admin/trocas/${t.id}/aprovar`, admin).expect(204);
+    await esperar();
+    expect(await itens(tecnico1)).toMatchObject([{ tipo: 'TROCA_DECIDIDA', troca: { status: 'APROVADA', clube: null } }]);
+    expect((await itens(tecnico0)).every((i) => i.tipo !== 'TROCA_DECIDIDA')).toBe(true);
   });
 
   it('limpeza apaga notificação com mais de 60 dias e mantém as recentes', async () => {

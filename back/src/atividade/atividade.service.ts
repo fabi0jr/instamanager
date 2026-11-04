@@ -14,7 +14,7 @@ const PESSOAS_MAX = 8;
 const INDISPONIVEL = 'Post indisponível';
 const curto = (t: string) => (t.length > RESUMO_MAX ? `${t.slice(0, RESUMO_MAX - 1)}…` : t);
 
-type Extra = { atorId?: string; postId?: string; comentarioId?: string; votacaoId?: string };
+type Extra = { atorId?: string; postId?: string; comentarioId?: string; votacaoId?: string; trocaId?: string };
 
 @Injectable()
 export class AtividadeService {
@@ -68,7 +68,7 @@ export class AtividadeService {
       where: { userId: user.id, ...(c && { OR: [{ createdAt: { lt: c.criadoEm } }, { createdAt: c.criadoEm, id: { lt: c.id } }] }) },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: POR_PAGINA + 1,
-      include: { ator: { select: { id: true, name: true, avatarPath: true } }, votacao: { select: { id: true, titulo: true } } },
+      include: { ator: { select: { id: true, name: true, avatarPath: true } }, votacao: { select: { id: true, titulo: true } }, troca: { select: { status: true, club: { select: { id: true, name: true, crestPath: true } } } } },
     });
     const pagina = itens.slice(0, POR_PAGINA);
     const ids = [...new Set(pagina.flatMap((n) => (n.postId ? [n.postId] : [])))];
@@ -90,6 +90,8 @@ export class AtividadeService {
           ator: n.ator && { id: n.ator.id, nome: n.ator.name, avatarUrl: n.ator.avatarPath },
           post: n.postId ? { id: n.postId, miniUrl: p?.images[0]?.thumbPath ?? null, resumo: p ? resumoDe(p) : INDISPONIVEL } : null,
           votacao: n.votacao,
+          // clube = o que ela queria assumir (null no pedido de sair); itens antigos sem pedido ligado ficam com troca null
+          ...(n.tipo === 'TROCA_DECIDIDA' && { troca: n.troca && n.troca.status !== 'PENDENTE' ? { status: n.troca.status, clube: n.troca.club && { id: n.troca.club.id, nome: n.troca.club.name, escudoUrl: n.troca.club.crestPath } } : null }),
         };
       }),
       proximo: itens.length > POR_PAGINA && ultimo ? codificarCursor(ultimo.createdAt, ultimo.id) : null,
