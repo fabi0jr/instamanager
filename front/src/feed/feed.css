@@ -107,3 +107,6 @@
 .quem-lista a, .quem-lista li > div { display: flex; align-items: center; gap: var(--im-e3); min-height: 56px; color: var(--im-giz); text-decoration: none; }
 .quem-lista .av32 { width: 40px; height: 40px; } .quem-nome { flex: 1; display: flex; flex-direction: column; } .quem-nome strong { font: 600 15px var(--im-fonte-texto); } .quem-nome .giz2 { display: flex; align-items: center; gap: 4px; font-size: 13px; }
 .quem-emoji { font-size: 22px; }
+
+/* onda C: topo do feed com Busca e Galeria */
+.topo-feed .acoes-topo { margin-left: auto; display: flex; gap: 0; } .topo-feed .acoes-topo a { width: 44px; height: 44px; display: grid; place-items: center; color: var(--im-giz); }

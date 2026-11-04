@@ -46,6 +46,10 @@ model User {
   reports       Report[]
   votacoes      Votacao[]
   votos         Voto[]
+  stories       Story[]
+  storiesVistos StoryVisto[]
+  recebidas     Notificacao[] @relation("NotificacaoDestino")
+  geradas       Notificacao[] @relation("NotificacaoAtor")
 }
 
 model Session {
@@ -79,6 +83,7 @@ model Club {
 
   tenures   CoachTenure[]
   posts     Post[]
+  stories   Story[]
   transfers TransferRequest[]
   mandante  Jogo[]            @relation("mandante")
   visitante Jogo[]            @relation("visitante")
@@ -125,6 +130,7 @@ model CoachTenure {
 model Post {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   resumoDe  Rodada[]
+  notificacoes Notificacao[]
   clubId    String
   authorId  String    @db.Uuid // técnico que publicou
   caption   String
@@ -137,6 +143,7 @@ model Post {
   author    User      @relation(fields: [authorId], references: [id])
 
   images   PostImage[]
+  video    PostVideo?
   likes    Like[]
   comments Comment[]
   hiddenBy HiddenPost[]
@@ -181,6 +188,7 @@ model Comment {
   post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   reports   Report[]
+  notificacoes Notificacao[]
 
   @@index([postId, createdAt])
 }
@@ -195,6 +203,7 @@ model TransferRequest {
   decidedAt DateTime?
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   club      Club?       @relation(fields: [clubId], references: [id])
+  avisos    Notificacao[]
 
   @@index([status, createdAt])
 }
@@ -267,6 +276,7 @@ model Votacao {
   criador     User        @relation(fields: [criadaPor], references: [id], onDelete: Cascade)
   votos       Voto[]
   selos       Selo[]
+  notificacoes Notificacao[]
 }
 
 model Voto {
@@ -287,4 +297,81 @@ model Selo {
   createdAt DateTime @default(now())
   club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   votacao   Votacao  @relation(fields: [votacaoId], references: [id], onDelete: Cascade)
+}
+
+enum NotificacaoTipo {
+  REACAO
+  COMENTARIO
+  MENCAO
+  CBF_CITOU
+  TROCA_DECIDIDA
+  VOTACAO_RESULTADO
+}
+
+// Histórico do que a pessoa foi avisada (o push continua igual). Apagada após 60 dias pela limpeza.
+model Notificacao {
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String          @db.Uuid
+  tipo         NotificacaoTipo
+  atorId       String?         @db.Uuid
+  postId       String?         @db.Uuid
+  comentarioId String?         @db.Uuid
+  votacaoId    String?         @db.Uuid
+  trocaId      String?         @db.Uuid
+  lidaEm       DateTime?
+  createdAt    DateTime        @default(now())
+  user         User            @relation("NotificacaoDestino", fields: [userId], references: [id], onDelete: Cascade)
+  ator         User?           @relation("NotificacaoAtor", fields: [atorId], references: [id], onDelete: Cascade)
+  post         Post?           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comentario   Comment?        @relation(fields: [comentarioId], references: [id], onDelete: Cascade)
+  votacao      Votacao?        @relation(fields: [votacaoId], references: [id], onDelete: Cascade)
+  troca        TransferRequest? @relation(fields: [trocaId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+enum StoryTipo {
+  IMAGEM
+  VIDEO
+}
+
+// Story: some em 24 h; a limpeza apaga a linha e os arquivos. Do clube (ou da CBF, pelo admin); autorId = quem postou.
+model Story {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clubId    String
+  autorId   String      @db.Uuid
+  tipo      StoryTipo
+  path      String
+  capaPath  String?
+  duracaoS  Float?
+  largura   Int
+  altura    Int
+  createdAt DateTime    @default(now())
+  expiraEm  DateTime
+  club      Club        @relation(fields: [clubId], references: [id])
+  autor     User        @relation(fields: [autorId], references: [id], onDelete: Cascade)
+  vistos    StoryVisto[]
+
+  @@index([expiraEm])
+}
+
+model StoryVisto {
+  storyId String   @db.Uuid
+  userId  String   @db.Uuid
+  vistoEm DateTime @default(now())
+  story   Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([storyId, userId])
+}
+
+// Vídeo do post (no lugar das imagens): MP4 H.264 convertido no servidor, com capa JPG.
+model PostVideo {
+  postId   String @id @db.Uuid
+  path     String
+  capaPath String
+  duracaoS Float
+  largura  Int
+  altura   Int
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 }

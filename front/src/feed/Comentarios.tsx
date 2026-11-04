@@ -4,6 +4,8 @@ import { Denunciar } from './Denunciar';
 import { Escudo } from './Escudo';
 import { Folha } from './Folha';
 import { Texto } from './Texto';
+import { Autocompletar } from '../mencoes/Autocompletar';
+import { useMencoes } from '../mencoes/mencoes';
 import { IcBandeira, IcFechar, IcLixo, IcMais, IcOlhoOff } from './icones';
 import { sigla } from './siglas';
 import { haQuanto, type Comentario } from './tipos';
@@ -22,6 +24,8 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
   const [enviada, setEnviada] = useState(false);
   const [aviso, setAviso] = useState('');
   const fim = useRef<HTMLDivElement>(null);
+  const campo = useRef<HTMLTextAreaElement>(null);
+  const mencoes = useMencoes();
   const seq = useRef(0);
 
   function carregar() {
@@ -52,8 +56,10 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
   function publicar() {
     const t = texto.trim();
     if (!t) return;
+    const guardado = mencoes.serializar(t);
     setTexto('');
-    enviar(t);
+    mencoes.limpar();
+    enviar(guardado);
   }
   async function apagar(c: Item) {
     setMenu(null);
@@ -106,7 +112,7 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
                 {c.oculto && <span className="pilula oculto-selo"><IcOlhoOff />Oculto</span>}
                 {c.usuario.clube && <span className="pilula" aria-label={`Clube ${c.usuario.clube.nome}`}><Escudo src={`/escudos/${c.usuario.clube.id}.svg`} tam={12} />{sigla(c.usuario.clube.id)}</span>}
               </div>
-              <p><Texto>{c.texto}</Texto></p>
+              <p><Texto mencoes={c.mencoes}>{c.texto}</Texto></p>
               {c.estado === 'falhou' ? (
                 <button type="button" className="link erro-txt sem-sublinhado" onClick={() => enviar(c.texto, c.id)}>Não enviou. Toque para tentar de novo.</button>
               ) : (
@@ -121,8 +127,9 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
         <div ref={fim} />
       </div>
       <form className="comentar" onSubmit={(e) => { e.preventDefault(); publicar(); }}>
+        <Autocompletar valor={texto} aoMudar={setTexto} campo={campo} mencoes={mencoes} />
         <Avatar nome={me.nome} url={me.avatarUrl} />
-        <textarea data-foco rows={1} maxLength={1000} aria-label={`Comente como ${me.nome}`} placeholder={`Comente como ${me.nome}`} value={texto} onChange={(e) => setTexto(e.target.value)} />
+        <textarea ref={campo} data-foco rows={1} maxLength={1000} onKeyDown={(e) => mencoes.teclado(e, texto, setTexto)} aria-label={`Comente como ${me.nome}`} placeholder={`Comente como ${me.nome}`} value={texto} onChange={(e) => setTexto(e.target.value)} />
         {texto.length >= 900 && <span className="giz2 mini">{texto.length}/1000</span>}
         <button type="submit" className={texto.trim() ? 'ativo' : ''} disabled={!texto.trim()}>Publicar</button>
       </form>

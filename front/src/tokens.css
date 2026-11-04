@@ -121,3 +121,10 @@ main { padding-bottom: calc(var(--altura-barra) + env(safe-area-inset-bottom)); 
 /* onda B: o Clube só existe na lateral do desktop; no celular ele mora no Perfil */
 .barra-inferior a.item-desktop { display: none; }
 @media (min-width: 768px) { .barra-inferior a.item-desktop { display: flex; } }
+
+/* onda C: contador da Atividade na barra (docs/design/onda-c.md §1) */
+.barra-inferior .ic { position: relative; }
+.barra-inferior .contador { position: absolute; top: -6px; left: calc(50% + 2px); min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box; display: grid; place-items: center; border-radius: 9px; border: 2px solid var(--im-superficie); background: var(--im-vermelho); color: var(--im-giz); font: 700 13px/1 var(--im-fonte-display); }
+.barra-inferior { grid-template-columns: repeat(5, 1fr); }
+@media (min-width: 768px) { .barra-inferior .contador { left: auto; right: -8px; } }
+.barra-inferior .contador.largo { min-width: 24px; }

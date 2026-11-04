@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/cliente';
 import { Escudo } from '../feed/Escudo';
 import { Folha } from '../feed/Folha';
-import { IcEstrela, IcFechar, IcFiltro, IcSeta } from '../feed/icones';
+import { IcBusca, IcEstrela, IcFechar, IcFiltro, IcSeta } from '../feed/icones';
 import { usePaginado } from '../paginado';
 import { Link, useBusca } from '../rotas';
 import { Detalhe } from './Detalhe';
@@ -29,7 +29,7 @@ export function Galeria() {
 
   return (
     <div className="clube galeria">
-      <h1 className="titulo-pagina">Galeria</h1>
+      <div className="topo-galeria"><h1 className="titulo-pagina">Galeria</h1><Link para="/busca" aria-label="Buscar" className="busca-galeria"><IcBusca /></Link></div>
       <p className="giz2 sub-pagina">Imagens com o prompt que as gerou.</p>
       <div className="chip-linha">
         {clube ? (

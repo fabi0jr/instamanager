@@ -102,6 +102,7 @@ export function PerfilClube({ id, me }: { id: string; me: Me }) {
         {clube.bio && <Bio texto={clube.bio} />}
         {!clube.bio && souTecnico && <Link para={`/c/${clube.id}/editar`} className="adicionar-bio giz2">Adicionar bio</Link>}
         {podeEditarClube && <Link para={`/c/${clube.id}/editar`} className="botao fantasma editar-clube-btn">Editar clube</Link>}
+        {(souTecnico || (cbf && me.isAdmin)) && <Link para={cbf ? '/stories/novo?cbf=1' : '/stories/novo'} className="botao fantasma editar-clube-btn">{cbf ? 'Novo story da CBF' : 'Novo story'}</Link>}
         {podePedir && (
           <>
             {pendente && pendente.clubeId === clube.id ? (

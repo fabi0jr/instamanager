@@ -21,13 +21,13 @@ export class OgService {
     try {
       // visão de quem não é ninguém: só post não ocultado pelo admin
       const p = UUID.test(id)
-        ? await this.prisma.post.findFirst({ where: { id, ...ondeVisivel('', false, { lista: false }) }, include: { club: true, images: { orderBy: { position: 'asc' }, take: 1 } } })
+        ? await this.prisma.post.findFirst({ where: { id, ...ondeVisivel('', false, { lista: false }) }, include: { club: true, images: { orderBy: { position: 'asc' }, take: 1 }, video: { select: { capaPath: true } } } })
         : null;
       if (p)
         return html({
           titulo: `${p.club.name} no InstaManager`,
           descricao: resumo(p.texto ?? p.caption),
-          imagem: base + (p.images[0]?.thumbPath ?? ICONE),
+          imagem: base + (p.images[0]?.thumbPath ?? p.video?.capaPath ?? ICONE),
           url: `${base}/p/${p.id}`,
           destino: `/p/${p.id}`,
         });

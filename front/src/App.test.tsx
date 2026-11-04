@@ -19,29 +19,28 @@ test('sem sessão, qualquer rota privada mostra Entrar', async () => {
   expect(screen.queryByRole('navigation')).toBeNull();
 });
 
-test('com sessão a barra tem 5 destinos no celular (Feed, Liga, Postar, Galeria, Perfil) e o Clube só na lateral; torcedor: Clube abre /clubes', async () => {
+test('barra: Feed, Liga, Postar, Atividade, Perfil no celular; Galeria e Busca só na lateral (Galeria no topo do feed)', async () => {
   vi.stubGlobal('fetch', vi.fn(async (u: string) => new Response(JSON.stringify(u === '/api/me' ? me : { itens: [], proximo: null }))));
   history.pushState(null, '', '/');
   render(<App />);
   const nav = await screen.findByRole('navigation');
   const links = [...nav.querySelectorAll('a')];
-  expect(links.filter((a) => !a.classList.contains('item-desktop')).map((a) => a.querySelector('.rotulo')?.textContent)).toEqual(['Feed', 'Liga', 'Postar', 'Galeria', 'Perfil']);
-  expect(links.filter((a) => a.classList.contains('item-desktop')).map((a) => a.querySelector('.rotulo')?.textContent)).toEqual(['Clube']); // só lateral
-  expect([...nav.querySelectorAll('.rotulo')].map((e) => e.textContent)).toEqual(['Feed', 'Liga', 'Postar', 'Galeria', 'Clube', 'Perfil']); // ordem do desktop
-  expect(nav.querySelector('[href="/liga"]')).toBeTruthy();
-  expect(nav.querySelector('[href="/clubes"]')).toBeTruthy();
-  expect(nav.querySelector('[href="/notificacoes"]')).toBeNull();
+  const rotulo = (a: Element) => a.querySelector('.rotulo')?.textContent;
+  expect(links.filter((a) => !a.classList.contains('item-desktop')).map(rotulo)).toEqual(['Feed', 'Liga', 'Postar', 'Atividade', 'Perfil']);
+  expect(links.filter((a) => a.classList.contains('item-desktop')).map(rotulo)).toEqual(['Galeria', 'Busca']); // só lateral
+  expect(links.map(rotulo)).toEqual(['Feed', 'Liga', 'Postar', 'Galeria', 'Atividade', 'Busca', 'Perfil']); // ordem do desktop
+  expect(nav.querySelector('[href="/atividade"]')).toBeTruthy();
   expect(nav.querySelector('[aria-current="page"]')?.getAttribute('href')).toBe('/');
+  // Galeria e Busca também no topo do feed
+  expect(document.querySelector('.topo-feed [href="/galeria"]')).toBeTruthy();
+  expect(document.querySelector('.topo-feed [href="/busca"]')).toBeTruthy();
 });
 
-test('técnico vê Clube apontando para o próprio clube', async () => {
-  const c = { id: 'palmeiras', nome: 'Palmeiras', escudoUrl: '/escudos/palmeiras.svg' };
-  vi.stubGlobal('fetch', vi.fn(async (u: string) => new Response(JSON.stringify(u === '/api/me' ? { ...me, clube: c } : { itens: [], proximo: null }))));
-  history.pushState(null, '', '/');
+test('rota desconhecida /clubes/x e /atividade existem na barra sem tela em branco', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (u: string) => new Response(JSON.stringify(u === '/api/me' ? me : { itens: [], proximo: null }))));
+  history.pushState(null, '', '/atividade');
   render(<App />);
-  const nav = await screen.findByRole('navigation');
-  expect(nav.querySelectorAll('a')).toHaveLength(6); // 5 do celular + Clube da lateral
-  expect(nav.querySelector('[href="/c/palmeiras"]')).toBeTruthy();
+  expect(await screen.findByRole('heading', { name: 'Atividade' })).toBeTruthy();
 });
 
 test('/nova-senha abre a NovaSenha com ou sem sessão', async () => {

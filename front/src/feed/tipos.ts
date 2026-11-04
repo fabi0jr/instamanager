@@ -18,6 +18,8 @@ export type Post = {
   legenda: string;
   // campos do pack 2 (opcionais: o app tolera resposta de servidor antigo)
   texto?: string | null; // post só de texto: imagens = [] e legenda = ''
+  video?: { url: string; capaUrl: string; duracaoS: number; largura: number; altura: number } | null; // post de vídeo: imagens = []
+  mencoes?: { id: string; nome: string }[]; // nomes de hoje, do banco, das @[Nome](id) da legenda/texto
   fixado?: boolean;
   oculto?: boolean;
   criadoEm: string;
@@ -33,6 +35,7 @@ export type Pagina<T> = { itens: T[]; proximo: string | null; fixados?: T[] };
 export type Comentario = {
   id: string;
   texto: string;
+  mencoes?: { id: string; nome: string }[];
   criadoEm: string;
   oculto?: boolean; // só o admin recebe comentário oculto
   usuario: { id: string; nome: string; avatarUrl: string | null; clube: { id: string; nome: string } | null };

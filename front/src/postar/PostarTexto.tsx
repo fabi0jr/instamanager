@@ -1,4 +1,6 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Autocompletar } from '../mencoes/Autocompletar';
+import { useMencoes } from '../mencoes/mencoes';
 import type { Me } from '../api/cliente';
 import { guardarAviso } from '../aviso';
 import { Aviso, Botao } from '../conta/ui';
@@ -12,17 +14,22 @@ import { Contador } from './LinhasPrompt';
 const LIMITE_TEXTO = 500;
 
 // Post só de texto: um passo, 0 arquivos + `texto` (1–500 sem espaços nas pontas)
-export function PostarTexto({ me, seletor }: { me: Me; seletor: ReactNode }) {
+export function PostarTexto({ me, seletor, aoConteudo }: { me: Me; seletor: ReactNode; aoConteudo?: (tem: boolean) => void }) {
   const [texto, setTexto] = useState('');
   const [estado, setEstado] = useState<'livre' | 'enviando' | 'falhou' | 'sem-clube' | 'sem-admin'>('livre');
   const [cbf, setCbf] = useState(!me.clube);
-  const valido = texto.trim().length > 0 && texto.length <= LIMITE_TEXTO;
+  const campo = useRef<HTMLTextAreaElement>(null);
+  const mencoes = useMencoes();
+  // o limite do back vale para o texto guardado (cada menção vira @[Nome](id), mais longa que @Nome)
+  const comConteudo = texto.trim().length > 0;
+  useEffect(() => aoConteudo?.(comConteudo), [comConteudo]); // eslint-disable-line react-hooks/exhaustive-deps
+  const valido = texto.trim().length > 0 && mencoes.serializar(texto).length <= LIMITE_TEXTO;
 
   function publicar(comoCbf = cbf) {
     setEstado('enviando');
     const f = new FormData();
     if (comoCbf) f.append('comoCbf', 'true');
-    f.append('texto', texto.trim());
+    f.append('texto', mencoes.serializar(texto.trim()));
     enviarPost(f, () => {}).promessa.then(
       () => {
         guardarAviso('Post publicado');
@@ -54,7 +61,11 @@ export function PostarTexto({ me, seletor }: { me: Me; seletor: ReactNode }) {
       <p className={cbf ? 'cbf-frase' : 'giz2'}>{quemPosta(me, cbf)}</p>
       <ComoCbf me={me} ligado={cbf} aoMudar={setCbf} fixo={!me.clube} />
       <Aviso>{estado === 'falhou' ? 'Não deu para publicar. Seu texto continua aqui.' : estado === 'sem-admin' ? MSG_SEM_ADMIN : ''}</Aviso>
+      <div className="mencao-ancora">
+      <Autocompletar valor={texto} aoMudar={setTexto} campo={campo} mencoes={mencoes} />
       <textarea
+        ref={campo}
+        onKeyDown={(e) => mencoes.teclado(e, texto, setTexto)}
         rows={8}
         className="campo-texto"
         placeholder="O que está rolando?"
@@ -64,6 +75,7 @@ export function PostarTexto({ me, seletor }: { me: Me; seletor: ReactNode }) {
         aria-invalid={texto.length > LIMITE_TEXTO || undefined}
         onChange={(e) => setTexto(e.target.value)}
       />
+      </div>
       <Contador texto={texto} limite={LIMITE_TEXTO} />
       <p className="giz2">Dá para usar #tags.</p>
       <div className="acao-fixa">
