@@ -66,7 +66,7 @@ test('pessoa com clube leva a /c/:clubeId e o torcedor fica sem link', async () 
 test('resultado de post troca a marca pelo nome do banco (mencoes) e nunca mostra o markup nem o nome forjado', async () => {
   const ID = '11111111-1111-4111-8111-111111111111';
   const FORJADO = '99999999-9999-4999-8999-999999999999';
-  fetchFalso({ 'GET /busca?q=boa&tipo=posts': { itens: [{ id: 'p1', clube, autor: { id: 'u1', nome: 'L' }, legenda: `Boa @[Presidente da CBF](${ID}) e @[Fantasma](${FORJADO})`, mencoes: [{ id: ID, nome: 'Fabio' }], criadoEm: new Date().toISOString(), imagens: [], curtidas: 0, curtiu: false, comentarios: 0, podeEditar: false }], proximo: null });
+  fetchFalso({ 'GET /busca?q=boa&tipo=posts': { itens: [{ id: 'p1', clube, autor: { id: 'u1', nome: 'L' }, legenda: `Boa @[Presidente da CBF](${ID}) e @[Fantasma](${FORJADO})`, mencoes: [{ id: ID, nome: 'Fabio' }], criadoEm: new Date().toISOString(), imagens: [], curtidas: 0, curtiu: false, comentarios: 0, podeEditar: false }], proximo: null } });
   render(<Busca />);
   digitar('boa');
   await screen.findByText(/@Fabio/);
