@@ -91,6 +91,8 @@ model Post {
   clubId    String
   authorId  String   @db.Uuid // técnico que publicou
   caption   String
+  texto     String? // post só de texto (1–500); null = post com imagens
+  pinnedAt  DateTime? // fixado no topo do feed (máx. 3)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   club      Club     @relation(fields: [clubId], references: [id])
@@ -121,6 +123,7 @@ model PostImage {
 model Like {
   postId String @db.Uuid
   userId String @db.Uuid
+  emoji  String @default("❤️") // a curtida da v1 é a reação ❤️
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 

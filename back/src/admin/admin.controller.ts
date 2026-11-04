@@ -1,6 +1,7 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { AdminGuard, SessionGuard } from '../auth/session.guard.js';
 import { ApiError } from '../http.js';
+import { PostsService } from '../posts/posts.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { TrocasService } from '../trocas/trocas.service.js';
 
@@ -10,6 +11,7 @@ export class AdminController {
   constructor(
     private readonly trocas: TrocasService,
     private readonly prisma: PrismaService,
+    private readonly posts: PostsService,
   ) {}
 
   @Get('trocas')
@@ -27,6 +29,18 @@ export class AdminController {
   @HttpCode(204)
   async recusar(@Param('id') id: string) {
     await this.trocas.recusar(id);
+  }
+
+  @Put('posts/:id/fixar')
+  @HttpCode(204)
+  async fixar(@Param('id') id: string) {
+    await this.posts.fixar(id, true);
+  }
+
+  @Delete('posts/:id/fixar')
+  @HttpCode(204)
+  async desafixar(@Param('id') id: string) {
+    await this.posts.fixar(id, false);
   }
 
   @Get('convite')

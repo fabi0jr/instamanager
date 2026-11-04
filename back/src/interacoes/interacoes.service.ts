@@ -6,6 +6,8 @@ import { PrismaService } from '../prisma.service.js';
 import { InteracoesEventos } from './interacoes.eventos.js';
 
 const TEXTO_MAX = 1000;
+export const EMOJIS = ['❤️', '🔥', '😂', '😮', '😢', '👏'];
+const CORACAO = EMOJIS[0];
 const naoEncontrado = () => new ApiError(404, 'NAO_ENCONTRADO', 'Não encontramos o que você procurou.');
 
 type ComentarioCompleto = {
@@ -35,10 +37,17 @@ export class InteracoesService {
     if (!UUID.test(id) || !(await this.prisma.post.findUnique({ where: { id }, select: { id: true } }))) throw naoEncontrado();
   }
 
-  async curtir(postId: string, user: UserComClube) {
+  /** Uma reação por pessoa por post: reagir de novo troca o emoji. */
+  async reagir(postId: string, user: UserComClube, emoji: unknown) {
+    const e = emoji === '\u2764' ? CORACAO : emoji; // ❤ sem o seletor de variação também vale
+    if (typeof e !== 'string' || !EMOJIS.includes(e)) throw new ApiError(400, 'EMOJI_INVALIDO', `Use um destes emojis: ${EMOJIS.join(' ')}`, ['emoji']);
     await this.garantirPost(postId);
-    // skipDuplicates: curtir de novo (ou duas vezes ao mesmo tempo) não falha nem duplica
-    await this.prisma.like.createMany({ data: [{ postId, userId: user.id }], skipDuplicates: true });
+    await this.prisma.like.upsert({ where: { postId_userId: { postId, userId: user.id } }, update: { emoji: e }, create: { postId, userId: user.id, emoji: e } });
+  }
+
+  /** Curtida da v1 = reação ❤️. */
+  curtir(postId: string, user: UserComClube) {
+    return this.reagir(postId, user, CORACAO);
   }
 
   async descurtir(postId: string, user: UserComClube) {

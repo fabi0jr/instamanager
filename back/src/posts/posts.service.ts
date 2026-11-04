@@ -12,6 +12,8 @@ const POR_PAGINA_GALERIA = 24;
 const LEGENDA_MAX = 2200;
 const PROMPT_MAX = 4000;
 const MAX_IMAGENS = 10;
+const TEXTO_MAX = 500;
+const MAX_FIXADOS = 3;
 
 type Arquivo = { buffer: Buffer };
 
@@ -21,9 +23,10 @@ const incluir = (userId: string) =>
     author: { select: { id: true, name: true } },
     images: { orderBy: { position: 'asc' } },
     _count: { select: { likes: true, comments: true } },
-    likes: { where: { userId }, select: { userId: true } },
+    likes: { where: { userId }, select: { emoji: true } },
   }) satisfies Prisma.PostInclude;
 type PostCompleto = Prisma.PostGetPayload<{ include: ReturnType<typeof incluir> }>;
+type Reacoes = { emoji: string; total: number }[];
 
 const clubeMini = (c: { id: string; name: string; crestPath: string }) => ({ id: c.id, nome: c.name, escudoUrl: c.crestPath });
 const naoEncontrado = () => new ApiError(404, 'NAO_ENCONTRADO', 'Não encontramos o que você procurou.');
@@ -56,19 +59,38 @@ export class PostsService {
     private readonly eventos: PostsEventos,
   ) {}
 
-  private paraJson(p: PostCompleto, user: UserComClube) {
+  private paraJson(p: PostCompleto, user: UserComClube, reacoes: Reacoes) {
     return {
       id: p.id,
       clube: clubeMini(p.club),
       autor: { id: p.author.id, nome: p.author.name },
       legenda: p.caption,
+      texto: p.texto,
+      fixado: p.pinnedAt !== null,
       criadoEm: p.createdAt,
       imagens: p.images.map((i) => ({ id: i.id, miniUrl: i.thumbPath, cheiaUrl: i.fullPath, largura: i.width, altura: i.height, prompt: i.prompt })),
       curtidas: p._count.likes,
       curtiu: p.likes.length > 0,
+      reacoes,
+      minhaReacao: p.likes[0]?.emoji ?? null,
       comentarios: p._count.comments,
       podeEditar: this.podeEditar(p, user),
     };
+  }
+
+  /** Até 3 emojis por post, o mais usado primeiro (empate: ordem estável por emoji). */
+  private async jsonDe(posts: PostCompleto[], user: UserComClube) {
+    const grupos = posts.length
+      ? await this.prisma.like.groupBy({ by: ['postId', 'emoji'], where: { postId: { in: posts.map((p) => p.id) } }, _count: { _all: true } })
+      : [];
+    return posts.map((p) => {
+      const reacoes = grupos
+        .filter((g) => g.postId === p.id)
+        .map((g) => ({ emoji: g.emoji, total: g._count._all }))
+        .sort((a, b) => b.total - a.total || a.emoji.localeCompare(b.emoji))
+        .slice(0, 3);
+      return this.paraJson(p, user, reacoes);
+    });
   }
 
   private podeEditar(p: { club: { coachId: string | null } }, user: UserComClube) {
@@ -81,9 +103,11 @@ export class PostsService {
     return p;
   }
 
-  async criar(user: UserComClube, corpo: { legenda?: unknown; prompts?: unknown }, cheia: Arquivo[], mini: Arquivo[]) {
+  async criar(user: UserComClube, corpo: { legenda?: unknown; texto?: unknown; prompts?: unknown }, cheia: Arquivo[], mini: Arquivo[]) {
     if (!user.club) throw new ApiError(403, 'SEM_CLUBE', 'Só técnicos com clube podem postar.');
     const n = cheia.length;
+    if (n === 0 && mini.length === 0) return this.criarTexto(user, user.club.id, corpo.texto);
+    if (corpo.texto !== undefined) throw invalido('O texto é só para posts sem imagem.', 'texto');
     if (n < 1 || n > MAX_IMAGENS || mini.length !== n) throw invalido(`Envie de 1 a ${MAX_IMAGENS} imagens, com a cheia e a miniatura de cada uma.`, 'cheia');
     const legenda = lerLegenda(corpo.legenda ?? '');
     const prompts = lerPrompts(corpo.prompts ?? Array(n).fill(null), n);
@@ -108,15 +132,37 @@ export class PostsService {
         include: incluir(user.id),
       });
       this.eventos.emit('posts.criado', criado.id);
-      return this.paraJson(criado, user);
+      return (await this.jsonDe([criado], user))[0];
     } catch (e) {
       await Promise.all(gravados.map(apagarImagem));
       throw e;
     }
   }
 
+  /** Post sem imagem: `texto` de 1 a 500 caracteres (legenda fica vazia). */
+  private async criarTexto(user: UserComClube, clubId: string, bruto: unknown) {
+    const texto = typeof bruto === 'string' ? bruto.trim() : '';
+    if (!texto || texto.length > TEXTO_MAX) throw invalido(`Sem imagem, o post precisa de um texto de 1 a ${TEXTO_MAX} caracteres.`, 'texto');
+    const criado = await this.prisma.post.create({ data: { clubId, authorId: user.id, caption: '', texto }, include: incluir(user.id) });
+    this.eventos.emit('posts.criado', criado.id);
+    return (await this.jsonDe([criado], user))[0];
+  }
+
   async obter(id: string, user: UserComClube) {
-    return this.paraJson(await this.buscar(id, user), user);
+    return (await this.jsonDe([await this.buscar(id, user)], user))[0];
+  }
+
+  /** Admin: fixa/desafixa. No máximo 3 fixados; a trava (advisory lock) evita dois fixares simultâneos passarem do limite. */
+  async fixar(id: string, fixado: boolean) {
+    if (!UUID.test(id) || !(await this.prisma.post.findUnique({ where: { id }, select: { id: true } }))) throw naoEncontrado();
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(31001)`;
+      if (!fixado) return void (await tx.post.updateMany({ where: { id }, data: { pinnedAt: null } }));
+      if ((await tx.post.count({ where: { id, pinnedAt: { not: null } } })) > 0) return; // já fixado
+      if ((await tx.post.count({ where: { pinnedAt: { not: null } } })) >= MAX_FIXADOS)
+        throw new ApiError(409, 'LIMITE_FIXADOS', `Já existem ${MAX_FIXADOS} posts fixados. Desafixe um antes.`);
+      await tx.post.updateMany({ where: { id }, data: { pinnedAt: new Date() } });
+    });
   }
 
   async editar(id: string, user: UserComClube, corpo: { legenda?: unknown; prompts?: unknown }) {
@@ -138,21 +184,25 @@ export class PostsService {
     await Promise.all(p.images.flatMap((i) => [apagarImagem(i.fullPath), apagarImagem(i.thumbPath)]));
   }
 
+  /** Sem `clube`, os fixados vêm à parte (`fixados`, só na 1ª página) e nunca entram em `itens`, em página nenhuma. */
   async feed(user: UserComClube, antes?: string, clube?: string) {
     const c = decodificarCursor(antes);
     const posts = await this.prisma.post.findMany({
       where: {
-        ...(clube && { clubId: clube }),
+        ...(clube ? { clubId: clube } : { pinnedAt: null }),
         ...(c && { OR: [{ createdAt: { lt: c.criadoEm } }, { createdAt: c.criadoEm, id: { lt: c.id } }] }),
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: POR_PAGINA + 1,
       include: incluir(user.id),
     });
+    const fixados = clube || c ? [] : await this.prisma.post.findMany({ where: { pinnedAt: { not: null } }, orderBy: { pinnedAt: 'desc' }, include: incluir(user.id) });
     const pagina = posts.slice(0, POR_PAGINA);
     const ultimo = pagina.at(-1);
+    const json = await this.jsonDe([...pagina, ...fixados], user);
     return {
-      itens: pagina.map((p) => this.paraJson(p, user)),
+      ...(!clube && !c && { fixados: json.slice(pagina.length) }),
+      itens: json.slice(0, pagina.length),
       proximo: posts.length > POR_PAGINA && ultimo ? codificarCursor(ultimo.createdAt, ultimo.id) : null,
     };
   }
