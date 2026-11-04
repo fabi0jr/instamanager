@@ -2119,7 +2119,7 @@
       ],
       "depende": [],
       "responsavel": "Prancheta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T01:41:21.317Z",
@@ -2144,6 +2144,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-04T01:54:53.088Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "design aprovado pelo Maestro: ⋯ em todo post, 'N reações', toque duplo sempre ❤️"
+        },
+        {
+          "quando": "2026-11-04T01:54:53.116Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "design aprovado pelo Maestro: ⋯ em todo post, 'N reações', toque duplo sempre ❤️"
+        },
+        {
+          "quando": "2026-11-04T01:54:53.149Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "design aprovado pelo Maestro: ⋯ em todo post, 'N reações', toque duplo sempre ❤️"
         }
       ]
     },
@@ -2264,13 +2285,25 @@
         "IM-30",
         "IM-31"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "pronto",
       "historico": [
         {
           "quando": "2026-11-04T01:41:29.302Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T01:54:53.183Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T01:54:53.208Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
         }
       ]
     },
@@ -2292,13 +2325,25 @@
         "IM-30",
         "IM-32"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "pronto",
       "historico": [
         {
           "quando": "2026-11-04T01:41:29.357Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T01:54:53.260Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T01:54:53.287Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
         }
       ]
     },
@@ -2318,13 +2363,25 @@
         "IM-33",
         "IM-34"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Bandeirinha",
+      "coluna": "pronto",
       "historico": [
         {
           "quando": "2026-11-04T01:41:29.404Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T02:16:00.557Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T02:16:00.581Z",
+          "quem": "PO",
+          "nota": "atribuída a Bandeirinha"
         }
       ]
     }
