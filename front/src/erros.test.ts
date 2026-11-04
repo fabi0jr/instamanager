@@ -36,3 +36,11 @@ test('se o POST falhar não gera outro erro nem novo envio (sem loop)', async ()
   expect(solta).not.toHaveBeenCalled();
   removeEventListener('unhandledrejection', solta);
 });
+
+test('corta mensagem em 500 e pilha em 2000 para caber nos 4 KB do back', () => {
+  registrarErro('m'.repeat(5000), 'p'.repeat(9000));
+  const c = JSON.parse(chamadas[0].body);
+  expect(c.mensagem).toHaveLength(500);
+  expect(c.pilha).toHaveLength(2000);
+  expect(chamadas[0].body.length).toBeLessThan(4096);
+});

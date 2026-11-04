@@ -11,7 +11,8 @@ export function registrarErro(mensagem: string, pilha?: string) {
   envios = envios.filter((t) => agora - t < JANELA_MS);
   if (envios.length >= MAXIMO) return;
   envios.push(agora);
-  const corpo = { mensagem: mensagem || 'erro sem mensagem', url: location.pathname, versao: versao(), ...(pilha && { pilha }) };
+  // cortes iguais aos do back: sem eles um erro grande passa dos 4 KB e o POST é recusado (413)
+  const corpo = { mensagem: (mensagem || 'erro sem mensagem').slice(0, 500), url: location.pathname.slice(0, 300), versao: versao().slice(0, 40), ...(pilha && { pilha: pilha.slice(0, 2000) }) };
   try {
     fetch('/api/erros-front', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) }).catch(() => {});
   } catch {
