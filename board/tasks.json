@@ -1996,7 +1996,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "revisao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T00:33:43.732Z",
@@ -2028,6 +2028,20 @@
           "de": "dev",
           "para": "revisao",
           "nota": "hotfix 1.1, andar fixpack-1-1"
+        },
+        {
+          "quando": "2026-11-04T00:41:57.985Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "no ar (hotfix 1.1, 8ccec97)"
+        },
+        {
+          "quando": "2026-11-04T00:41:58.018Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (hotfix 1.1, 8ccec97)"
         }
       ]
     },
@@ -2043,7 +2057,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "revisao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T00:33:43.875Z",
@@ -2075,6 +2089,20 @@
           "de": "dev",
           "para": "revisao",
           "nota": "hotfix 1.1, andar fixpack-1-1"
+        },
+        {
+          "quando": "2026-11-04T00:41:58.047Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "no ar (hotfix 1.1, 8ccec97)"
+        },
+        {
+          "quando": "2026-11-04T00:41:58.078Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (hotfix 1.1, 8ccec97)"
         }
       ]
     }
