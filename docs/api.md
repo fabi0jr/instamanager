@@ -36,6 +36,7 @@ Contrato das Tasks 3–7. Tudo sob `/api`, JSON, UTF-8. Qualquer rota fora desta
 | `FASE_ABERTA` | 409 | reabrir/publicar resumo de fase aberta |
 | `ORDEM_REPETIDA` | 409 | criar fase da Copa com `ordem` já usada |
 | `CLUBE_ELIMINADO` | 409 | clube que perdeu um jogo da Copa numa fase de ordem maior |
+| `PRAZO_ENCERRADO` | 409 | palpite em jogo cujo prazo acabou (ou que ainda não tem prazo) |
 | `RODADA_FECHADA` | 409 | lançar jogos numa rodada fechada (ou fechar uma já fechada) |
 | `RODADA_ABERTA` | 409 | reabrir uma rodada que já está aberta |
 | `VOTACAO_ENCERRADA` | 409 | votar depois do prazo ou da votação encerrada; encerrar de novo |
@@ -46,7 +47,7 @@ Contrato das Tasks 3–7. Tudo sob `/api`, JSON, UTF-8. Qualquer rota fora desta
 ## Tipos
 
 ```
-Me      = { id, nome, email, avatarUrl|null, isAdmin, pushEnabled, clube: ClubeMini|null }
+Me      = { id, nome, email, avatarUrl|null, isAdmin, pushEnabled, pushPrefs: {posts,comentarios,mencoes,cbf,bolao,trocas: boolean}, clube: ClubeMini|null }
 ClubeMini = { id, nome, escudoUrl }
 Post    = { id, clube: ClubeMini, autor: {id, nome}, legenda, texto|null, mencoes: [{id, nome}], fixado, oculto, criadoEm,
             imagens: [{ id, miniUrl, cheiaUrl, largura, altura, prompt|null }],
@@ -70,7 +71,7 @@ Pagina<T> = { itens: T[], proximo: string|null }   // proximo = cursor opaco par
 | `POST /api/auth/esqueci` | `{email}` | `204` sempre (não revela se o e-mail existe). Link por Resend válido por 1 h: `APP_URL/nova-senha?token=…` |
 | `POST /api/auth/redefinir` | `{token, senha}` | `204` · `TOKEN_INVALIDO`. Uso único; derruba as outras sessões. |
 | `GET /api/me` 🔒 | — | `Me` |
-| `PATCH /api/me` 🔒 | `{nome?, senhaAtual?, senhaNova?, pushEnabled?}` | `Me`. Trocar senha exige `senhaAtual`, derruba as outras sessões e apaga as inscrições de push da conta (o aparelho atual se inscreve de novo). |
+| `PATCH /api/me` 🔒 | `{nome?, senhaAtual?, senhaNova?, pushEnabled?, pushPrefs?}` | `Me`. Trocar senha exige `senhaAtual`, derruba as outras sessões e apaga as inscrições de push da conta (o aparelho atual se inscreve de novo). |
 | `PUT /api/me/foto` 🔒 | multipart `foto` (JPEG ≤ 480 px) | `Me` · `IMAGEM_INVALIDA` |
 
 ## 2. Clubes (Task 4)
@@ -173,6 +174,29 @@ Placar: `golsMandante`/`golsVisitante` de 0 a 99, ou `null` nos dois (agendado).
 | `POST /api/admin/copa/fases/:id/fechar` 👑 | — | `201 {texto, citados}`: **fecha** a fase e devolve a prévia do resumo do bot (mesmo formato da prévia da rodada, frases de mata-mata em `docs/bot-frases.md`; não publica). `409 PLACAR_PENDENTE` se não houver jogos ou faltar placar/pênaltis (continua aberta), `409 FASE_FECHADA`. |
 | `POST /api/admin/copa/fases/:id/reabrir` 👑 | — | `204`. `409 FASE_ABERTA`. |
 | `POST /api/admin/copa/fases/:id/publicar` 👑 | `{texto, citados?}` (igual ao da rodada) | `201 Post` da CBF; push `CBF` / `Saiu o resumo da fase <nome>` para todos (menos admin e citados), `A CBF citou você` para os citados. **Um resumo por fase:** o segundo → `409 RESUMO_JA_PUBLICADO` (apagar o post libera). `409 FASE_ABERTA` se a fase não foi fechada. |
+
+### Bolão (Pack 3 · A2, IM-54) 🔒
+
+Palpite de placar nos jogos do Brasileirão e da Copa. Os **pontos são calculados** a cada pedido (nada é guardado): placar exato **3**; vencedor ou empate certo **1**; errado 0; na Copa, **+1** por acertar quem passa. Mudar o placar do jogo recalcula tudo. Lançar o resultado com `PUT .../jogos` mantém os palpites (mesmo confronto = mesmo jogo); trocar o confronto apaga os palpites daquele jogo.
+
+**Prazo:** `Rodada.prazoPalpite`/`CopaFase.prazoPalpite`. Sem prazo, ou depois dele, não dá para palpitar (`409 PRAZO_ENCERRADO`). Antes do prazo cada pessoa só vê o próprio palpite; depois, os de todos.
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `PUT /api/bolao/palpites` | lista (1–50) de `{jogoId \| copaJogoId, golsMandante, golsVisitante, classificadoId?}` | `204`. **Lote atômico** (grava ou nada), regrava quem já palpitou. `jogoId` = `Jogo` do Brasileirão; `copaJogoId` = `CopaJogo` (exatamente um dos dois). Placar 0–99. **Copa:** palpite de **empate** exige `classificadoId` (um dos dois clubes); palpite com vencedor não precisa (sai do placar; se vier, tem de bater). `classificadoId` em jogo do Brasileirão → `400`. `400 DADOS_INVALIDOS`, `404` jogo inexistente, `409 PRAZO_ENCERRADO` se **qualquer** alvo estiver fora do prazo (nenhum é gravado). |
+| `GET /api/bolao/meus?rodada=N` ou `?fase=id` | — | Meus palpites do escopo: `[{jogoId, copaJogoId, golsMandante, golsVisitante, classificadoId, pontos: number\|null, exato: boolean}]`. `pontos` é `null` enquanto o jogo não tem placar. `400` se não vier exatamente um dos dois. |
+| `GET /api/bolao/jogo/:tipo/:id` | — | `:tipo` = `brasileirao` ou `copa`. `[{usuario: {id,nome,avatarUrl}, golsMandante, golsVisitante, classificadoId, pontos, exato}]`: **só o meu** (lista vazia se não palpitei) antes do prazo ou sem prazo; **de todos** depois do prazo. `404` tipo/jogo inexistente. |
+| `GET /api/bolao/ranking` | — | `[{usuario: {id,nome,avatarUrl}, pontos, exatos, posicao}]` por `posicao` (1, 2, 3…): soma de tudo (Brasileirão + Copa), desempate por **placares exatos** e depois por nome. Só aparece quem já palpitou. |
+
+O resumo da CBF (prévia da rodada e `fechar` da fase) ganha, ao fim, a linha do **rei do bolão** daquela rodada/fase (quem mais pontuou, se alguém pontuou).
+
+**Lembrete:** push `Bolão` / `<Rodada N ou fase>: faltam palpites, o prazo acaba em 2 h`, enviado **uma vez** por prazo (se o prazo mudar, vale de novo) a quem ainda não palpitou todos os jogos daquele prazo. Roda a cada minuto no próprio back.
+
+### Preferências de push (Pack 3 · A2, IM-54) 🔒
+
+`PATCH /api/me {pushPrefs: {posts?, comentarios?, mencoes?, cbf?, bolao?, trocas?}}` (booleanos; chave desconhecida ou valor não booleano → `400`). Só as chaves enviadas mudam. `GET /api/me` e as respostas do `PATCH` trazem `pushPrefs` com as **6 chaves** (`true` por padrão). `pushEnabled: false` continua desligando tudo.
+
+Cada push respeita a sua chave: `posts` (post novo de clube), `comentarios` (comentário no seu clube), `mencoes`, `cbf` (post da CBF e "A CBF citou você"), `bolao` (lembrete), `trocas` (pedido de troca para o admin e a decisão para quem pediu).
 
 ## 4c. Votações e selos (Task B2) 🔒
 

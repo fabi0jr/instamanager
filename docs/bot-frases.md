@@ -1,6 +1,6 @@
 # Frases do bot da zoeira (CBF)
 
-> **Para o Fabio revisar antes do deploy.** São 69 frases prontas, em `back/src/bot/frases.ts` (esta página é a mesma lista). Para mudar uma frase, edite o arquivo e rode o teste; o bot nunca escreve nada que não esteja aqui.
+> **Para o Fabio revisar antes do deploy.** São 72 frases prontas, em `back/src/bot/frases.ts` (esta página é a mesma lista). Para mudar uma frase, edite o arquivo e rode o teste; o bot nunca escreve nada que não esteja aqui.
 
 Como funciona: depois que o admin fecha a rodada, o bot detecta o que aconteceu (goleada, lanterna, queda, líder, sequência de derrotas, Z4, fim de jejum, empates) e junta de 3 a 6 frases, sem repetir, até 500 caracteres. Cada frase vai numa linha. O admin pode **sortear de novo**, **editar** o texto e só então **publicar**. `{tecnico}` vira o nome do técnico do clube (e ele recebe um push por ter sido citado); clube sem técnico usa as frases "sem técnico". Regra de tom: só zoeira do desempenho no jogo, sem palavrão e sem ofensa pessoal.
 
@@ -206,3 +206,15 @@ Variáveis: `{clube}` (o eliminado), `{tecnico}`, `{outro}`, `{placar}` (dos pê
 
 - Decidiu nos pênaltis! O {outro} passou pelo {clube} por {placar}.
 - Pênaltis cruéis: {clube} fora da Copa, e o {outro} avança por {placar}.
+
+## Fecho do resumo · rei do bolão (NOVAS, 3 frases: revise)
+
+Entra como última linha do resumo da rodada ou da fase quando alguém pontuou no bolão (o líder daquela rodada/fase; sem ninguém pontuando, a linha não aparece). Se o texto passar de 500 caracteres, essa linha é a primeira a sair.
+
+Variáveis: `{rei}` (nome de quem liderou), `{pontos}`
+
+**Sem técnico:**
+
+- Rei do bolão da vez: {rei}, com {pontos} na conta. Palpite não tem VAR.
+- Quem mandou bem no bolão foi {rei}: {pontos} na soma. Os outros que se expliquem.
+- {rei} é o rei do bolão, com {pontos} na soma. Reverência, por favor.

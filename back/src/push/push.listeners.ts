@@ -35,14 +35,14 @@ export class PushListeners implements OnModuleInit {
     if (!p) return;
     const todos = await this.prisma.user.findMany({ where: { id: { not: p.authorId } }, select: { id: true } });
     const msg = p.club.oficial ? { titulo: 'CBF', corpo: 'Novo comunicado da CBF', url: `/p/${p.id}` } : { titulo: p.club.name, corpo: `${p.author.name} postou`, url: `/p/${p.id}` };
-    await this.push.enviar(todos.map((u) => u.id), msg);
+    await this.push.enviar(todos.map((u) => u.id), msg, p.club.oficial ? 'cbf' : 'posts');
   }
 
   private async comentario(id: string) {
     const c = await this.prisma.comment.findUnique({ where: { id }, include: { user: true, post: { include: { club: true } } } });
     const tecnico = c?.post.club.coachId;
     if (!c || !tecnico || tecnico === c.userId) return;
-    await this.push.enviar([tecnico], { titulo: 'Novo comentário', corpo: `${c.user.name}: ${c.text.slice(0, 80)}`, url: `/p/${c.postId}` });
+    await this.push.enviar([tecnico], { titulo: 'Novo comentário', corpo: `${c.user.name}: ${c.text.slice(0, 80)}`, url: `/p/${c.postId}` }, 'comentarios');
   }
 
   private async trocaPedida(id: string) {
@@ -50,7 +50,7 @@ export class PushListeners implements OnModuleInit {
     if (!t) return;
     const admins = await this.prisma.user.findMany({ where: { isAdmin: true, id: { not: t.userId } }, select: { id: true } });
     const quer = t.kind === 'SAIR' ? 'sair do clube' : `assumir o ${t.club?.name ?? 'clube'}`;
-    await this.push.enviar(admins.map((a) => a.id), { titulo: 'Pedido de troca', corpo: `${t.user.name} quer ${quer}`, url: '/admin' });
+    await this.push.enviar(admins.map((a) => a.id), { titulo: 'Pedido de troca', corpo: `${t.user.name} quer ${quer}`, url: '/admin' }, 'trocas');
   }
 
   private async trocaDecidida(id: string) {
@@ -58,6 +58,6 @@ export class PushListeners implements OnModuleInit {
     if (!t || t.status === 'PENDENTE') return;
     const aprovada = t.status === 'APROVADA';
     const corpo = !aprovada ? 'O admin recusou o seu pedido' : t.kind === 'SAIR' ? 'Você saiu do clube' : `Você agora é o técnico do ${t.club?.name ?? 'clube'}`;
-    await this.push.enviar([t.userId], { titulo: aprovada ? 'Troca aprovada' : 'Troca recusada', corpo, url: '/perfil' });
+    await this.push.enviar([t.userId], { titulo: aprovada ? 'Troca aprovada' : 'Troca recusada', corpo, url: '/perfil' }, 'trocas');
   }
 }

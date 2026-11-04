@@ -1,7 +1,7 @@
 // Frases prontas do bot da CBF. Só zoeira de futebol: o alvo é o desempenho no jogo, nunca a pessoa.
 // `com` usa {tecnico} (só entra quando o clube tem técnico); `sem` serve para qualquer clube.
 // Variáveis por categoria: ver VARIAVEIS. O Fabio revisa esta lista (docs/bot-frases.md) antes do deploy.
-export type Categoria = 'abertura' | 'goleada' | 'derrota' | 'lanterna' | 'queda' | 'lider' | 'sequencia' | 'z4' | 'jejum' | 'empates' | 'geral' | 'copaAbertura' | 'copaEliminado' | 'copaPenaltis';
+export type Categoria = 'abertura' | 'goleada' | 'derrota' | 'lanterna' | 'queda' | 'lider' | 'sequencia' | 'z4' | 'jejum' | 'empates' | 'geral' | 'copaAbertura' | 'copaEliminado' | 'copaPenaltis' | 'reiBolao';
 
 export const VARIAVEIS: Record<Categoria, string[]> = {
   abertura: ['n'],
@@ -18,6 +18,7 @@ export const VARIAVEIS: Record<Categoria, string[]> = {
   copaAbertura: ['fase'],
   copaEliminado: ['clube', 'tecnico', 'outro', 'placar', 'fase'], // clube = o eliminado
   copaPenaltis: ['clube', 'tecnico', 'outro', 'placar'], // placar = o dos pênaltis
+  reiBolao: ['rei', 'pontos'],
 };
 
 export const FRASES: Record<Categoria, { sem: string[]; com: string[] }> = {
@@ -170,5 +171,14 @@ export const FRASES: Record<Categoria, { sem: string[]; com: string[] }> = {
       'Decidiu nos pênaltis! O {outro} passou pelo {clube} por {placar}.',
       'Pênaltis cruéis: {clube} fora da Copa, e o {outro} avança por {placar}.',
     ],
+  },
+  // fecho do resumo (rodada ou fase): quem liderou o bolão
+  reiBolao: {
+    sem: [
+      'Rei do bolão da vez: {rei}, com {pontos} na conta. Palpite não tem VAR.',
+      'Quem mandou bem no bolão foi {rei}: {pontos} na soma. Os outros que se expliquem.',
+      '{rei} é o rei do bolão, com {pontos} na soma. Reverência, por favor.',
+    ],
+    com: [],
   },
 };

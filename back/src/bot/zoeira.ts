@@ -8,6 +8,7 @@ export type EntradaResumo = {
   antes: Linha[]; // tabela sem esta rodada
   depois: Linha[]; // tabela com esta rodada
   tecnicos: Record<string, Tecnico>; // por clubeId
+  rei?: { nome: string; pontos: number } | null; // líder do bolão da rodada
 };
 type Evento = { categoria: Categoria; clube?: string; vars: Record<string, string | number> };
 
@@ -42,6 +43,7 @@ export function montarResumo(r: EntradaResumo, sortear: () => number = Math.rand
 
   escolher('abertura', { n: r.numero });
   for (const e of escolhidos) escolher(e.categoria, e.vars, e.clube ? r.tecnicos[e.clube] : undefined);
+  if (r.rei) escolher('reiBolao', { rei: r.rei.nome, pontos: r.rei.pontos });
   while (linhas.length < MIN_FRASES && FRASES.geral.sem.some((f) => !usadas.has(f))) escolher('geral', {});
   // 500 caracteres: tira de trás para frente (a abertura fica); os citados acompanham o que sobrou no texto
   while (linhas.join('\n').length > MAX_TEXTO && linhas.length > 1) linhas.pop();
@@ -126,7 +128,7 @@ export function embaralhar<T>(lista: T[], sortear: () => number): T[] {
 export type JogoCopaResumo = { mandante: { id: string; nome: string }; visitante: { id: string; nome: string }; golsMandante: number; golsVisitante: number; penaltisMandante: number | null; penaltisVisitante: number | null };
 
 /** Resumo de uma fase fechada da Copa: abertura + até 5 eliminações (jogos sorteados), 500 caracteres. */
-export function montarResumoCopa(fase: string, jogos: JogoCopaResumo[], tecnicos: Record<string, Tecnico>, sortear: () => number = Math.random): { texto: string; citados: string[] } {
+export function montarResumoCopa(fase: string, jogos: JogoCopaResumo[], tecnicos: Record<string, Tecnico>, sortear: () => number = Math.random, rei?: { nome: string; pontos: number } | null): { texto: string; citados: string[] } {
   const usadas = new Set<string>();
   const citados = new Set<string>();
   const linha = (cat: Categoria, vars: Record<string, string | number>, tecnico?: Tecnico) => {
@@ -146,6 +148,7 @@ export function montarResumoCopa(fase: string, jogos: JogoCopaResumo[], tecnicos
     const placar = `${Math.max(a, b)} a ${Math.min(a, b)}`;
     linhas.push(linha(pen ? 'copaPenaltis' : 'copaEliminado', { clube: perd.nome, outro: venc.nome, placar, fase }, tecnicos[perd.id]));
   }
+  if (rei) linhas.push(linha('reiBolao', { rei: rei.nome, pontos: rei.pontos }));
   const l = linhas.filter((x): x is string => x !== null);
   while (l.join('\n').length > MAX_TEXTO && l.length > 1) l.pop();
   const texto = l.join('\n');

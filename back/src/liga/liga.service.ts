@@ -3,6 +3,7 @@ import type { UserComClube } from '../auth/auth.service.js';
 import { montarResumo } from '../bot/zoeira.js';
 import { ApiError } from '../http.js';
 import { UUID } from '../posts/cursor.js';
+import { BolaoService } from '../bolao/bolao.service.js';
 import { AtividadeService } from '../atividade/atividade.service.js';
 import { PostsService } from '../posts/posts.service.js';
 import { PrismaService } from '../prisma.service.js';
@@ -41,6 +42,7 @@ export class LigaService {
     private readonly posts: PostsService,
     private readonly push: PushService,
     private readonly atividade: AtividadeService,
+    private readonly bolao: BolaoService,
   ) {}
 
   /** Calculada a cada pedido, só com jogos de rodadas fechadas: nada fica guardado em duplicidade. */
@@ -58,14 +60,15 @@ export class LigaService {
   /** Prévia do post do bot: só de rodada fechada. Não grava nada; sortear de novo = chamar de novo. */
   async previa(n: number) {
     await this.exigirFechada(n);
-    const [jogos, antes, depois, clubes] = await Promise.all([
+    const [jogos, antes, depois, clubes, rei] = await Promise.all([
       this.prisma.jogo.findMany({ where: { rodadaNumero: n } }),
       this.tabela({ lt: n }),
       this.tabela({ lte: n }),
       this.prisma.club.findMany({ where: { coach: { isNot: null } }, include: { coach: { select: { id: true, name: true } } } }),
+      this.bolao.reiDaRodada(n),
     ]);
     const tecnicos = Object.fromEntries(clubes.map((c) => [c.id, { id: c.coach!.id, nome: c.coach!.name }]));
-    return montarResumo({ numero: n, jogos: jogos.filter(comPlacar).map(paraFechado) as JogoFechado[], antes, depois, tecnicos });
+    return montarResumo({ numero: n, jogos: jogos.filter(comPlacar).map(paraFechado) as JogoFechado[], antes, depois, tecnicos, rei });
   }
 
   /**
@@ -93,9 +96,9 @@ export class LigaService {
       : [];
     const citados = clubes.filter((c) => c.coach!.id !== user.id && apareceInteiro(c.coach!.name, criado.texto ?? '')).map((c) => c.coach!.id);
     const todos = await this.prisma.user.findMany({ where: { id: { notIn: [user.id, ...citados] } }, select: { id: true } });
-    void this.push.enviar(todos.map((u) => u.id), { titulo: 'CBF', corpo: `Saiu o resumo da rodada ${n}`, url: `/p/${criado.id}` });
+    void this.push.enviar(todos.map((u) => u.id), { titulo: 'CBF', corpo: `Saiu o resumo da rodada ${n}`, url: `/p/${criado.id}` }, 'cbf');
     void this.atividade.criar(citados, 'CBF_CITOU', { postId: criado.id }).catch((e: unknown) => this.logger.warn(`atividade CBF_CITOU: ${String(e)}`));
-    if (citados.length) void this.push.enviar(citados, { titulo: 'A CBF citou você', corpo: (criado.texto ?? '').slice(0, 80), url: `/p/${criado.id}` });
+    if (citados.length) void this.push.enviar(citados, { titulo: 'A CBF citou você', corpo: (criado.texto ?? '').slice(0, 80), url: `/p/${criado.id}` }, 'cbf');
     return criado;
   }
 
@@ -135,8 +138,17 @@ export class LigaService {
       const ids = [...new Set(jogos.flatMap((j) => [j.mandanteId, j.visitanteId]))];
       const achados = await tx.club.findMany({ where: { id: { in: ids }, oficial: false }, select: { id: true } });
       if (achados.length !== ids.length) throw invalido('Há clube inexistente (ou a CBF) nos jogos.');
-      await tx.jogo.deleteMany({ where: { rodadaNumero: n } });
-      await tx.jogo.createMany({ data: jogos.map((j) => ({ ...j, rodadaNumero: n })) });
+      // mesmo confronto = mesmo jogo (atualiza o placar): os palpites do bolão não se perdem ao lançar resultado
+      const chave = (j: { mandanteId: string; visitanteId: string }) => `${j.mandanteId}|${j.visitanteId}`;
+      const antigos = await tx.jogo.findMany({ where: { rodadaNumero: n } });
+      const novos = new Set(jogos.map(chave));
+      await tx.jogo.deleteMany({ where: { id: { in: antigos.filter((a) => !novos.has(chave(a))).map((a) => a.id) } } });
+      const existente = new Map(antigos.map((a) => [chave(a), a.id]));
+      for (const j of jogos) {
+        const id = existente.get(chave(j));
+        if (id) await tx.jogo.update({ where: { id }, data: { golsMandante: j.golsMandante, golsVisitante: j.golsVisitante } });
+        else await tx.jogo.create({ data: { ...j, rodadaNumero: n } });
+      }
     });
   }
 

@@ -1,3 +1,4 @@
+import { PUSH_TIPOS, type PushPrefs } from '../push/prefs.js';
 import { ApiError } from '../http.js';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -52,11 +53,16 @@ export const parseRedefinir = (body: unknown) =>
 
 export const parsePerfil = (body: unknown) =>
   validar(body, (b, erro) => {
-    const r: { nome?: string; pushEnabled?: boolean; senhaAtual?: string; senhaNova?: string } = {};
+    const r: { nome?: string; pushEnabled?: boolean; pushPrefs?: Partial<PushPrefs>; senhaAtual?: string; senhaNova?: string } = {};
     if (b.nome !== undefined) r.nome = nome(b.nome, erro);
     if (b.pushEnabled !== undefined) {
       if (typeof b.pushEnabled !== 'boolean') erro('pushEnabled');
       else r.pushEnabled = b.pushEnabled;
+    }
+    if (b.pushPrefs !== undefined) {
+      const o = b.pushPrefs as Record<string, unknown> | null;
+      if (typeof o !== 'object' || !o || Array.isArray(o) || Object.entries(o).some(([k, v]) => !(PUSH_TIPOS as readonly string[]).includes(k) || typeof v !== 'boolean')) erro('pushPrefs');
+      else r.pushPrefs = o as Partial<PushPrefs>;
     }
     if (b.senhaNova !== undefined || b.senhaAtual !== undefined) {
       r.senhaAtual = texto(b.senhaAtual, 'senhaAtual', erro, 128);

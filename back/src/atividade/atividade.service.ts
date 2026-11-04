@@ -59,7 +59,7 @@ export class AtividadeService {
     if (!novos.length) return;
     await this.criar(novos, 'MENCAO', { atorId, postId, ...(comentarioId && { comentarioId }) });
     const ator = await this.prisma.user.findUnique({ where: { id: atorId }, select: { name: true } });
-    void this.push.enviar(novos, { titulo: 'Menção', corpo: `${ator?.name ?? 'Alguém'} mencionou você`, url: `/p/${postId}` });
+    void this.push.enviar(novos, { titulo: 'Menção', corpo: `${ator?.name ?? 'Alguém'} mencionou você`, url: `/p/${postId}` }, 'mencoes');
   }
 
   /** Itens do usuário, do mais novo ao mais velho. Post oculto/apagado vira "Post indisponível" (sem legenda nem foto). */

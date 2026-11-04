@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client.js';
 import type { UserComClube } from '../auth/auth.service.js';
+import { BolaoService } from '../bolao/bolao.service.js';
 import { AtividadeService } from '../atividade/atividade.service.js';
 import { montarResumoCopa } from '../bot/zoeira.js';
 import { ApiError } from '../http.js';
@@ -27,6 +28,7 @@ export class CopaService {
     private readonly posts: PostsService,
     private readonly push: PushService,
     private readonly atividade: AtividadeService,
+    private readonly bolao: BolaoService,
   ) {}
 
   async chave() {
@@ -74,8 +76,17 @@ export class CopaService {
       const ids = [...new Set(jogos.flatMap((j) => [j.mandanteId, j.visitanteId]))];
       const achados = await tx.club.findMany({ where: { id: { in: ids }, oficial: false }, select: { id: true } });
       if (achados.length !== ids.length) throw invalido('Há clube inexistente (ou a CBF) nos jogos.');
-      await tx.copaJogo.deleteMany({ where: { faseId: id } });
-      await tx.copaJogo.createMany({ data: jogos.map((j) => ({ ...j, faseId: id })) });
+      // mesmo confronto = mesmo jogo (atualiza o placar): os palpites do bolão não se perdem ao lançar resultado
+      const chave = (j: { mandanteId: string; visitanteId: string }) => `${j.mandanteId}|${j.visitanteId}`;
+      const antigos = await tx.copaJogo.findMany({ where: { faseId: id } });
+      const novos = new Set(jogos.map(chave));
+      await tx.copaJogo.deleteMany({ where: { id: { in: antigos.filter((a) => !novos.has(chave(a))).map((a) => a.id) } } });
+      const existente = new Map(antigos.map((a) => [chave(a), a.id]));
+      for (const j of jogos) {
+        const jid = existente.get(chave(j));
+        if (jid) await tx.copaJogo.update({ where: { id: jid }, data: { golsMandante: j.golsMandante, golsVisitante: j.golsVisitante, penaltisMandante: j.penaltisMandante, penaltisVisitante: j.penaltisVisitante } });
+        else await tx.copaJogo.create({ data: { ...j, faseId: id } });
+      }
       // vale nos dois sentidos: quem perdeu antes não volta, e mudar o placar não pode eliminar quem já joga adiante
       const fases = await tx.copaFase.findMany({ orderBy: { ordem: 'asc' }, include: { jogos: true } });
       if (achaEliminadoJogando(fases)) throw new ApiError(409, 'CLUBE_ELIMINADO', 'Um clube eliminado não pode jogar uma fase mais adiante.');
@@ -98,7 +109,7 @@ export class CopaService {
       await tx.copaFase.update({ where: { id }, data: { fechadaEm: new Date() } });
       return { fase, js };
     });
-    return this.previaDe(jogos.fase.nome, jogos.js);
+    return this.previaDe(jogos.fase.nome, jogos.js, await this.bolao.reiDaFase(id));
   }
 
   async reabrir(id: string) {
@@ -134,13 +145,13 @@ export class CopaService {
       : [];
     const citados = clubes.filter((c) => c.coach!.id !== user.id && (criado.texto ?? '').includes(c.coach!.name)).map((c) => c.coach!.id);
     const todos = await this.prisma.user.findMany({ where: { id: { notIn: [user.id, ...citados] } }, select: { id: true } });
-    void this.push.enviar(todos.map((u) => u.id), { titulo: 'CBF', corpo: `Saiu o resumo da fase ${fase.nome}`, url: `/p/${criado.id}` });
+    void this.push.enviar(todos.map((u) => u.id), { titulo: 'CBF', corpo: `Saiu o resumo da fase ${fase.nome}`, url: `/p/${criado.id}` }, 'cbf');
     void this.atividade.criar(citados, 'CBF_CITOU', { postId: criado.id }).catch((e: unknown) => this.logger.warn(`atividade CBF_CITOU: ${String(e)}`));
-    if (citados.length) void this.push.enviar(citados, { titulo: 'A CBF citou você', corpo: (criado.texto ?? '').slice(0, 80), url: `/p/${criado.id}` });
+    if (citados.length) void this.push.enviar(citados, { titulo: 'A CBF citou você', corpo: (criado.texto ?? '').slice(0, 80), url: `/p/${criado.id}` }, 'cbf');
     return criado;
   }
 
-  private async previaDe(nome: string, js: (PlacarCopa & { mandante: { id: string; name: string; coachId: string | null }; visitante: { id: string; name: string; coachId: string | null } })[]) {
+  private async previaDe(nome: string, js: (PlacarCopa & { mandante: { id: string; name: string; coachId: string | null }; visitante: { id: string; name: string; coachId: string | null } })[], rei: { nome: string; pontos: number } | null) {
     const donos = [...new Set(js.flatMap((j) => [j.mandante, j.visitante]).map((c) => c.coachId).filter((x): x is string => x !== null))];
     const users = await this.prisma.user.findMany({ where: { id: { in: donos } }, select: { id: true, name: true } });
     const nomeDe = new Map(users.map((u) => [u.id, u.name]));
@@ -150,6 +161,8 @@ export class CopaService {
       nome,
       js.map((j) => ({ mandante: { id: j.mandante.id, nome: j.mandante.name }, visitante: { id: j.visitante.id, nome: j.visitante.name }, golsMandante: j.golsMandante!, golsVisitante: j.golsVisitante!, penaltisMandante: j.penaltisMandante, penaltisVisitante: j.penaltisVisitante })),
       tecnicos,
+      undefined,
+      rei,
     );
   }
 

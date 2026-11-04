@@ -85,7 +85,7 @@ describe('atividade e menções (e2e)', () => {
     await esperar();
     expect(await itens(outro)).toMatchObject([{ tipo: 'MENCAO', ator: { id: torcedor.id }, post: { id: p.id } }]);
     const mencao = espia.mock.calls.filter(([, m]) => m.titulo === 'Menção');
-    expect(mencao).toEqual([[[outro.id], { titulo: 'Menção', corpo: 'Torcedor Atividade mencionou você', url: `/p/${p.id}` }]]);
+    expect(mencao).toEqual([[[outro.id], { titulo: 'Menção', corpo: 'Torcedor Atividade mencionou você', url: `/p/${p.id}` }, 'mencoes']]);
     // o técnico recebe o aviso de comentário de sempre, não um push de menção
     expect(await tipos(tecnico0)).toEqual(['COMENTARIO']);
   });
