@@ -1,4 +1,13 @@
+import { rolarPara } from './rolagem';
 import { useSyncExternalStore, type AnchorHTMLAttributes, type MouseEvent } from 'react';
+
+// Trocar de tela começa no topo (quem rola é o #rolagem); só o caminho conta: ?imagem= abre por cima sem rolar.
+let ultimoCaminho = location.pathname;
+addEventListener('popstate', () => {
+  if (location.pathname === ultimoCaminho) return;
+  ultimoCaminho = location.pathname;
+  rolarPara(0); // o Feed restaura a própria posição depois, no render
+});
 
 // Roteador mínimo com a History API: evita dependência nova (copiado do Terrato, com parâmetros).
 function assinar(aviso: () => void) {

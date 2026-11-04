@@ -55,11 +55,14 @@ a, button { min-height: 44px; min-width: 44px; }
 input, textarea, select { font-size: 16px !important; }
 /* toque duplo (curtir) não vira zoom; a pinça segue livre */
 html, body, a, button, input, textarea, select, [role='button'] { touch-action: manipulation; }
+/* o documento não rola; #rolagem rola (ver rolagem.ts). A barra inferior/lateral fica fora dele. */
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+#rolagem { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
 :focus-visible { outline: 2px solid var(--im-giz); outline-offset: 2px; }
 body { padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); } /* com viewport-fit=cover o app vai até a borda: afasta do entalhe/barra de status */
 main { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 
-.barra-inferior { position: fixed; transform: translateZ(0); /* camada própria: o Safari do iPhone às vezes arrasta fixed junto com a rolagem */ inset: auto 0 0 0; display: grid; grid-template-columns: repeat(5, 1fr);
+.barra-inferior { position: fixed; inset: auto 0 0 0; display: grid; grid-template-columns: repeat(5, 1fr);
   height: calc(64px + env(safe-area-inset-bottom)); padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   background: var(--im-superficie); border-top: 1px solid var(--im-linha); z-index: 5; }
 .barra-inferior a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--im-giz-2); text-decoration: none; }

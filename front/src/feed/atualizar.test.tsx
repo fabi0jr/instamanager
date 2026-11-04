@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import type { Me } from '../api/cliente';
 import { fetchFalso } from '../testes/fetchFalso';
+import { montarRolagem } from '../testes/rolagem';
 import { esquecerFeed, Feed } from './Feed';
 import type { Post } from './tipos';
 
@@ -17,13 +18,13 @@ const post = (id: string): Post => ({
 });
 
 let agora = 1_000_000;
+let rolagem: ReturnType<typeof montarRolagem>;
 beforeEach(() => {
   esquecerFeed();
   agora = 1_000_000;
   vi.spyOn(Date, 'now').mockImplementation(() => agora);
   vi.stubGlobal('IntersectionObserver', class { observe() {} disconnect() {} unobserve() {} });
-  Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
-  window.scrollTo = vi.fn();
+  rolagem = montarRolagem();
 });
 afterEach(() => {
   cleanup();
@@ -39,7 +40,7 @@ const rotas = (...respostas: Post[][]) => {
 
 test('voltar ao app depois de 60 s com post novo mostra "Novos posts" e o toque atualiza a lista', async () => {
   const chamadas = fetchFalso(rotas([post('a')], [post('n'), post('a')]));
-  render(<Feed me={me} />);
+  render(<Feed me={me} />, { container: rolagem.el });
   await screen.findAllByRole('article');
   agora += 61_000;
   voltarAoApp();
@@ -53,7 +54,7 @@ test('voltar ao app depois de 60 s com post novo mostra "Novos posts" e o toque 
 
 test('voltar antes de 60 s não pede nada; sem post novo não avisa', async () => {
   const chamadas = fetchFalso(rotas([post('a')]));
-  render(<Feed me={me} />);
+  render(<Feed me={me} />, { container: rolagem.el });
   await screen.findAllByRole('article');
   agora += 30_000;
   voltarAoApp();
@@ -66,7 +67,7 @@ test('voltar antes de 60 s não pede nada; sem post novo não avisa', async () =
 
 test('não pede em duplicado: dois retornos seguidos geram uma só busca', async () => {
   const chamadas = fetchFalso(rotas([post('a')]));
-  render(<Feed me={me} />);
+  render(<Feed me={me} />, { container: rolagem.el });
   await screen.findAllByRole('article');
   agora += 61_000;
   voltarAoApp();
@@ -84,7 +85,7 @@ const puxar = (de: number, ate: number) => {
 
 test('puxar para atualizar no topo recarrega o feed', async () => {
   const chamadas = fetchFalso(rotas([post('a')], [post('n'), post('a')]));
-  render(<Feed me={me} />);
+  render(<Feed me={me} />, { container: rolagem.el });
   await screen.findAllByRole('article');
   puxar(100, 260);
   await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(2));
@@ -93,10 +94,10 @@ test('puxar para atualizar no topo recarrega o feed', async () => {
 
 test('puxar pouco, ou puxar fora do topo, não recarrega', async () => {
   const chamadas = fetchFalso(rotas([post('a')]));
-  render(<Feed me={me} />);
+  render(<Feed me={me} />, { container: rolagem.el });
   await screen.findAllByRole('article');
   puxar(100, 130);
-  Object.defineProperty(window, 'scrollY', { value: 400, configurable: true });
+  rolagem.rolar(400, false);
   puxar(100, 300);
   expect(chamadas).toHaveLength(1);
 });
@@ -104,7 +105,7 @@ test('puxar pouco, ou puxar fora do topo, não recarrega', async () => {
 test('falha ao atualizar mantém a lista na tela', async () => {
   let n = 0;
   fetchFalso({ 'GET /posts': () => (n++ ? { status: 500 } : { itens: [post('a')], proximo: null }) });
-  render(<Feed me={me} />);
+  render(<Feed me={me} />, { container: rolagem.el });
   await screen.findAllByRole('article');
   puxar(100, 260);
   await waitFor(() => expect(n).toBe(2));
@@ -113,7 +114,7 @@ test('falha ao atualizar mantém a lista na tela', async () => {
 
 test('post que já estava na lista mostra os dados novos depois de atualizar', async () => {
   fetchFalso(rotas([post('a')], [{ ...post('a'), curtidas: 9, legenda: 'Legenda editada' }]));
-  render(<Feed me={me} />);
+  render(<Feed me={me} />, { container: rolagem.el });
   await screen.findByText('Legenda a');
   puxar(100, 260);
   expect(await screen.findByText('Legenda editada')).toBeTruthy();
@@ -122,7 +123,7 @@ test('post que já estava na lista mostra os dados novos depois de atualizar', a
 
 test('gesto dentro da folha de comentários (.veu) não atualiza o feed', async () => {
   const chamadas = fetchFalso(rotas([post('a')]));
-  const { container } = render(<Feed me={me} />);
+  const { container } = render(<Feed me={me} />, { container: rolagem.el });
   await screen.findAllByRole('article');
   const veu = document.createElement('div');
   veu.className = 'veu';

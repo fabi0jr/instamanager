@@ -42,18 +42,20 @@ export function App() {
     }
   }, [me, publica, caminho]);
 
-  if (carregando) return <div className="carregando" role="status" aria-label="Carregando" />;
-  // o link do e-mail abre a tela com ou sem sessão
-  if (caminho === '/nova-senha') return <NovaSenha />;
-  if (!me) {
-    if (caminho === '/cadastro') return <Cadastro aoEntrar={recarregar} />;
-    if (caminho === '/esqueci-senha') return <Esqueci />;
-    return <Entrar aoEntrar={recarregar} />;
-  }
   // postar e editar são fluxos de tela cheia no celular: a barra não cobre o botão fixo (no desktop a lateral fica)
   const telaCheia = caminho === '/postar' || /^\/p\/[^/]+\/editar$/.test(caminho);
-  return (
-    <>
+  const comBarra = !carregando && !!me && caminho !== '/nova-senha';
+
+  const tela = (() => {
+    if (carregando) return <div className="carregando" role="status" aria-label="Carregando" />;
+    // o link do e-mail abre a tela com ou sem sessão
+    if (caminho === '/nova-senha') return <NovaSenha />;
+    if (!me) {
+      if (caminho === '/cadastro') return <Cadastro aoEntrar={recarregar} />;
+      if (caminho === '/esqueci-senha') return <Esqueci />;
+      return <Entrar aoEntrar={recarregar} />;
+    }
+    return (
       <main className={telaCheia ? 'tela-cheia' : ''}>
         {caminho === '/' && <Feed me={me} />}
         {params.id && /^\/p\/[^/]+$/.test(caminho) && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
@@ -68,7 +70,13 @@ export function App() {
         {(caminho === '/admin' || caminho.startsWith('/admin/')) && <Admin me={me} caminho={caminho} />}
         {(caminho === '/instalar' || caminho === '/avisos') && <Instalar caminho={caminho} recarregar={recarregar} />}
       </main>
-      <BarraInferior clubeId={me.clube?.id} soDesktop={telaCheia} />
+    );
+  })();
+
+  return (
+    <>
+      <div id="rolagem">{tela}</div>
+      {comBarra && me && <BarraInferior clubeId={me.clube?.id} soDesktop={telaCheia} />}
     </>
   );
 }
