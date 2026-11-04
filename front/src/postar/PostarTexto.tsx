@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Autocompletar } from '../mencoes/Autocompletar';
 import { useMencoes } from '../mencoes/mencoes';
 import type { Me } from '../api/cliente';
@@ -14,13 +14,15 @@ import { Contador } from './LinhasPrompt';
 const LIMITE_TEXTO = 500;
 
 // Post só de texto: um passo, 0 arquivos + `texto` (1–500 sem espaços nas pontas)
-export function PostarTexto({ me, seletor }: { me: Me; seletor: ReactNode }) {
+export function PostarTexto({ me, seletor, aoConteudo }: { me: Me; seletor: ReactNode; aoConteudo?: (tem: boolean) => void }) {
   const [texto, setTexto] = useState('');
   const [estado, setEstado] = useState<'livre' | 'enviando' | 'falhou' | 'sem-clube' | 'sem-admin'>('livre');
   const [cbf, setCbf] = useState(!me.clube);
   const campo = useRef<HTMLTextAreaElement>(null);
   const mencoes = useMencoes();
   // o limite do back vale para o texto guardado (cada menção vira @[Nome](id), mais longa que @Nome)
+  const comConteudo = texto.trim().length > 0;
+  useEffect(() => aoConteudo?.(comConteudo), [comConteudo]); // eslint-disable-line react-hooks/exhaustive-deps
   const valido = texto.trim().length > 0 && mencoes.serializar(texto).length <= LIMITE_TEXTO;
 
   function publicar(comoCbf = cbf) {

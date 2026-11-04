@@ -13,7 +13,7 @@ import { enviarPost } from './enviar';
 import { Contador, LIMITE_LEGENDA } from './LinhasPrompt';
 
 // Aba Vídeo: 1 vídeo por post (sem prompt, fora da galeria). Passo 1 escolhe, passo 2 legenda, passo 3 envia e converte.
-export function PostarVideo({ me, seletor }: { me: Me; seletor: ReactNode }) {
+export function PostarVideo({ me, seletor, aoConteudo }: { me: Me; seletor: ReactNode; aoConteudo?: (tem: boolean) => void }) {
   const [passo, setPasso] = useState(1);
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [duracao, setDuracao] = useState<number | null>(null);
@@ -26,6 +26,8 @@ export function PostarVideo({ me, seletor }: { me: Me; seletor: ReactNode }) {
   const cancelar = useRef<(() => void) | null>(null);
   const campo = useRef<HTMLTextAreaElement>(null);
   const mencoes = useMencoes();
+  const comConteudo = !!arquivo || legenda.length > 0;
+  useEffect(() => aoConteudo?.(comConteudo), [comConteudo]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
 
   async function escolher(e: ChangeEvent<HTMLInputElement>) {

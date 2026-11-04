@@ -23,7 +23,7 @@ type Envio = { estado: 'enviando' | 'falhou'; carregado: number; total: number; 
 const mb = (n: number) => (n / 1048576).toFixed(1).replace('.', ',');
 
 let seq = 0;
-function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
+function PostarFoto({ me, seletor, aoConteudo }: { me: Me; seletor: ReactNode; aoConteudo?: (tem: boolean) => void }) {
   const [passo, setPasso] = useState(1);
   const [itens, setItens] = useState<Item[]>([]);
   const [legenda, setLegenda] = useState('');
@@ -89,6 +89,7 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
   const prontas = itens.filter((i) => i.estado === 'ok');
   const preparando = itens.filter((i) => i.estado === 'preparando').length;
   const comConteudo = itens.length > 0 || legenda.length > 0;
+  useEffect(() => aoConteudo?.(comConteudo), [comConteudo]); // eslint-disable-line react-hooks/exhaustive-deps
   const textos = prontas.map((i) => prompts[i.id] ?? '');
   const estouro = mencoes.serializar(legenda).length > LIMITE_LEGENDA || textos.some((t) => t.length > LIMITE_PROMPT);
 
@@ -254,12 +255,21 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
 const CHAVE_MODO = 'im:postar-modo';
 type Modo = 'foto' | 'texto' | 'video';
 
-// Foto | Texto: lembra a última escolha; o modo Texto tem um passo só
+// Foto | Texto | Vídeo: lembra a última escolha; trocar de aba com conteúdo pede confirmação (cada aba guarda o seu rascunho só enquanto aberta)
 export function Postar({ me }: { me: Me }) {
   const [modo, setModo] = useState<Modo>(() => ((['texto', 'video'] as const).find((m) => m === localStorage.getItem(CHAVE_MODO)) ?? 'foto'));
-  const escolher = (m: Modo) => {
+  const [tem, setTem] = useState(false);
+  const [pendente, setPendente] = useState<Modo | null>(null);
+  const trocar = (m: Modo) => {
     setModo(m);
+    setTem(false);
+    setPendente(null);
     localStorage.setItem(CHAVE_MODO, m);
+  };
+  const escolher = (m: Modo) => {
+    if (m === modo) return;
+    if (tem) setPendente(m);
+    else trocar(m);
   };
   const seletor = (
     <div className="alternancia" role="radiogroup" aria-label="Tipo de post">
@@ -268,7 +278,21 @@ export function Postar({ me }: { me: Me }) {
       ))}
     </div>
   );
-  if (modo === 'foto' || (!me.clube && !me.isAdmin)) return <PostarFoto me={me} seletor={seletor} />;
-  if (modo === 'video') return <PostarVideo me={me} seletor={seletor} />;
-  return <PostarTexto me={me} seletor={seletor} />;
+  const tela =
+    modo === 'foto' || (!me.clube && !me.isAdmin) ? <PostarFoto me={me} seletor={seletor} aoConteudo={setTem} /> :
+    modo === 'video' ? <PostarVideo me={me} seletor={seletor} aoConteudo={setTem} /> :
+    <PostarTexto me={me} seletor={seletor} aoConteudo={setTem} />;
+  return (
+    <>
+      {tela}
+      {pendente && (
+        <Folha titulo="Descartar este post?" aoFechar={() => setPendente(null)}>
+          <h2>Descartar este post?</h2>
+          <p className="giz2">Trocar para {pendente === 'foto' ? 'Foto' : pendente === 'texto' ? 'Texto' : 'Vídeo'} apaga o que você já escolheu ou escreveu. Um post tem só imagens, só texto ou só um vídeo.</p>
+          <button type="button" className="botao" onClick={() => setPendente(null)}>Continuar editando</button>
+          <button type="button" className="botao fantasma" onClick={() => trocar(pendente)}>Descartar</button>
+        </Folha>
+      )}
+    </>
+  );
 }
