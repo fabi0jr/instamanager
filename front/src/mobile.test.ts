@@ -24,12 +24,20 @@ describe('IM-26: safe area do iPhone', () => {
   });
   it('barra inferior e botões fixos respeitam env(safe-area-inset-bottom)', () => {
     const tokens = ler('src/tokens.css');
-    expect(tokens).toMatch(/\.barra-inferior\s*\{[^}]*padding-bottom:\s*env\(safe-area-inset-bottom\)/);
+    expect(tokens).toMatch(/\.barra-inferior\s*\{[^}]*padding:[^;]*env\(safe-area-inset-bottom\)/);
     expect(ler('src/conta/conta.css')).toMatch(/\.acao-fixa\s*\{[^}]*safe-area-inset-bottom/);
     expect(ler('src/galeria/galeria.css')).toMatch(/\.detalhe-acoes\s*\{[^}]*safe-area-inset-bottom/);
     expect(ler('src/feed/feed.css')).toMatch(/\.folha\s*\{[^}]*safe-area-inset-bottom/);
   });
   it('topo respeita a área do entalhe/barra de status', () => {
     expect(ler('src/tokens.css')).toMatch(/body\s*\{[^}]*safe-area-inset-top/);
+  });
+});
+
+describe('IM-26: iPhone deitado', () => {
+  it('laterais respeitam safe-area-inset-left/right', () => {
+    expect(ler('src/tokens.css')).toMatch(/body\s*\{[^}]*safe-area-inset-left/);
+    expect(ler('src/tokens.css')).toMatch(/\.barra-inferior\s*\{[^}]*safe-area-inset-left/);
+    expect(ler('src/galeria/galeria.css')).toMatch(/\.detalhe\s*\{[^}]*safe-area-inset-left/);
   });
 });
