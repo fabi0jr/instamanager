@@ -3227,7 +3227,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T12:28:19.545Z",
@@ -3266,6 +3266,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 0b153ae"
+        },
+        {
+          "quando": "2026-11-04T12:55:24.889Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "aprovada; deploy junto da onda C"
         }
       ]
     },
@@ -3280,12 +3287,47 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "backlog",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T12:28:19.604Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T12:52:36.570Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T12:52:36.604Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T12:52:36.640Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "6c13e8b + fix IM-46 72ce78d"
+        },
+        {
+          "quando": "2026-11-04T12:55:24.916Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 6c13e8b"
+        },
+        {
+          "quando": "2026-11-04T13:34:59.714Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "aprovada com f5c9717/6461094/d288fb5"
         }
       ]
     },
@@ -3300,12 +3342,40 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "backlog",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-04T12:28:19.656Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T13:30:49.619Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T13:30:49.644Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T13:42:25.847Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "941da5f"
+        },
+        {
+          "quando": "2026-11-04T13:48:09.055Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 941da5f+00c18fa"
         }
       ]
     },
@@ -3319,13 +3389,67 @@
         "ver plano docs/superpowers/plans/2026-11-04-pack2-onda-c.md"
       ],
       "depende": [],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-04T12:28:19.712Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T12:45:54.201Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T12:45:54.225Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T12:45:54.251Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-04T12:54:15.396Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "5bd9971"
+        },
+        {
+          "quando": "2026-11-04T12:58:09.026Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: busca mostra markup cru; editar post com menção mostra markup"
+        },
+        {
+          "quando": "2026-11-04T13:00:49.017Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T13:00:49.078Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "357b120"
+        },
+        {
+          "quando": "2026-11-04T13:02:36.110Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou a lógica; a1b7e47 fecha a sintaxe (conferido pelo Maestro)"
         }
       ]
     },
@@ -3340,12 +3464,89 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "backlog",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-04T12:28:19.764Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T13:02:36.138Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T13:02:36.164Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T13:02:36.191Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T13:34:59.747Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: toque no véu avança o story; cancelar na conversão mente"
+        },
+        {
+          "quando": "2026-11-04T13:36:27.368Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T13:36:27.394Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T13:37:56.054Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou ea267da; conferir contra a IM-48 real"
+        },
+        {
+          "quando": "2026-11-04T14:17:15.310Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "correcao",
+          "nota": "QA: sem entrada para 2º story; Cancelar da busca fora da tela"
+        },
+        {
+          "quando": "2026-11-04T14:22:14.325Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T14:22:14.349Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T14:23:37.972Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou e53a294"
         }
       ]
     },
@@ -3360,12 +3561,26 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "backlog",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-04T12:28:19.813Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T14:01:26.314Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T14:01:26.345Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     }
