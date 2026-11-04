@@ -210,6 +210,13 @@ describe('onda A · hashtags, favoritos, bio/capa, denúncias e ocultar (e2e)', 
       expect((await com('get', `/api/posts/${id}`, torcedor).expect(200)).body.texto).toBe('fica');
     });
 
+    it('legenda ou prompts em post de texto → 400 DADOS_INVALIDOS e nada é gravado', async () => {
+      const id = await novoPost({ caption: '', texto: 'só texto' });
+      for (const corpo of [{ legenda: 'oi' }, { prompts: [] }, { legenda: 'oi', texto: 'novo' }])
+        expect((await editar(id, tecnico, corpo).expect(400)).body.codigo).toBe('DADOS_INVALIDOS');
+      expect(await prisma.post.findUnique({ where: { id }, select: { caption: true, texto: true } })).toEqual({ caption: '', texto: 'só texto' });
+    });
+
     it('post com imagens → 400; sem permissão → 403; inexistente → 404', async () => {
       const { postId } = await novoComPrompt();
       expect((await editar(postId, tecnico, { texto: 'oi' }).expect(400)).body.codigo).toBe('DADOS_INVALIDOS');

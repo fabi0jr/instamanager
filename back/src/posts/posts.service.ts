@@ -176,6 +176,7 @@ export class PostsService {
   async editar(id: string, user: UserComClube, corpo: { legenda?: unknown; texto?: unknown; prompts?: unknown }) {
     const p = await this.buscar(id, user);
     if (!this.podeEditar(p, user)) throw new ApiError(403, 'NAO_E_TECNICO', 'Só o técnico atual do clube edita este post.');
+    if (p.images.length === 0 && (corpo.legenda !== undefined || corpo.prompts !== undefined)) throw invalido('Post de texto não tem legenda nem prompts; edite o texto.', 'legenda');
     const legenda = corpo.legenda === undefined ? undefined : lerLegenda(corpo.legenda);
     const prompts = corpo.prompts === undefined ? undefined : lerPrompts(corpo.prompts, p.images.length);
     if (corpo.texto !== undefined && p.images.length > 0) throw invalido('Só post sem imagem tem texto; neste, edite a legenda.', 'texto');
