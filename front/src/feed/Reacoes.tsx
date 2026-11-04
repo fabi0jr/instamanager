@@ -91,8 +91,9 @@ export function BotaoReagir({ minha, aoReagir }: { minha: Emoji | null; aoReagir
     <div
       className="reagir"
       ref={caixa}
-      onMouseEnter={() => { clearTimeout(timer.current); timer.current = setTimeout(() => setAberto(true), HOVER_MS); }}
-      onMouseLeave={() => { clearTimeout(timer.current); setAberto(false); }}
+      // só mouse de verdade: no celular o toque emula mouseenter e abriria o seletor em todo toque curto
+      onPointerEnter={(e) => { if (e.pointerType !== 'mouse') return; clearTimeout(timer.current); timer.current = setTimeout(() => setAberto(true), HOVER_MS); }}
+      onPointerLeave={(e) => { if (e.pointerType !== 'mouse') return; clearTimeout(timer.current); setAberto(false); }}
     >
       <button
         type="button"
@@ -110,6 +111,8 @@ export function BotaoReagir({ minha, aoReagir }: { minha: Emoji | null; aoReagir
       >
         {minha && minha !== '❤️' ? <span className="emoji-reacao" aria-hidden="true">{minha}</span> : <IcCurtir cheio={minha === '❤️'} />}
       </button>
+      {/* ação de acessibilidade (leitor de tela): abre o seletor sem precisar segurar */}
+      <button type="button" className="sr" aria-label="Mais reações" aria-haspopup="menu" aria-expanded={aberto} onClick={() => setAberto(true)} />
       {aberto && (
         <div role="menu" aria-label="Reações" className="seletor" onKeyDown={tecladoMenu}>
           {REACOES.map((r) => (
