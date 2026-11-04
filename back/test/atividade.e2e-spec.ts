@@ -216,6 +216,34 @@ describe('atividade e menções (e2e)', () => {
     expect((await itens(tecnico0)).every((i) => i.tipo !== 'TROCA_DECIDIDA')).toBe(true);
   });
 
+  it('COMENTARIO traz comentario {id, resumo} com o nome do banco, até 80 caracteres; oculto ou post oculto vira indisponível', async () => {
+    const p = await postar(tecnico0, 'Post para comentar o resumo');
+    const cm = (await comentar(torcedor, p.id, `Boa @[Forjado](${outro.id})! ${'x'.repeat(200)}`).expect(201)).body;
+    await esperar();
+    const item = (await itens(tecnico0)).find((i) => i.tipo === 'COMENTARIO') as unknown as Item & { comentario: { id: string; resumo: string } };
+    expect(item.comentario.id).toBe(cm.id);
+    expect(item.comentario.resumo.length).toBeLessThanOrEqual(80);
+    expect(item.comentario.resumo.startsWith('Boa @Outro Mencionado! xxx')).toBe(true);
+    expect(item.comentario.resumo).not.toContain('Forjado');
+    // MENCAO feita dentro de comentário traz o mesmo trecho; MENCAO em legenda de post traz comentario: null; outros tipos não têm o campo
+    const m = await comentar(torcedor, p.id, `Olha ${marca(outro, 'Falso')} aqui`).expect(201);
+    const pm = await postar(tecnico0, `Salve ${marca(outro, 'Falso')}`);
+    await esperar();
+    const mencoes = (await itens(outro)).filter((i) => i.tipo === 'MENCAO') as unknown as { post: { id: string }; comentario: { id: string; resumo: string } | null }[];
+    expect(mencoes.find((x) => x.post.id === p.id)!.comentario).toEqual({ id: m.body.id, resumo: 'Olha @Outro Mencionado aqui' });
+    expect(mencoes.find((x) => x.post.id === pm.id)!.comentario).toBeNull();
+    expect((await itens(tecnico0)).filter((i) => i.tipo === 'MENCAO').length).toBe(0);
+    await com('put', `/api/admin/comentarios/${cm.id}/ocultar`, admin).expect(204);
+    const doComentario = async () => ((await itens(tecnico0)) as unknown as { tipo: string; comentario?: { id: string; resumo: string } }[]).find((i) => i.tipo === 'COMENTARIO' && i.comentario?.id === cm.id)!.comentario!;
+    const oculto = await doComentario();
+    expect(oculto.resumo).toBe('Comentário indisponível');
+    expect(JSON.stringify(oculto)).not.toContain('Boa');
+    expect(((await itens(admin)).length)).toBe(0); // o admin não é destinatário; só confere que a rota não quebra
+    await com('delete', `/api/admin/comentarios/${cm.id}/ocultar`, admin).expect(204);
+    await com('put', `/api/admin/posts/${p.id}/ocultar`, admin).expect(204);
+    expect((await doComentario()).resumo).toBe('Comentário indisponível');
+  });
+
   it('limpeza apaga notificação com mais de 60 dias e mantém as recentes', async () => {
     const dia = 86_400_000;
     await prisma.notificacao.createMany({

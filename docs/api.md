@@ -173,7 +173,7 @@ Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
 
 | Rota | Corpo | Resposta |
 |---|---|---|
-| `GET /api/atividade?antes=` | — | `{itens, proximo}`, 20 por página, do mais novo ao mais velho (cursor como o do feed; `400` se malformado). Item: `{id, tipo, criadoEm, lida, ator: {id, nome, avatarUrl\|null}\|null, post: {id, miniUrl\|null, resumo}\|null, votacao: {id, titulo}\|null, troca?: {status: 'APROVADA'\|'RECUSADA', clube: ClubeMini\|null}\|null}` (`troca` só nos itens `TROCA_DECIDIDA`: `clube` é o que a pessoa pediu para assumir, `null` no pedido de sair). `resumo` ≤ 80 caracteres (menção vira `@Nome`). Post oculto pelo admin (para quem não é admin) → `{id, miniUrl: null, resumo: "Post indisponível"}`; post apagado → o item some. |
+| `GET /api/atividade?antes=` | — | `{itens, proximo}`, 20 por página, do mais novo ao mais velho (cursor como o do feed; `400` se malformado). Item: `{id, tipo, criadoEm, lida, ator: {id, nome, avatarUrl\|null}\|null, post: {id, miniUrl\|null, resumo}\|null, votacao: {id, titulo}\|null, troca?: {status: 'APROVADA'\|'RECUSADA', clube: ClubeMini\|null}\|null, comentario?: {id, resumo}\|null}` (`comentario` só nos itens `COMENTARIO` e `MENCAO`: `resumo` ≤ 80 caracteres do **comentário**, com a menção como `@Nome` do banco; `null` na menção feita em post; comentário ocultado pelo admin ou post indisponível → `resumo: "Comentário indisponível"`. `troca` só nos itens `TROCA_DECIDIDA`: `clube` é o que a pessoa pediu para assumir, `null` no pedido de sair). `resumo` ≤ 80 caracteres (menção vira `@Nome`). Post oculto pelo admin (para quem não é admin) → `{id, miniUrl: null, resumo: "Post indisponível"}`; post apagado → o item some. |
 | `GET /api/atividade/nao-lidas` | — | `{total}` |
 | `POST /api/atividade/lidas` | — | `204`: marca todas como lidas. |
 | `GET /api/pessoas?q=` | — | até **8** `[{id, nome, avatarUrl\|null, clube: ClubeMini\|null}]` para o autocompletar do `@`: pedaço do nome, sem acento e sem diferenciar maiúsculas (quem começa com o texto vem primeiro); `%` e `_` valem como texto. `q` com menos de 2 caracteres (após `trim`, cortado em 60) → `[]`, não `400`. Sem e-mail. |
@@ -187,7 +187,7 @@ Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
 - `TROCA_DECIDIDA`: quem pediu a troca, aprovada ou recusada (`ator: null`, `troca` com o resultado).
 - `VOTACAO_RESULTADO`: todo mundo, menos o admin que encerrou (`ator: null`, `votacao` e `post` = o resultado).
 
-Itens com mais de **60 dias** são apagados na limpeza horária. Eventos novos: `reacoes.reagida(postId, userId)` e `posts.editado(postId)`.
+Itens com mais de **60 dias** são apagados na limpeza (que roda no boot do back e depois a cada hora, junto com sessões e stories vencidos). Eventos novos: `reacoes.reagida(postId, userId)` e `posts.editado(postId)`.
 
 ## 4f. Busca (Task C2) 🔒
 
