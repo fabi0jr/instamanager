@@ -9,15 +9,19 @@ import './votacoes.css';
 // aba Votações da Liga: as não encerradas (a API não lista as encerradas)
 export function ListaVotacoes() {
   const [lista, setLista] = useState<Votacao[] | 'carregando' | 'erro'>('carregando');
+  const [encerradas, setEncerradas] = useState<Votacao[]>([]);
   function carregar() {
     setLista('carregando');
     api<Votacao[]>('/votacoes').then(setLista, () => setLista('erro'));
+    // as encerradas são um extra: se falhar, as abertas continuam aparecendo
+    api<Votacao[]>('/votacoes?encerradas=1').then((l) => setEncerradas(Array.isArray(l) ? l : []), () => setEncerradas([]));
   }
   useEffect(carregar, []);
   if (lista === 'carregando') return <div aria-busy="true"><div className="esqueleto" /></div>;
   if (lista === 'erro') return <div className="caixa-info" role="alert"><h2>Não deu para carregar as votações</h2><button type="button" className="botao secundario" onClick={carregar}>Tentar de novo</button></div>;
-  if (!lista.length) return <p className="giz2 padrao">Nenhuma votação aberta agora.</p>;
   return (
+    <>
+    {!lista.length && <p className="giz2 padrao">Nenhuma votação aberta agora.</p>}
     <ul className="votacoes-lista">
       {lista.map((v) => (
         <li key={v.id} className="cartao-votacao">
@@ -31,6 +35,24 @@ export function ListaVotacoes() {
         </li>
       ))}
     </ul>
+    {encerradas.length > 0 && (
+      <>
+        <p className="giz2 legenda-s grupo-encerradas">ENCERRADAS</p>
+        <ul className="votacoes-lista">
+          {encerradas.map((v) => {
+            return (
+              <li key={v.id}>
+                <Link para={`/votacoes/${v.id}`} className="cartao-votacao encerrada">
+                  <IcVotacao />
+                  <div><h3>{v.titulo}</h3><p className="giz2 legenda-s">{v.vencedor ? `Venceu: ${v.vencedor}` : 'Sem votos'}</p></div>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </>
+    )}
+    </>
   );
 }
 

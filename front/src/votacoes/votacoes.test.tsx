@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, expect, test, vi } from 'vitest';
 import { fetchFalso } from '../testes/fetchFalso';
 import type { Votacao } from './tipos';
-import { Votar } from './Votacoes';
+import { ListaVotacoes, Votar } from './Votacoes';
 
 const vot = (extra: Partial<Votacao> = {}): Votacao => ({
   id: 'v1', titulo: 'Técnico do mês', tipo: 'CLUBE', prazo: new Date(Date.now() + 2 * 86400_000).toISOString(), aberta: true, encerrada: false,
@@ -49,4 +49,13 @@ test('resultado só depois de encerrar: antes não há porcentagem; depois mostr
   expect(screen.getByLabelText('75%, 3 votos')).toBeTruthy();
   expect(screen.getByText(/seu voto/)).toBeTruthy();
   expect(screen.getByText('Selo para Flamengo, agora no perfil do clube.')).toBeTruthy();
+});
+
+test('lista da Liga mostra também as encerradas com "Venceu: X"', async () => {
+  const enc = vot({ id: 'v0', titulo: 'Clube de outubro', aberta: false, encerrada: true, vencedor: 'Flamengo', resultado: [{ opcao: 'flamengo', rotulo: 'Flamengo', votos: 3 }, { opcao: 'palmeiras', rotulo: 'Palmeiras', votos: 1 }] });
+  fetchFalso({ 'GET /votacoes': [vot()], 'GET /votacoes?encerradas=1': [enc] });
+  render(<ListaVotacoes />);
+  expect(await screen.findByText('Venceu: Flamengo')).toBeTruthy();
+  expect(screen.getByRole('link', { name: /Clube de outubro/ }).getAttribute('href')).toBe('/votacoes/v0');
+  expect(screen.getByText('Técnico do mês')).toBeTruthy();
 });

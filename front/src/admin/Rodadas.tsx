@@ -57,6 +57,7 @@ export function RodadaEditar({ n }: { n: number }) {
   const [aviso, setAviso] = useState('');
   const [ocupado, setOcupado] = useState(false);
   const [reabrir, setReabrir] = useState(false);
+  const [confirmarFechar, setConfirmarFechar] = useState(false);
   const [previa, setPrevia] = useState<{ texto: string; citados: string[] } | null>(null);
 
   function carregar() {
@@ -96,9 +97,14 @@ export function RodadaEditar({ n }: { n: number }) {
     carregar();
   });
   // fechar: grava os jogos, fecha e já mostra a prévia do post da CBF (a API só sorteia a frase com a rodada fechada)
-  const fechar = () => {
+  const pedirFechar = () => {
     if (!jogos.length) return setAviso('Lance ao menos um jogo');
     if (!completos) return setAviso('Escolha os dois clubes e o placar (0 a 99) de cada jogo.');
+    setConfirmarFechar(true);
+  };
+  const abrirPrevia = () => agir(async () => setPrevia(await api(`/admin/rodadas/${n}/previa`, { method: 'POST' })));
+  const fechar = () => {
+    setConfirmarFechar(false);
     return agir(async () => {
       await api(`/admin/rodadas/${n}/jogos`, { method: 'PUT', body: corpo() });
       await api(`/admin/rodadas/${n}/fechar`, { method: 'POST' });
@@ -119,13 +125,18 @@ export function RodadaEditar({ n }: { n: number }) {
     return (
       <div className="tela admin">
         <Topo titulo={`Rodada ${n}`} voltar />
-        <p className="aviso-gramado">Rodada fechada. O post da CBF já saiu e a tabela já conta esses jogos.</p>
+        {rodada.resumoPublicado ? (
+          <p className="aviso-gramado">Rodada fechada, a tabela já conta esses jogos. {rodada.resumoPostId ? <Link para={`/p/${rodada.resumoPostId}`}>Resumo publicado</Link> : 'Resumo publicado'}</p>
+        ) : (
+          <p className="aviso-ambar">Rodada fechada, a tabela já conta esses jogos. O resumo da CBF ainda não foi publicado.</p>
+        )}
         <Aviso>{aviso}</Aviso>
+        {!rodada.resumoPublicado && <Botao carregando={ocupado ? 'Abrindo…' : undefined} onClick={abrirPrevia}>Publicar resumo</Botao>}
         <ul className="jogos">
           {rodada.jogos.map((j) => <li key={j.id}><span className="time mandante">{j.mandante.nome}</span><Escudo src={j.mandante.escudoUrl} tam={22} /><strong className="placar">{j.golsMandante} × {j.golsVisitante}</strong><Escudo src={j.visitante.escudoUrl} tam={22} /><span className="time">{j.visitante.nome}</span></li>)}
         </ul>
         <Botao variante="secundario" onClick={() => setReabrir(true)}>Reabrir para editar</Botao>
-        {reabrir && <Dialogo titulo={`Reabrir a rodada ${n}?`} texto="A tabela é recalculada sem esses jogos até você fechar de novo. O post da CBF que já saiu não muda." acao="Reabrir rodada" voltarRotulo="Cancelar" ocupado={ocupado} aoConfirmar={reabrirConfirmado} aoVoltar={() => setReabrir(false)} />}
+        {reabrir && <Dialogo titulo={`Reabrir a rodada ${n}?`} texto={`A tabela é recalculada sem esses jogos até você fechar de novo.${rodada.resumoPublicado ? ' O resumo da CBF que já saiu não muda.' : ''}`} acao="Reabrir rodada" voltarRotulo="Cancelar" ocupado={ocupado} aoConfirmar={reabrirConfirmado} aoVoltar={() => setReabrir(false)} />}
       </div>
     );
 
@@ -162,8 +173,9 @@ export function RodadaEditar({ n }: { n: number }) {
       {jogos.length < MAX_JOGOS && <Botao variante="secundario" disabled={ocupado} onClick={() => setJogos((l) => [...l, { m: '', v: '', gm: '0', gv: '0' }])}>Adicionar jogo</Botao>}
       <div className="acao-fixa">
         <Botao variante="secundario" disabled={!completos && jogos.length > 0} carregando={ocupado ? 'Salvando…' : undefined} onClick={salvar}>Salvar jogos</Botao>
-        <Botao disabled={ocupado} onClick={fechar}>Fechar rodada</Botao>
+        <Botao disabled={ocupado} onClick={pedirFechar}>Fechar rodada</Botao>
       </div>
+      {confirmarFechar && <Dialogo titulo={`Fechar a rodada ${n}?`} texto="Depois você vê a prévia do resumo da CBF." acao="Fechar rodada" voltarRotulo="Cancelar" aoConfirmar={fechar} aoVoltar={() => setConfirmarFechar(false)} />}
     </div>
   );
 }
@@ -196,16 +208,18 @@ function Previa({ n, inicial }: { n: number; inicial: { texto: string; citados: 
     try {
       await api(`/admin/rodadas/${n}/publicar`, { method: 'POST', body: JSON.stringify({ texto, citados: sorteado.citados }) });
       navegar('/admin/rodadas');
-    } catch {
+    } catch (e) {
+      // o resumo já foi publicado (tentativa anterior que chegou, ou outro admin): conta como sucesso, sem duplicar
+      if (e instanceof ErroApi && e.codigo === 'RESUMO_JA_PUBLICADO') return navegar('/admin/rodadas');
       setAviso('Não deu para publicar. Tente de novo.');
       setOcupado(false);
     }
   }
   return (
     <div className="tela admin previa-bot">
-      <button type="button" className="link" aria-label="Fechar prévia" onClick={() => navegar('/admin/rodadas')}>✕</button>
+      <button type="button" className="link" aria-label="Agora não: a rodada já está fechada" onClick={() => navegar('/admin/rodadas')}>✕</button>
       <h1>Prévia do post da CBF</h1>
-      <p className="giz2">Rodada {n} fechada. O post só sai quando você publicar.</p>
+      <p className="giz2">A rodada {n} já está fechada. O resumo só sai quando você publicar, agora ou depois, em Rodadas.</p>
       <Aviso>{aviso}</Aviso>
       <div className="comunicado">
         <span className="rotulo-comunicado">COMUNICADO · RODADA {n}</span>
@@ -227,8 +241,8 @@ function Previa({ n, inicial }: { n: number; inicial: { texto: string; citados: 
           : <button type="button" className="botao secundario" onClick={() => setEditando(true)}><IcEditar /> Editar texto</button>}
       </div>
       <div className="acao-fixa">
-        <Botao disabled={!texto.trim()} carregando={ocupado ? 'Publicando…' : undefined} onClick={publicar}>Fechar e publicar</Botao>
-        <button type="button" className="link giz2" disabled={ocupado} onClick={() => navegar('/admin/rodadas')}>Fechar sem postar</button>
+        <Botao disabled={!texto.trim()} carregando={ocupado ? 'Publicando…' : undefined} onClick={publicar}>Publicar resumo</Botao>
+        <button type="button" className="link giz2" disabled={ocupado} onClick={() => navegar('/admin/rodadas')}>Agora não, publico depois</button>
       </div>
       {descartar && <Dialogo titulo="Descartar o texto editado?" texto="Sortear de novo troca a frase e perde a sua edição." acao="Sortear de novo" voltarRotulo="Cancelar" aoConfirmar={sortear} aoVoltar={() => setDescartar(false)} />}
     </div>

@@ -10,3 +10,4 @@
 .resultado { list-style: none; margin: var(--im-e3) 0; padding: 0; display: flex; flex-direction: column; gap: var(--im-e2); }
 .resultado li { position: relative; display: flex; justify-content: space-between; align-items: center; min-height: 56px; padding: 0 var(--im-e4); background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: var(--im-r-midia); overflow: hidden; } .resultado li > * { position: relative; z-index: 1; } .resultado li strong { font: 700 26px var(--im-fonte-display); } .resultado li em { font-style: normal; color: var(--im-giz-2); }
 .resultado li i { position: absolute; left: 0; top: 0; bottom: 0; z-index: 0; background: var(--im-superficie-alta); } .resultado li.vencedor { border: 2px solid var(--im-giz); } .resultado li.vencedor i { background: rgb(210 38 31 / .25); }
+.grupo-encerradas { margin: var(--im-e4) 0 var(--im-e2); } .cartao-votacao.encerrada { color: var(--im-giz); text-decoration: none; }

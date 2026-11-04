@@ -58,6 +58,11 @@ test('fechar e reabrir com confirmação', async () => {
   });
   tela('/admin/rodadas/1');
   fireEvent.click(await screen.findByRole('button', { name: 'Fechar rodada' }));
+  const confirma = screen.getByRole('alertdialog');
+  expect(confirma.textContent).toContain('Fechar a rodada 1?');
+  expect(confirma.textContent).toContain('Depois você vê a prévia do resumo da CBF');
+  expect(chamadas.some((x) => x.chave === 'POST /admin/rodadas/1/fechar')).toBe(false); // nada antes de confirmar
+  fireEvent.click(within(confirma).getByRole('button', { name: 'Fechar rodada' }));
   expect(await screen.findByText('Rodada boa')).toBeTruthy(); // abre a prévia, não "fecha direto"
   expect(chamadas.map((x) => x.chave)).toEqual(['GET /liga/rodadas', 'GET /clubes', 'PUT /admin/rodadas/1/jogos', 'POST /admin/rodadas/1/fechar', 'POST /admin/rodadas/1/previa']);
   cleanup();
@@ -84,6 +89,7 @@ test('prévia do bot com Sortear de novo, Editar (até 500) e Publicar', async (
   });
   tela('/admin/rodadas/1');
   fireEvent.click(await screen.findByRole('button', { name: 'Fechar rodada' }));
+  fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Fechar rodada' }));
   await screen.findByText('Frase 1');
   fireEvent.click(screen.getByRole('button', { name: /Sortear de novo/ }));
   await screen.findByText('Frase 2'); // sem edição: troca sem perguntar
@@ -95,7 +101,7 @@ test('prévia do bot com Sortear de novo, Editar (até 500) e Publicar', async (
   fireEvent.click(screen.getByRole('button', { name: /Sortear de novo/ })); // editado: pede confirmação
   expect(screen.getByRole('alertdialog').textContent).toContain('Descartar o texto editado?');
   fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancelar' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Fechar e publicar' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Publicar resumo' }));
   await waitFor(() => expect(chamadas.some((x) => x.chave === 'POST /admin/rodadas/1/publicar')).toBe(true));
   expect(JSON.parse(chamadas.find((x) => x.chave === 'POST /admin/rodadas/1/publicar')!.body as string)).toEqual({ texto: 'Texto do admin', citados: ['tflamengo'] });
   await waitFor(() => expect(location.pathname).toBe('/admin/rodadas'));
@@ -130,4 +136,43 @@ test('encerrar votação mostra o selo criado', async () => {
   fireEvent.click(await screen.findByRole('button', { name: 'Encerrar' }));
   fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Encerrar agora' }));
   expect(await screen.findByText('Votação encerrada. Selo criado para Flamengo.')).toBeTruthy();
+});
+
+test('rodada fechada sem resumo mostra "Publicar resumo" (abre a prévia) e nunca diz que já saiu', async () => {
+  const chamadas = fetchFalso({
+    'GET /liga/rodadas': rodadas(true, [jogo]),
+    'GET /clubes': clubes,
+    'POST /admin/rodadas/1/previa': { status: 201, corpo: { texto: 'Resumo da vez', citados: [] } },
+  });
+  tela('/admin/rodadas/1');
+  expect(await screen.findByText(/O resumo da CBF ainda não foi publicado/)).toBeTruthy();
+  expect(screen.queryByText(/já saiu/)).toBeNull();
+  expect(screen.queryByText('Resumo publicado')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Publicar resumo' }));
+  expect(await screen.findByText('Resumo da vez')).toBeTruthy();
+  expect(chamadas.at(-1)!.chave).toBe('POST /admin/rodadas/1/previa');
+  expect(screen.getByRole('button', { name: 'Agora não: a rodada já está fechada' })).toBeTruthy();
+  expect(screen.getByText(/já está fechada/)).toBeTruthy();
+});
+
+test('rodada fechada com resumo mostra "Resumo publicado" com link para o post', async () => {
+  fetchFalso({ 'GET /liga/rodadas': [{ ...rodadas(true, [jogo])[0], resumoPublicado: true, resumoPostId: 'post9' }], 'GET /clubes': clubes });
+  tela('/admin/rodadas/1');
+  expect((await screen.findByRole('link', { name: 'Resumo publicado' })).getAttribute('href')).toBe('/p/post9');
+  expect(screen.queryByRole('button', { name: 'Publicar resumo' })).toBeNull();
+});
+
+test('publicar: 409 RESUMO_JA_PUBLICADO conta como sucesso (sem erro, volta à lista)', async () => {
+  fetchFalso({
+    'GET /liga/rodadas': rodadas(true, [jogo]),
+    'GET /clubes': clubes,
+    'POST /admin/rodadas/1/previa': { status: 201, corpo: { texto: 'Resumo', citados: [] } },
+    'POST /admin/rodadas/1/publicar': { status: 409, corpo: { codigo: 'RESUMO_JA_PUBLICADO' } },
+  });
+  tela('/admin/rodadas/1');
+  fireEvent.click(await screen.findByRole('button', { name: 'Publicar resumo' }));
+  await screen.findByText('Resumo');
+  fireEvent.click(screen.getByRole('button', { name: 'Publicar resumo' }));
+  await waitFor(() => expect(location.pathname).toBe('/admin/rodadas'));
+  expect(screen.queryByText('Não deu para publicar. Tente de novo.')).toBeNull();
 });

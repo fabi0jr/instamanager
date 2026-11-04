@@ -1,6 +1,7 @@
 export type Votacao = {
   id: string; titulo: string; tipo: 'CLUBE' | 'TECNICO' | 'POST'; prazo: string; aberta: boolean; encerrada: boolean;
   opcoes: { id: string; rotulo: string }[]; meuVoto: string | null; resultado?: { opcao: string; rotulo: string; votos: number }[];
+  vencedor?: string | null; // só nas encerradas de ?encerradas=1 (empate: 'A e B'; sem votos: null)
 };
 export const prazoTexto = (iso: string) => {
   const ms = new Date(iso).getTime() - Date.now();
