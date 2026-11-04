@@ -27,7 +27,7 @@ export class TrocasService {
       if (typeof clubeId !== 'string' || !clubeId) throw new ApiError(400, 'DADOS_INVALIDOS', 'Escolha o clube que quer assumir.', ['clubeId']);
       const clube = await this.prisma.club.findUnique({ where: { id: clubeId } });
       if (!clube) throw naoEncontrado();
-      if (clube.coachId) throw ocupado();
+      if (clube.coachId || clube.oficial) throw ocupado(); // a CBF nunca tem técnico
     }
     const criada = await this.prisma.$transaction(async (tx) => {
       // trava por pessoa: dois pedidos ao mesmo tempo não passam juntos pela checagem de "um pendente"
@@ -82,7 +82,7 @@ export class TrocasService {
       }
       if (t.kind === 'ASSUMIR' && t.clubId) {
         // coachId null no WHERE: se alguém ocupou antes, count 0 e a transação inteira volta atrás
-        const { count: pegou } = await tx.club.updateMany({ where: { id: t.clubId, coachId: null }, data: { coachId: t.userId } });
+        const { count: pegou } = await tx.club.updateMany({ where: { id: t.clubId, coachId: null, oficial: false }, data: { coachId: t.userId } });
         if (pegou === 0) throw ocupado();
         await tx.coachTenure.create({ data: { clubId: t.clubId, userId: t.userId, startedAt: agora } });
       }

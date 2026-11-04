@@ -44,6 +44,8 @@ model User {
   favorites     PromptFavorite[]
   hiddenPosts   HiddenPost[]
   reports       Report[]
+  votacoes      Votacao[]
+  votos         Voto[]
 }
 
 model Session {
@@ -71,12 +73,38 @@ model Club {
   crestPath String
   bio       String? // até 300, editada pelo técnico
   coverPath String? // capa JPEG (/uploads/capas/…)
+  oficial   Boolean @default(false) // CBF: sem técnico, fora de listas livres, cadastro, trocas e tabela
   coachId   String? @unique @db.Uuid // único: um técnico por clube e um clube por pessoa
   coach     User?   @relation(fields: [coachId], references: [id], onDelete: SetNull)
 
   tenures   CoachTenure[]
   posts     Post[]
   transfers TransferRequest[]
+  mandante  Jogo[]            @relation("mandante")
+  visitante Jogo[]            @relation("visitante")
+  selos     Selo[]
+}
+
+// 38 rodadas (criadas na migração). A tabela é calculada dos jogos de rodadas fechadas.
+model Rodada {
+  numero    Int       @id
+  fechadaEm DateTime?
+  jogos     Jogo[]
+}
+
+model Jogo {
+  id            String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  rodadaNumero  Int
+  mandanteId    String
+  visitanteId   String
+  golsMandante  Int
+  golsVisitante Int
+  rodada        Rodada @relation(fields: [rodadaNumero], references: [numero], onDelete: Cascade)
+  mandante      Club   @relation("mandante", fields: [mandanteId], references: [id])
+  visitante     Club   @relation("visitante", fields: [visitanteId], references: [id])
+
+  @@unique([rodadaNumero, mandanteId])
+  @@unique([rodadaNumero, visitanteId])
 }
 
 model CoachTenure {
@@ -214,4 +242,45 @@ model Report {
   comment     Comment?  @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
   @@index([resolvidaEm, createdAt])
+}
+
+enum VotacaoTipo {
+  CLUBE
+  TECNICO
+  POST
+}
+
+// `opcoes`: lista de ids (clube, usuário técnico ou post, conforme o tipo). Voto secreto até encerrar.
+model Votacao {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  titulo      String
+  tipo        VotacaoTipo
+  opcoes      Json
+  prazo       DateTime
+  encerradaEm DateTime?
+  criadaPor   String      @db.Uuid
+  createdAt   DateTime    @default(now())
+  criador     User        @relation(fields: [criadaPor], references: [id], onDelete: Cascade)
+  votos       Voto[]
+  selos       Selo[]
+}
+
+model Voto {
+  votacaoId String  @db.Uuid
+  userId    String  @db.Uuid
+  opcao     String
+  votacao   Votacao @relation(fields: [votacaoId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([votacaoId, userId])
+}
+
+model Selo {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clubId    String
+  titulo    String
+  votacaoId String   @db.Uuid
+  createdAt DateTime @default(now())
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  votacao   Votacao  @relation(fields: [votacaoId], references: [id], onDelete: Cascade)
 }
