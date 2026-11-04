@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type KeyboardEvent } from 'react';
+import { createPortal } from 'react-dom';
 import '../feed/feed.css';
 import { Botao } from '../conta/ui';
 
@@ -32,7 +33,7 @@ export function Dialogo({ titulo, texto, acao, perigo, ocupado, aoConfirmar, aoV
       aoVoltar();
     }
   }
-  return (
+  return createPortal(
     <div className="veu" onClick={aoVoltar}>
       <div role="alertdialog" aria-modal="true" aria-labelledby={id + 't'} aria-describedby={id + 'd'} className="folha dialogo" onClick={(e) => e.stopPropagation()} onKeyDown={tecla}>
         <h2 id={id + 't'}>{titulo}</h2>
@@ -40,6 +41,7 @@ export function Dialogo({ titulo, texto, acao, perigo, ocupado, aoConfirmar, aoV
         <Botao className={perigo ? 'perigo' : ''} onClick={aoConfirmar} carregando={ocupado ? 'Enviando…' : undefined}>{acao}</Botao>
         <button ref={voltar} type="button" className="botao secundario" disabled={ocupado} onClick={aoVoltar}>Voltar</button>
       </div>
-    </div>
+    </div>,
+    document.body, // fora do #rolagem: acima da barra inferior
   );
 }
