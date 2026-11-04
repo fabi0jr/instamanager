@@ -19,7 +19,7 @@ import { lerVolta } from './instalar/volta';
 import { PostPagina } from './feed/PostPagina';
 import { EditarPost } from './postar/EditarPost';
 import { Postar } from './postar/Postar';
-import { navegar, PUBLICAS, useRota } from './rotas';
+import { emEdicao, navegar, PUBLICAS, useRota } from './rotas';
 import { Tag } from './tag/Tag';
 import { Trocar } from './trocas/Trocar';
 
@@ -45,7 +45,7 @@ export function App() {
   }, [me, publica, caminho]);
 
   // postar e editar são fluxos de tela cheia no celular: a barra não cobre o botão fixo (no desktop a lateral fica)
-  const telaCheia = caminho === '/postar' || /^\/p\/[^/]+\/editar$/.test(caminho);
+  const telaCheia = emEdicao(caminho);
   const comBarra = !carregando && !!me && caminho !== '/nova-senha';
 
   const tela = (() => {
@@ -61,7 +61,7 @@ export function App() {
       <main className={telaCheia ? 'tela-cheia' : ''}>
         {caminho === '/' && <Feed me={me} />}
         {params.id && /^\/p\/[^/]+$/.test(caminho) && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
-        {params.id && caminho.endsWith('/editar') && <div className="post-pagina"><EditarPost id={params.id} /></div>}
+        {params.id && /^\/p\/[^/]+\/editar$/.test(caminho) && <div className="post-pagina"><EditarPost id={params.id} /></div>}
         {params.id && /^\/c\/[^/]+$/.test(caminho) && <PerfilClube id={params.id} me={me} />}
         {params.id && /^\/c\/[^/]+\/editar$/.test(caminho) && <EditarClube id={params.id} me={me} />}
         {params.tag && /^\/tag\/[^/]+$/.test(caminho) && <Tag tag={params.tag} />}

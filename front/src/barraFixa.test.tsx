@@ -88,3 +88,49 @@ test('rolagem infinita observa o contêiner (root), não o documento', async () 
 test('CSS: #root tem altura (senão #rolagem cresce com o conteúdo e nada rola)', () => {
   expect(readFileSync('src/tokens.css', 'utf8')).toMatch(/#root\s*\{[^}]*height:\s*100%/);
 });
+
+const clubeMe = { ...logado, id: 'u1' };
+async function abrirApp(caminho: string) {
+  localStorage.setItem('im:instalar-visto', '1');
+  const chamadas: string[] = [];
+  vi.stubGlobal('fetch', vi.fn(async (u: string) => {
+    chamadas.push(u);
+    if (u === '/api/me') return new Response(JSON.stringify(clubeMe));
+    if (u === '/api/clubes/palmeiras') return new Response(JSON.stringify({ id: 'palmeiras', nome: 'Palmeiras', escudoUrl: '/e.svg', bio: null, capaUrl: null, tecnico: { id: 'u1', nome: 'L' }, historico: [] }));
+    return new Response(JSON.stringify({ itens: [], proximo: null }));
+  }));
+  history.pushState(null, '', caminho);
+  render(<App />);
+  return chamadas;
+}
+
+test('/c/:id/editar monta só o EditarClube (não o EditarPost) e esconde a barra no celular', async () => {
+  const chamadas = await abrirApp('/c/palmeiras/editar');
+  expect(await screen.findByRole('heading', { name: 'Editar clube' })).toBeTruthy();
+  expect(screen.queryByText('Não deu para carregar o post')).toBeNull();
+  expect(chamadas.some((u) => u.startsWith('/api/posts/'))).toBe(false); // nenhum GET /posts/palmeiras
+  expect(screen.getByRole('navigation', { name: 'Principal' }).className).toContain('so-desktop');
+  localStorage.clear();
+});
+
+test('a barra só some no celular nas telas de edição: /c/:id (perfil) e /p/:id mantêm a barra normal', async () => {
+  await abrirApp('/c/palmeiras');
+  expect((await screen.findByRole('navigation', { name: 'Principal' })).className).not.toContain('so-desktop');
+  localStorage.clear();
+});
+
+test('a faixa "Nova versão" também some em /c/:id/editar', async () => {
+  const meta = document.createElement('meta');
+  meta.name = 'versao';
+  meta.content = 'aaa';
+  document.head.append(meta);
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ versao: 'bbb' }))));
+  const { AvisoVersao } = await import('./AvisoVersao');
+  history.pushState(null, '', '/c/palmeiras/editar');
+  render(<AvisoVersao />);
+  await act(async () => {});
+  expect(screen.queryByText('Nova versão do InstaManager')).toBeNull();
+  act(() => { history.pushState({ interno: true }, '', '/'); dispatchEvent(new PopStateEvent('popstate')); });
+  expect(await screen.findByText('Nova versão do InstaManager')).toBeTruthy();
+  meta.remove();
+});
