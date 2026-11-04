@@ -7,7 +7,9 @@ import { CardPost } from './CardPost';
 import type { Pagina, Post } from './tipos';
 
 // Ao abrir um post/clube e voltar, o Feed remonta: guarda lista e rolagem para voltar ao mesmo ponto sem refazer a busca.
-let guardado: { meId: string; itens: Post[]; proximo: string | null; y: number } | null = null;
+let guardado: { meId: string; itens: Post[]; proximo: string | null; y: number; quando: number } | null = null;
+const MIN_VOLTA = 60_000; // voltar ao app antes disso não confere post novo
+const PUXAR = 80; // px de arrasto do dedo para disparar o puxar-para-atualizar
 export const esquecerFeed = () => (guardado = null); // chamar quando a lista muda por fora (ex.: post novo publicado)
 
 export function Feed({ me }: { me: Me }) {
@@ -15,8 +17,12 @@ export function Feed({ me }: { me: Me }) {
   const [itens, setItens] = useState<Post[]>(volta?.itens ?? []);
   const [proximo, setProximo] = useState<string | null>(volta?.proximo ?? null);
   const [estado, setEstado] = useState<'carregando' | 'ok' | 'erro'>(volta ? 'ok' : 'carregando');
-  const atual = useRef({ itens, proximo });
-  atual.current = { itens, proximo };
+  const atual = useRef({ itens, proximo, estado });
+  atual.current = { itens, proximo, estado };
+  const ultima = useRef(volta?.quando ?? Date.now()); // última vez que o topo do feed foi conferido
+  const [novos, setNovos] = useState(false);
+  const [puxado, setPuxado] = useState(0);
+  const [atualizando, setAtualizando] = useState(false);
   const [erroMais, setErroMais] = useState(false);
   const [aviso, setAviso] = useState(lerAviso);
   const ocupado = useRef(false);
@@ -31,9 +37,10 @@ export function Feed({ me }: { me: Me }) {
       setItens((l) => (cursor ? [...l, ...pg.itens] : pg.itens));
       setProximo(pg.proximo);
       setEstado('ok');
+      if (!cursor) { ultima.current = Date.now(); setNovos(false); }
     } catch {
       if (cursor) setErroMais(true);
-      else setEstado('erro');
+      else if (atual.current.itens.length === 0) setEstado('erro'); // atualizar com lista na tela não a apaga
     } finally {
       ocupado.current = false;
     }
@@ -53,7 +60,8 @@ export function Feed({ me }: { me: Me }) {
   useLayoutEffect(() => {
     if (volta) window.scrollTo(0, volta.y);
     return () => {
-      guardado = { meId: me.id, ...atual.current, y: y.current };
+      const { itens, proximo } = atual.current;
+      guardado = { meId: me.id, itens, proximo, y: y.current, quando: ultima.current };
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -61,6 +69,65 @@ export function Feed({ me }: { me: Me }) {
     const t = setTimeout(() => setAviso(''), 3000);
     return () => clearTimeout(t);
   }, [aviso]);
+
+  // Voltar ao app (iPhone: PWA volta do segundo plano sem recarregar): depois de 60 s confere o topo; sem endpoint novo,
+  // é a mesma página 1 de /posts. O pedido duplicado é barrado por `ocupado`; a lista só muda se a pessoa tocar em "Novos posts".
+  useEffect(() => {
+    async function conferir() {
+      if (document.visibilityState === 'hidden' || atual.current.estado !== 'ok' || ocupado.current) return;
+      if (Date.now() - ultima.current < MIN_VOLTA) return;
+      ocupado.current = true;
+      try {
+        const pg = await api<Pagina<Post>>('/posts');
+        ultima.current = Date.now();
+        if (pg.itens[0]?.id !== atual.current.itens[0]?.id) setNovos(true);
+      } catch {
+        // sem rede ao voltar: tenta de novo na próxima volta
+      } finally {
+        ocupado.current = false;
+      }
+    }
+    document.addEventListener('visibilitychange', conferir);
+    return () => document.removeEventListener('visibilitychange', conferir);
+  }, []);
+
+  async function atualizar() {
+    setAtualizando(true);
+    await carregar(null);
+    setAtualizando(false);
+  }
+  const verNovos = () => { window.scrollTo(0, 0); atualizar(); };
+
+  // puxar para atualizar: só vale se o gesto começou com a página no topo
+  useEffect(() => {
+    let inicio: number | null = null;
+    let dy = 0;
+    // folha de comentários (.veu) e detalhe da galeria rolam por cima: o gesto dentro deles não é do feed
+    const comeca = (e: TouchEvent) => {
+      const dentro = e.target instanceof Element && e.target.closest('.veu, .detalhe');
+      inicio = window.scrollY <= 0 && !dentro ? e.touches[0]?.clientY ?? null : null;
+      dy = 0;
+    };
+    const move = (e: TouchEvent) => {
+      if (inicio === null) return;
+      dy = Math.max(0, (e.touches[0]?.clientY ?? inicio) - inicio);
+      setPuxado(Math.min(dy / 2, 64));
+    };
+    const solta = () => {
+      if (inicio !== null && dy >= PUXAR) atualizar();
+      inicio = null; dy = 0; setPuxado(0);
+    };
+    document.addEventListener('touchstart', comeca, { passive: true });
+    document.addEventListener('touchmove', move, { passive: true });
+    document.addEventListener('touchend', solta);
+    document.addEventListener('touchcancel', solta);
+    return () => {
+      document.removeEventListener('touchstart', comeca);
+      document.removeEventListener('touchmove', move);
+      document.removeEventListener('touchend', solta);
+      document.removeEventListener('touchcancel', solta);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // rolagem infinita: o sentinela no fim da lista pede a próxima página (começa 600 px antes)
   useEffect(() => {
@@ -78,6 +145,12 @@ export function Feed({ me }: { me: Me }) {
   return (
     <div className="feed">
       <header className="topo-feed"><img src="/icones/icon-192.png" alt="" width="32" height="32" /><span>InstaManager</span></header>
+      {(puxado > 0 || atualizando) && (
+        <div className="puxar" style={{ height: atualizando ? 48 : puxado }} role={atualizando ? 'status' : undefined} aria-label={atualizando ? 'Atualizando' : undefined}>
+          <div className="carregando" style={{ opacity: atualizando ? 1 : puxado / 64 }} />
+        </div>
+      )}
+      {novos && estado === 'ok' && <button type="button" className="botao novos-posts" onClick={verNovos}>Novos posts</button>}
       {estado === 'carregando' && <div aria-busy="true">{[0, 1].map((n) => <div key={n} className="esqueleto card-esq" />)}</div>}
       {estado === 'erro' && (
         <div className="caixa-info" role="alert">

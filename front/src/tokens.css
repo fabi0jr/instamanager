@@ -51,11 +51,16 @@
 html, body { margin: 0; background: var(--im-carvao); color: var(--im-giz); font: 400 15px/22px var(--im-fonte-texto); }
 h1, h2, h3 { font-family: var(--im-fonte-display); font-weight: 700; margin: 0; }
 a, button { min-height: 44px; min-width: 44px; }
+/* iOS dá zoom ao focar campo < 16px; o !important vence os `font: inherit` de cada tela */
+input, textarea, select { font-size: 16px !important; }
+/* toque duplo (curtir) não vira zoom; a pinça segue livre */
+html, body, a, button, input, textarea, select, [role='button'] { touch-action: manipulation; }
 :focus-visible { outline: 2px solid var(--im-giz); outline-offset: 2px; }
+body { padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); } /* com viewport-fit=cover o app vai até a borda: afasta do entalhe/barra de status */
 main { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 
 .barra-inferior { position: fixed; inset: auto 0 0 0; display: grid; grid-template-columns: repeat(5, 1fr);
-  height: calc(64px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
+  height: calc(64px + env(safe-area-inset-bottom)); padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   background: var(--im-superficie); border-top: 1px solid var(--im-linha); z-index: 5; }
 .barra-inferior a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--im-giz-2); text-decoration: none; }
 .barra-inferior .rotulo { font: 500 12px/16px var(--im-fonte-texto); }
@@ -75,6 +80,7 @@ main { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
   .barra-inferior a { flex: none; min-height: 48px; }
   .barra-inferior .rotulo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   main { margin-left: 72px; padding-bottom: 0; }
+  .barra-inferior { left: env(safe-area-inset-left); } /* deitado, a lateral fica ao lado do entalhe */
 }
 @media (min-width: 1100px) {
   .barra-inferior { width: 220px; padding: var(--im-e4) var(--im-e3); }
