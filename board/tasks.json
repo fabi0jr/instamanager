@@ -3206,7 +3206,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "dev",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-04T12:28:19.545Z",
@@ -3231,6 +3231,20 @@
           "quando": "2026-11-04T12:28:29.849Z",
           "quem": "PO",
           "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-04T12:36:34.953Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "0b153ae"
+        },
+        {
+          "quando": "2026-11-04T12:39:40.998Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 0b153ae"
         }
       ]
     },
