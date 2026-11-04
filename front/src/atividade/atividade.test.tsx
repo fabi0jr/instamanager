@@ -87,3 +87,18 @@ test('comentário mostra o trecho do comentário (não o do post); sem o campo, 
   expect(screen.getByText(/comentou no post$/)).toBeTruthy();
   expect(screen.queryByText(/Treino de hoje/)).toBeNull(); // o resumo do post não se passa por comentário
 });
+
+test('contrato do back: comentario {id, resumo}; "Comentário indisponível" não é citado; menção em post usa o resumo do post', async () => {
+  fetchFalso({ 'GET /atividade': { itens: [
+    item('1', 'COMENTARIO', { comentario: { id: 'c1', resumo: 'Boa @Fabio!' } }),
+    item('2', 'COMENTARIO', { comentario: { id: 'c2', resumo: 'Comentário indisponível' } }),
+    item('3', 'MENCAO', { comentario: { id: 'c3', resumo: 'Olha @Rita' } }),
+    item('4', 'MENCAO', { comentario: null }),
+  ], proximo: null }, 'POST /atividade/lidas': { status: 204 } });
+  render(<Atividade />);
+  expect(await screen.findByText(/comentou: “Boa @Fabio!”/)).toBeTruthy();
+  expect(screen.queryByText(/Comentário indisponível/)).toBeNull();
+  expect(screen.getByText(/comentou no post$/)).toBeTruthy();
+  expect(screen.getByText(/mencionou você: “Olha @Rita”/)).toBeTruthy();
+  expect(screen.getByText(/mencionou você: “Treino de hoje”/)).toBeTruthy(); // menção em post: resumo do post
+});
