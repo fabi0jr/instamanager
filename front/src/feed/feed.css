@@ -29,9 +29,9 @@
 .fim-lista { text-align: center; font-size: 13px; padding: var(--im-e6); }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(72px + env(safe-area-inset-bottom)); background: var(--im-superficie-alta); padding: var(--im-e3) var(--im-e4); border-radius: var(--im-r-btn); }
 .feed .caixa-info, .post-pagina .caixa-info { margin: var(--im-e4); }
-.veu { position: fixed; inset: 0; background: rgb(0 0 0 / .6); display: flex; align-items: flex-end; justify-content: center; z-index: 10; }
-.folha { width: 100%; max-width: 470px; max-height: 90dvh; overflow: auto; background: var(--im-superficie); border-radius: var(--im-r-folha) var(--im-r-folha) 0 0; padding: var(--im-e4); display: flex; flex-direction: column; gap: var(--im-e3); padding-bottom: calc(var(--im-e4) + env(safe-area-inset-bottom)); }
-.folha.alta { height: 80dvh; }
+.veu { position: fixed; inset: 0; background: rgb(0 0 0 / .6); display: flex; align-items: flex-end; justify-content: center; z-index: 30; } /* acima da barra (5) e do detalhe (20); a faixa Nova versão (40) fica por cima */
+.folha { width: 100%; max-width: 470px; max-height: min(90dvh, 100%); overflow: auto; background: var(--im-superficie); border-radius: var(--im-r-folha) var(--im-r-folha) 0 0; padding: var(--im-e4); display: flex; flex-direction: column; gap: var(--im-e3); padding-bottom: calc(var(--im-e4) + env(safe-area-inset-bottom)); }
+.folha.alta { height: min(80dvh, 100%); }
 .folha textarea { width: 100%; min-height: 80px; background: var(--im-superficie-alta); color: var(--im-giz); border: 1px solid var(--im-linha); border-radius: var(--im-r-btn); padding: var(--im-e3); font: inherit; }
 .folha label { display: flex; flex-direction: column; gap: var(--im-e1); font-size: 13px; color: var(--im-giz-2); }
 .item-folha { min-height: 48px; background: none; border: 0; color: var(--im-giz); text-align: left; font: 500 16px var(--im-fonte-texto); cursor: pointer; } .item-folha.perigo { color: var(--im-vermelho-texto); }
@@ -50,7 +50,8 @@
 .carrossel:focus-visible { outline: 2px solid var(--im-giz); outline-offset: -2px; }
 .seta { display: none; position: absolute; top: calc(50% - 18px); width: 36px; height: 36px; min-width: 36px; min-height: 36px; padding: 0; border: 0; border-radius: 50%; background: rgb(14 15 17 / .72); color: var(--im-giz); font-size: 24px; line-height: 1; cursor: pointer; }
 .seta.esq { left: 8px; } .seta.dir { right: 8px; }
-@media (min-width: 768px) { .carrossel-moldura:hover .seta, .carrossel-moldura:focus-within .seta { display: block; } }
+/* setas só com mouse de verdade: no toque o :hover/:focus-within "gruda" depois de um toque e a seta aparecia na borda */
+@media (hover: hover) and (pointer: fine) { .carrossel-moldura:hover .seta, .carrossel-moldura:focus-within .seta { display: block; } }
 
 .topo-post { display: flex; align-items: center; gap: var(--im-e2); height: 56px; padding: 0 var(--im-e2); border-bottom: 1px solid var(--im-linha); }
 .topo-post h1 { font: 700 24px var(--im-fonte-display); } .topo-post button { width: 44px; height: 44px; background: none; border: 0; color: var(--im-giz); display: grid; place-items: center; cursor: pointer; }
@@ -70,6 +71,7 @@
 .emoji-reacao { font-size: 24px; line-height: 1; display: inline-block; animation: pop 180ms; }
 @media (prefers-reduced-motion: reduce) { .emoji-reacao { animation: none; } }
 .seletor { position: absolute; left: 0; bottom: calc(100% + var(--im-e2)); display: flex; gap: 0; padding: 0 var(--im-e1); background: var(--im-superficie-alta); border: 1px solid var(--im-linha); border-radius: var(--im-r-pilula); z-index: 6; }
+.seletor::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: var(--im-e2); } /* ponte invisível sobre o vão até o botão: o mouse passa sem sair do wrapper */
 .seletor button { width: 44px; height: 44px; font-size: 28px; line-height: 1; background: none; border: 0; border-radius: 50%; cursor: pointer; transition: transform .12s; }
 .seletor button.minha { background: var(--im-superficie); }
 .seletor button.destaque, .seletor button:focus-visible { transform: scale(1.25); }

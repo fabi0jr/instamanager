@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { api, type Me } from '../api/cliente';
 import { Escudo } from '../feed/Escudo';
 import { IcCopiar, IcEstrela, IcFechar, IcOk } from '../feed/icones';
@@ -73,7 +74,7 @@ export function Detalhe({ imagemId, postId, favoritoInicial, aoFavoritar }: { im
     if (e.key === 'ArrowLeft') ir(-1);
   }
 
-  return (
+  return createPortal(
     <div ref={caixa} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Detalhe do prompt" className="detalhe" onKeyDown={tecla}>
       <header className="detalhe-topo">
         <button type="button" aria-label="Fechar" onClick={fechar}><IcFechar /></button>
@@ -114,6 +115,7 @@ export function Detalhe({ imagemId, postId, favoritoInicial, aoFavoritar }: { im
           <div role="status" className={copia === 'ok' ? 'toast' : 'sr'}>{copia === 'ok' && 'Prompt copiado para a área de transferência'}</div>
         </>
       )}
-    </div>
+    </div>,
+    document.body, // fora do #rolagem: acima da barra inferior
   );
 }
