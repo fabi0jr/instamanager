@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { converter, medir, processarVideo } from './video.js';
+import { converter, ehContainerPermitido, medir, processarVideo } from './video.js';
 
 // amostras geradas pelo próprio ffmpeg: nada de binário no repositório
 let dir: string;
@@ -68,5 +68,27 @@ describe('video', () => {
     const r = await processarVideo(readFileSync(hevcMov), 'stories');
     expect(r.duracaoS).toBeGreaterThan(1.5);
     expect(arquivosEm(process.env.UPLOADS_DIR!).length).toBe(antes + 2);
+  });
+
+  it('playlist HLS e ffconcat disfarçados de .mp4 são recusados sem ler o arquivo apontado nem abrir URL', async () => {
+    const alvo = join(dir, 'segredo.txt');
+    writeFileSync(alvo, 'conteudo-secreto');
+    const hls = Buffer.from(`#EXTM3U\n#EXT-X-TARGETDURATION:1\n#EXTINF:1,\nfile://${alvo}\n#EXTINF:1,\nhttp://127.0.0.1:9/x.ts\n#EXT-X-ENDLIST\n`);
+    const concat = Buffer.from(`ffconcat version 1.0\nfile '${alvo}'\n`);
+    for (const falso of [hls, concat]) {
+      expect(ehContainerPermitido(falso)).toBe(false);
+      await expect(processarVideo(falso, 'videos')).rejects.toMatchObject({ status: 422, response: { codigo: 'VIDEO_INVALIDO' } });
+      // mesmo que passasse da conferência dos bytes, o ffprobe com protocolo só `file` e lista de formatos não o aceita como vídeo
+      const f = join(dir, 'falso.mp4');
+      writeFileSync(f, falso);
+      expect((await medir(f)).temVideo).toBe(false);
+    }
+  });
+
+  it('conferência dos bytes aceita MP4/MOV e Matroska e recusa o resto', () => {
+    expect(ehContainerPermitido(readFileSync(hevcMov))).toBe(true);
+    expect(ehContainerPermitido(Buffer.from([0x1a, 0x45, 0xdf, 0xa3, 0, 0, 0, 0, 0, 0, 0, 0]))).toBe(true);
+    expect(ehContainerPermitido(Buffer.from('RIFF....AVI LIST'))).toBe(false);
+    expect(ehContainerPermitido(Buffer.alloc(0))).toBe(false);
   });
 });
