@@ -9,12 +9,12 @@ const TAG = /(?<![\p{L}\p{N}_/&#])#([\p{L}\p{N}_]*\p{L}[\p{L}\p{N}_]*)/gu;
 export const chaveDaTag = (t: string) => t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 
 // Texto de legenda/post/comentário com as #tags viradas em link para /tag/<palavra>
-// `mencoes` vem do back com o nome de hoje, do banco: a marca @[Nome](id) vira chip com esse nome; id fora da lista = "@pessoa removida"
+// `mencoes` vem do back com o nome de hoje, do banco: a marca @[Nome](id) vira chip com esse nome; id fora da lista (ou sem lista, como na bio) = "@pessoa removida"
 export function Texto({ children, mencoes }: { children: string; mencoes?: Mencao[] }) {
   const partes: (string | { tag: string } | { mencao: string; nome?: string })[] = [];
   const achados = [
     ...[...children.matchAll(TAG)].map((m) => ({ i: m.index, len: m[0].length, p: { tag: m[1] } as const })),
-    ...[...children.matchAll(MARCA)].map((m) => ({ i: m.index, len: m[0].length, p: { mencao: m[1], nome: mencoes?.find((x) => x.id === m[2])?.nome ?? (mencoes ? undefined : m[1]) } as const })),
+    ...[...children.matchAll(MARCA)].map((m) => ({ i: m.index, len: m[0].length, p: { mencao: m[1], nome: mencoes?.find((x) => x.id === m[2])?.nome } as const })),
   ].sort((a, b) => a.i - b.i);
   let fim = 0;
   for (const a of achados) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, ErroApi } from '../api/cliente';
 import { guardarAviso } from '../aviso';
 import { esquecerFeed } from '../feed/Feed';
@@ -6,6 +6,8 @@ import { Aviso, Botao, useEnvio } from '../conta/ui';
 import { Folha } from '../feed/Folha';
 import type { Post } from '../feed/tipos';
 import { haQuanto } from '../feed/tipos';
+import { Autocompletar } from '../mencoes/Autocompletar';
+import { paraCampo, useMencoes } from '../mencoes/mencoes';
 import { navegar } from '../rotas';
 import { Contador, LIMITE_LEGENDA, LIMITE_PROMPT, LinhasPrompt } from './LinhasPrompt';
 import './postar.css';
@@ -19,13 +21,23 @@ export function EditarPost({ id }: { id: string }) {
   const [semPermissao, setSemPermissao] = useState(false);
   const [descartar, setDescartar] = useState(false);
   const { enviando, aviso, setAviso, enviar } = useEnvio();
+  const mencoes = useMencoes();
+  const campoLegenda = useRef<HTMLTextAreaElement>(null);
+  const campoTexto = useRef<HTMLTextAreaElement>(null);
+  const [inicial, setInicial] = useState({ legenda: '', texto: '' }); // como o campo abriu (com @Nome), para saber se mudou
 
   useEffect(() => {
     api<Post>(`/posts/${id}`).then(
       (p) => {
         setPost(p);
-        setLegenda(p.legenda);
-        setTexto(p.texto ?? '');
+        // as marcas @[Nome](id) viram @Nome (nome do banco) e a menção continua registrada; ao salvar voltam a marca
+        const l = paraCampo(p.legenda, p.mencoes);
+        const t = paraCampo(p.texto ?? '', p.mencoes);
+        mencoes.limpar();
+        [...l.mapa, ...t.mapa].forEach(mencoes.registrar);
+        setLegenda(l.texto);
+        setTexto(t.texto);
+        setInicial({ legenda: l.texto, texto: t.texto });
         setPrompts(p.imagens.map((i) => i.prompt ?? ''));
         if (!p.podeEditar) {
           // torcedor ou ex-técnico: o bloqueio aparece já ao abrir, não só ao salvar
@@ -47,13 +59,13 @@ export function EditarPost({ id }: { id: string }) {
     );
 
   const ehTexto = post.texto != null;
-  const mudou = ehTexto ? texto !== post.texto : legenda !== post.legenda || prompts.some((p, i) => p !== (post.imagens[i]?.prompt ?? ''));
-  const estouro = ehTexto ? texto.length > 500 || !texto.trim() : legenda.length > LIMITE_LEGENDA || prompts.some((p) => p.length > LIMITE_PROMPT);
+  const mudou = ehTexto ? texto !== inicial.texto : legenda !== inicial.legenda || prompts.some((p, i) => p !== (post.imagens[i]?.prompt ?? ''));
+  const estouro = ehTexto ? mencoes.serializar(texto).length > 500 || !texto.trim() : mencoes.serializar(legenda).length > LIMITE_LEGENDA || prompts.some((p) => p.length > LIMITE_PROMPT);
 
   function salvar() {
     enviar(
       async () => {
-        await api<Post>(`/posts/${id}`, { method: 'PATCH', body: JSON.stringify(ehTexto ? { texto: texto.trim() } : { legenda, prompts: prompts.map((p) => p.trim() || null) }) });
+        await api<Post>(`/posts/${id}`, { method: 'PATCH', body: JSON.stringify(ehTexto ? { texto: mencoes.serializar(texto.trim()) } : { legenda: mencoes.serializar(legenda), prompts: prompts.map((p) => p.trim() || null) }) });
         guardarAviso('Alterações salvas');
         esquecerFeed();
         navegar('/');
@@ -80,13 +92,19 @@ export function EditarPost({ id }: { id: string }) {
         {ehTexto ? (
           <>
             <label htmlFor="txt">Texto</label>
-            <textarea id="txt" rows={8} value={texto} aria-invalid={texto.length > 500 || undefined} onChange={(e) => setTexto(e.target.value)} />
+            <div className="mencao-ancora">
+              <Autocompletar valor={texto} aoMudar={setTexto} campo={campoTexto} mencoes={mencoes} />
+              <textarea ref={campoTexto} id="txt" rows={8} value={texto} aria-invalid={texto.length > 500 || undefined} onKeyDown={(e) => mencoes.teclado(e, texto, setTexto)} onChange={(e) => setTexto(e.target.value)} />
+            </div>
             <Contador texto={texto} limite={500} />
           </>
         ) : (
           <>
         <label htmlFor="leg">Legenda</label>
-        <textarea id="leg" rows={5} value={legenda} aria-invalid={legenda.length > LIMITE_LEGENDA || undefined} onChange={(e) => setLegenda(e.target.value)} />
+        <div className="mencao-ancora">
+          <Autocompletar valor={legenda} aoMudar={setLegenda} campo={campoLegenda} mencoes={mencoes} />
+          <textarea ref={campoLegenda} id="leg" rows={5} value={legenda} aria-invalid={legenda.length > LIMITE_LEGENDA || undefined} onKeyDown={(e) => mencoes.teclado(e, legenda, setLegenda)} onChange={(e) => setLegenda(e.target.value)} />
+        </div>
         <Contador texto={legenda} limite={LIMITE_LEGENDA} />
         <LinhasPrompt linhas={post.imagens} prompts={prompts} aoMudar={(i, v) => setPrompts(prompts.map((p, j) => (j === i ? v : p)))} />
           </>

@@ -70,3 +70,9 @@ test('texto mostra a menção como chip com o nome do banco (mencoes), não o do
   expect(document.body.textContent).not.toContain('Presidente');
   expect(document.querySelector('a.hashtag')?.textContent).toBe('#tag');
 });
+
+test('sem "mencoes" (ex.: bio do clube) a marca vira "@pessoa removida", nunca o nome escrito no texto', () => {
+  render(<p><Texto>{`Oi @[Presidente](${ID})`}</Texto></p>);
+  expect(document.querySelector('.chip-mencao')?.textContent).toBe('@pessoa removida');
+  expect(document.body.textContent).not.toContain('Presidente');
+});

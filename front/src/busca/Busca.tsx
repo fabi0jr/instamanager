@@ -5,6 +5,7 @@ import { sigla } from '../feed/siglas';
 import { haQuanto, type Post } from '../feed/tipos';
 import { usePaginado } from '../paginado';
 import { Link, voltar } from '../rotas';
+import { semMarcas } from '../mencoes/mencoes';
 import { Destaque } from './destaque';
 import '../liga/liga.css';
 import './busca.css';
@@ -18,7 +19,7 @@ type Pessoa = { id: string; nome: string; avatarUrl: string | null; clube: { id:
 function Linha({ aba, item, q }: { aba: Aba; item: unknown; q: string }) {
   if (aba === 'posts') {
     const p = item as Post;
-    const corpo = p.texto ?? p.legenda;
+    const corpo = semMarcas(p.texto ?? p.legenda, p.mencoes); // nome do banco, nunca o markup nem o nome escrito no texto
     return (
       <Link para={`/p/${p.id}`} className="res-linha">
         {p.imagens[0] ? <img className="res-mini" src={p.imagens[0].miniUrl} alt="" width="64" height="64" /> : <span className="res-mini"><Escudo src={p.clube.escudoUrl} tam={40} /></span>}

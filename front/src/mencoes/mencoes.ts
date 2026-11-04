@@ -6,11 +6,20 @@ export const MAX_MENCOES = 10;
 export const MARCA = /@\[([^\]\n]{1,80})\]\(([0-9a-fA-F-]{36})\)/g;
 
 // Texto guardado → texto do campo (`@Nome`) + as menções para o campo lembrar quem é quem (edição)
-export function paraCampo(guardado: string) {
+// `mencoes` (do back) traz o nome de hoje; id fora dela é pessoa removida e não vira chip (o nome escrito no texto nunca vale)
+export function paraCampo(guardado: string, mencoes: Mencao[] = []) {
   const mapa: Mencao[] = [];
-  const texto = guardado.replace(MARCA, (_, nome: string, id: string) => (mapa.push({ id, nome }), `@${nome}`));
+  const texto = guardado.replace(MARCA, (_, _nome: string, id: string) => {
+    const m = mencoes.find((x) => x.id === id);
+    if (!m) return '@pessoa removida';
+    mapa.push(m);
+    return `@${m.nome}`;
+  });
   return { texto, mapa };
 }
+
+// Texto para listas/prévias (busca): troca cada marca pelo nome do banco, ou "@pessoa removida"
+export const semMarcas = (guardado: string, mencoes: Mencao[] = []) => paraCampo(guardado, mencoes).texto;
 
 // No campo a menção é `@Nome` (o chip é só visual, no texto publicado). Ao enviar, cada uma volta a @[Nome](id).
 export function useMencoes(inicial: Mencao[] = []) {
