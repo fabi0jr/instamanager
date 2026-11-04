@@ -106,3 +106,18 @@ test('erro que não é de vídeo não oferece "Escolher outro vídeo": mostra "E
   fireEvent.click(screen.getByRole('button', { name: 'Entendi' }));
   expect(screen.getByRole('button', { name: 'Publicar story' })).toBeTruthy();
 });
+
+test('foto: 413 do servidor fala em 3 MB (não em 60 MB) e IMAGEM_INVALIDA tem mensagem própria', async () => {
+  resposta = { status: 413, corpo: '{}' };
+  render(<CriarStory me={tecnico} />);
+  escolher('Escolher foto', arquivo('a.jpg', 'image/jpeg'));
+  fireEvent.click(await screen.findByRole('button', { name: 'Publicar story' }));
+  expect(await screen.findByText('Essa imagem passa de 3 MB')).toBeTruthy();
+  expect(screen.queryByText(/60 MB/)).toBeNull();
+  cleanup();
+  resposta = { status: 400, corpo: '{"codigo":"IMAGEM_INVALIDA"}' };
+  render(<CriarStory me={tecnico} />);
+  escolher('Escolher foto', arquivo('a.jpg', 'image/jpeg'));
+  fireEvent.click(await screen.findByRole('button', { name: 'Publicar story' }));
+  expect(await screen.findByText('Não deu para ler essa imagem')).toBeTruthy();
+});

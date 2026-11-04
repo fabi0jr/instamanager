@@ -81,8 +81,10 @@ export function CriarStory({ me }: { me: Me }) {
       () => { guardarAviso('Story publicado'); navegar('/'); },
       (e) => {
         if (e.codigo === 'CANCELADO') return;
-        const v = codigoDeVideo(e.status, e.codigo);
+        const v = midia.tipo === 'video' ? codigoDeVideo(e.status, e.codigo) : null;
         if (v) mostrarErro(v);
+        else if (e.status === 413) setErro({ titulo: 'Essa imagem passa de 3 MB', texto: 'Escolha outra foto.', acao: 'entendi' }); // imagem: o limite é 3 MB, não 60
+        else if (e.codigo === 'IMAGEM_INVALIDA') setErro({ titulo: 'Não deu para ler essa imagem', texto: 'Escolha outra foto ou exporte como JPEG.', acao: 'entendi' });
         else if (e.status === 403) setErro({ titulo: 'Só técnico de clube posta story', texto: 'Seu acesso mudou. Nada foi publicado.', acao: 'clubes' });
         else setErro({ titulo: 'Não deu para publicar', texto: 'Confira a conexão e tente de novo.', acao: 'entendi' });
         setFase('previa');
