@@ -97,3 +97,13 @@
 .folha .aviso-ambar { margin: 0; padding: var(--im-e3); border: 1px solid var(--im-amarelo); border-radius: var(--im-r-btn); font-size: 14px; }
 
 .novidades { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--im-e3); font-size: 16px; line-height: 22px; }
+
+/* onda B: Quem reagiu (docs/design/onda-b.md §7) */
+.linha-reacoes button.numero { background: none; border: 0; padding: 0; min-height: 44px; color: inherit; font: 600 16px var(--im-fonte-display); cursor: pointer; }
+.abas-emoji { display: flex; overflow-x: auto; border-bottom: 1px solid var(--im-linha); }
+.abas-emoji button { flex: none; min-height: 44px; padding: 0 var(--im-e4); background: none; border: 0; color: var(--im-giz-2); font: 500 16px var(--im-fonte-texto); cursor: pointer; }
+.abas-emoji button span { font-size: 13px; } .abas-emoji button[aria-selected='true'] { color: var(--im-giz); font-weight: 600; box-shadow: inset 0 -2px 0 0 var(--im-giz); }
+.quem-lista { list-style: none; margin: 0; padding: 0; overflow-y: auto; }
+.quem-lista a, .quem-lista li > div { display: flex; align-items: center; gap: var(--im-e3); min-height: 56px; color: var(--im-giz); text-decoration: none; }
+.quem-lista .av32 { width: 40px; height: 40px; } .quem-nome { flex: 1; display: flex; flex-direction: column; } .quem-nome strong { font: 600 15px var(--im-fonte-texto); } .quem-nome .giz2 { display: flex; align-items: center; gap: 4px; font-size: 13px; }
+.quem-emoji { font-size: 22px; }

@@ -1,0 +1,25 @@
+/* Liga (docs/design/onda-b.md §2) */
+.liga { max-width: 640px; margin: 0 auto; } .liga h1 { font: 800 28px/32px var(--im-fonte-display); } .liga .padrao { margin: var(--im-e3) 0; }
+.abas-liga { display: flex; gap: 2px; height: 40px; margin: var(--im-e3) 0; padding: 2px; background: var(--im-superficie-alta); border-radius: 999px; }
+.abas-liga button { flex: 1; min-height: 44px; margin: -2px 0; background: none; border: 1px solid transparent; border-radius: 999px; color: var(--im-giz-2); font: 500 15px var(--im-fonte-texto); cursor: pointer; }
+.abas-liga button[aria-selected='true'] { background: var(--im-superficie-alta); border-color: var(--im-linha); color: var(--im-giz); font-weight: 600; box-shadow: inset 0 0 0 1px var(--im-linha); }
+.linha-esq-liga { height: 27px; margin-bottom: 1px; }
+.legenda-zonas { display: flex; align-items: center; gap: var(--im-e2); font-size: 13px; margin: var(--im-e2) 0; } .zona { width: 3px; height: 14px; } .zona.topo { background: var(--im-gramado); } .zona.rebaixa { background: var(--im-vermelho); margin-left: var(--im-e3); }
+.tabela-rolagem { overflow-x: auto; }
+.tabela-liga { width: 100%; border-collapse: collapse; font: 400 13px var(--im-fonte-texto); color: var(--im-giz-2); }
+.tabela-liga th, .tabela-liga td { height: 27.5px; padding: 0 6px; text-align: center; white-space: nowrap; font-weight: 400; }
+.tabela-liga thead th { color: var(--im-giz-3); font-size: 12px; }
+.tabela-liga .col-clube { text-align: left; position: sticky; left: 0; background: var(--im-carvao); } .tabela-liga .col-clube a { display: flex; align-items: center; gap: var(--im-e2); min-height: 27.5px; color: var(--im-giz); font-size: 14px; text-decoration: none; }
+.tabela-liga .pos { font: 600 16px var(--im-fonte-display); color: var(--im-giz-2); } .tabela-liga .pontos { font: 700 17px var(--im-fonte-display); color: var(--im-giz); }
+.tabela-liga tbody tr { cursor: pointer; border-left: 3px solid transparent; } .tabela-liga tr.topo { box-shadow: inset 3px 0 0 var(--im-gramado); } .tabela-liga tr.rebaixa { box-shadow: inset 3px 0 0 var(--im-vermelho); }
+.tabela-liga tr.meu, .tabela-liga tr.meu .col-clube { background: var(--im-superficie-alta); }
+.ultimos { display: inline-flex; gap: 3px; } .ultimos i { width: 7px; height: 7px; border-radius: 50%; } .r-V { background: var(--im-gramado); } .r-E { background: var(--im-giz-3); } .r-D { background: var(--im-vermelho-texto); }
+@media (max-width: 767px) { .tabela-liga .col-extra { display: none; } } /* celular: P J V SG e os últimos 5; o resto só no desktop */
+.chips-rodada { display: flex; gap: var(--im-e2); overflow-x: auto; padding-bottom: var(--im-e2); }
+.chips-rodada button { flex: none; width: 48px; height: 44px; background: var(--im-superficie-alta); border: 1px solid var(--im-linha); border-radius: var(--im-r-btn); color: var(--im-giz); font: 700 20px var(--im-fonte-display); cursor: pointer; } .chips-rodada button[aria-pressed='true'] { background: var(--im-giz); color: var(--im-carvao); }
+.rodada-topo { display: flex; align-items: center; gap: var(--im-e3); margin: var(--im-e3) 0; } .rodada-topo h2 { font-size: 22px; }
+.etiqueta { display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; height: 24px; border-radius: 999px; font: 600 13px var(--im-fonte-texto); background: var(--im-superficie-alta); } .etiqueta.fechada { color: var(--im-gramado); } .etiqueta.aberta { color: var(--im-amarelo); }
+.jogos { list-style: none; margin: 0; padding: 0; } .jogos li { display: grid; grid-template-columns: 1fr 22px auto 22px 1fr; align-items: center; gap: var(--im-e2); min-height: 56px; border-bottom: 1px solid var(--im-linha); }
+.jogos .time { font: 500 15px var(--im-fonte-texto); } .jogos .mandante { text-align: right; } .jogos .ganhou { font-weight: 700; } .jogos .perdeu { color: var(--im-giz-2); }
+.jogos .placar { font: 700 24px var(--im-fonte-display); min-width: 64px; text-align: center; } .jogos.parcial .placar { color: var(--im-giz-2); }
+.tabela-liga th:last-child, .tabela-liga td:last-child { min-width: 72px; padding-right: var(--im-e3); } .tabela-liga thead th:last-child { white-space: nowrap; }

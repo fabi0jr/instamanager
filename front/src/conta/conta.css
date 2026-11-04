@@ -51,3 +51,6 @@
   .tela.cartao.largo { max-width: 500px; }
   .clubes.duas { display: grid; grid-template-columns: 1fr 1fr; }
 }
+
+/* dentro do app a barra inferior fica por cima da rolagem: a ação fixa sobe a altura dela (docs: QA da onda B) */
+main .acao-fixa { bottom: calc(var(--altura-barra) + var(--im-e4) + env(safe-area-inset-bottom)); }

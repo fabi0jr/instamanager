@@ -31,3 +31,17 @@ button.linha-clube { cursor: pointer; }
 .troca-modo small { display: block; font-weight: 400; font-size: 13px; line-height: 18px; }
 .opcao img + * { }
 .previa-denuncia { display: block; padding: var(--im-e3); background: var(--im-superficie-alta); border-radius: var(--im-r-btn); color: var(--im-giz); text-decoration: none; } .corta2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+
+/* onda B: rodadas e votações (docs/design/onda-b.md §4 e §5) */
+.rodada-nome { font: 700 22px var(--im-fonte-display); } .aviso-gramado { margin: 0; padding: var(--im-e3); border: 1px solid var(--im-gramado); border-radius: var(--im-r-btn); }
+.cartoes-jogo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--im-e3); }
+.cartao-jogo { position: relative; display: flex; flex-direction: column; gap: var(--im-e2); padding: var(--im-e3); padding-right: 56px; background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: var(--im-r-midia); }
+.cartao-jogo > div { display: flex; gap: var(--im-e2); } .cartao-jogo select { flex: 1; min-width: 0; height: 44px; background: var(--im-superficie-alta); color: var(--im-giz); border: 1px solid var(--im-linha); border-radius: var(--im-r-btn); padding: 0 var(--im-e2); font: inherit; }
+.cartao-jogo input[type='number'] { width: 60px; height: 44px; text-align: center; background: var(--im-superficie-alta); color: var(--im-giz); border: 1px solid var(--im-linha); border-radius: var(--im-r-btn); font: 700 24px var(--im-fonte-display); }
+.remover-jogo { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; color: var(--im-giz-2); cursor: pointer; }
+.comunicado { display: flex; flex-direction: column; gap: var(--im-e2); padding: var(--im-e4); background: var(--im-superficie); border-left: 5px solid var(--im-vermelho); border-radius: var(--im-r-btn); }
+.comunicado textarea { background: var(--im-superficie-alta); color: var(--im-giz); border: 2px solid var(--im-giz); border-radius: var(--im-r-btn); padding: var(--im-e3); font: inherit; }
+.rotulo-comunicado { font: 700 15px var(--im-fonte-display); color: var(--im-vermelho-texto); } .texto-bot { margin: 0; font: 700 22px/28px var(--im-fonte-display); white-space: pre-line; }
+.previa-bot .botao { display: inline-flex; align-items: center; justify-content: center; gap: var(--im-e2); }
+.chips-opcoes { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--im-e2); } .chips-opcoes li { display: inline-flex; align-items: center; gap: 4px; padding: 0 0 0 var(--im-e3); min-height: 44px; background: var(--im-superficie-alta); border-radius: 999px; } .chips-opcoes button { width: 44px; height: 44px; background: none; border: 0; color: var(--im-giz-2); cursor: pointer; }
+.form-folha input { height: 44px; background: var(--im-superficie-alta); color: var(--im-giz); border: 1px solid var(--im-linha); border-radius: var(--im-r-btn); padding: 0 var(--im-e3); font: inherit; }

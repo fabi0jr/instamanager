@@ -53,6 +53,7 @@ export async function criarClubesDeTeste(prisma: PrismaService, arquivo: string,
 /** Apaga os clubes de teste e o que aponta para eles (chame no afterAll, antes ou depois de apagar os usuários). */
 export async function apagarClubesDeTeste(prisma: PrismaService, ids: string[]) {
   const clubId = { in: ids };
+  await prisma.jogo.deleteMany({ where: { OR: [{ mandanteId: clubId }, { visitanteId: clubId }] } });
   await prisma.post.deleteMany({ where: { clubId } });
   await prisma.transferRequest.deleteMany({ where: { clubId } });
   await prisma.coachTenure.deleteMany({ where: { clubId } });

@@ -19,13 +19,16 @@ test('sem sessão, qualquer rota privada mostra Entrar', async () => {
   expect(screen.queryByRole('navigation')).toBeNull();
 });
 
-test('com sessão a barra tem 5 destinos; torcedor: Clube abre /clubes', async () => {
+test('com sessão a barra tem 5 destinos no celular (Feed, Liga, Postar, Galeria, Perfil) e o Clube só na lateral; torcedor: Clube abre /clubes', async () => {
   vi.stubGlobal('fetch', vi.fn(async (u: string) => new Response(JSON.stringify(u === '/api/me' ? me : { itens: [], proximo: null }))));
   history.pushState(null, '', '/');
   render(<App />);
   const nav = await screen.findByRole('navigation');
-  expect(nav.querySelectorAll('a')).toHaveLength(5);
-  expect([...nav.querySelectorAll('.rotulo')].map((e) => e.textContent)).toEqual(['Feed', 'Galeria', 'Postar', 'Clube', 'Perfil']);
+  const links = [...nav.querySelectorAll('a')];
+  expect(links.filter((a) => !a.classList.contains('item-desktop')).map((a) => a.querySelector('.rotulo')?.textContent)).toEqual(['Feed', 'Liga', 'Postar', 'Galeria', 'Perfil']);
+  expect(links.filter((a) => a.classList.contains('item-desktop')).map((a) => a.querySelector('.rotulo')?.textContent)).toEqual(['Clube']); // só lateral
+  expect([...nav.querySelectorAll('.rotulo')].map((e) => e.textContent)).toEqual(['Feed', 'Liga', 'Postar', 'Galeria', 'Clube', 'Perfil']); // ordem do desktop
+  expect(nav.querySelector('[href="/liga"]')).toBeTruthy();
   expect(nav.querySelector('[href="/clubes"]')).toBeTruthy();
   expect(nav.querySelector('[href="/notificacoes"]')).toBeNull();
   expect(nav.querySelector('[aria-current="page"]')?.getAttribute('href')).toBe('/');
@@ -37,7 +40,7 @@ test('técnico vê Clube apontando para o próprio clube', async () => {
   history.pushState(null, '', '/');
   render(<App />);
   const nav = await screen.findByRole('navigation');
-  expect(nav.querySelectorAll('a')).toHaveLength(5);
+  expect(nav.querySelectorAll('a')).toHaveLength(6); // 5 do celular + Clube da lateral
   expect(nav.querySelector('[href="/c/palmeiras"]')).toBeTruthy();
 });
 

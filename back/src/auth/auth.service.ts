@@ -66,7 +66,7 @@ export class AuthService implements OnModuleInit {
         const user = await tx.user.create({ data: { email: d.email, passwordHash, name: d.nome, isAdmin } });
         if (d.clubeId) {
           // coachId null no WHERE: o Postgres serializa as duas escritas e a segunda não acha linha
-          const { count } = await tx.club.updateMany({ where: { id: d.clubeId, coachId: null }, data: { coachId: user.id } });
+          const { count } = await tx.club.updateMany({ where: { id: d.clubeId, coachId: null, oficial: false }, data: { coachId: user.id } });
           if (count === 0) {
             if (!(await tx.club.findUnique({ where: { id: d.clubeId } }))) throw new ApiError(404, 'NAO_ENCONTRADO', 'Clube não encontrado.');
             throw new ApiError(409, 'CLUBE_OCUPADO', 'Esse clube acabou de ser escolhido. Escolha outro.');

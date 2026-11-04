@@ -6,6 +6,8 @@ import { Aviso, Botao, useEnvio } from '../conta/ui';
 import { Folha } from '../feed/Folha';
 import { Link, navegar } from '../rotas';
 import { comprimir, ErroImagem } from './comprimir';
+import { registrarErro } from '../erros';
+import { ComoCbf, MSG_SEM_ADMIN, quemPosta } from './ComoCbf';
 import { enviarPost } from './enviar';
 import { Contador, LIMITE_LEGENDA, LIMITE_PROMPT, LinhasPrompt } from './LinhasPrompt';
 import { PostarTexto } from './PostarTexto';
@@ -14,7 +16,7 @@ import './postar.css';
 const MAX = 10;
 const MAX_BYTES = 3 * 1024 * 1024;
 type Item = { id: number; nome: string; estado: 'preparando' | 'ok' | 'erro'; erro?: string; cheia?: Blob; mini?: Blob; miniUrl?: string };
-type Envio = { estado: 'enviando' | 'falhou'; carregado: number; total: number; tipo?: 'rede' | 'incerto' | 'permissao' | 'imagem' };
+type Envio = { estado: 'enviando' | 'falhou'; carregado: number; total: number; tipo?: 'rede' | 'incerto' | 'permissao' | 'imagem' | 'admin' };
 const mb = (n: number) => (n / 1048576).toFixed(1).replace('.', ',');
 
 let seq = 0;
@@ -25,13 +27,14 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
   const [prompts, setPrompts] = useState<Record<number, string>>({});
   const [aviso, setAviso] = useState('');
   const [sair, setSair] = useState(false);
+  const [cbf, setCbf] = useState(!me.clube); // admin sem clube só posta como CBF
   const [envio, setEnvio] = useState<Envio | null>(null);
   const cancelar = useRef<(() => void) | null>(null);
   const { bloqueado } = useEnvio();
   const urls = useRef<string[]>([]);
   useEffect(() => () => urls.current.forEach((u) => URL.revokeObjectURL(u)), []); // soltar as prévias ao sair
 
-  if (!me.clube)
+  if (!me.clube && !me.isAdmin)
     return (
       <Folha titulo="Só técnico posta" aoFechar={() => navegar('/')}>
         <h2>Só técnico posta</h2>
@@ -84,8 +87,9 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
   const textos = prontas.map((i) => prompts[i.id] ?? '');
   const estouro = legenda.length > LIMITE_LEGENDA || textos.some((t) => t.length > LIMITE_PROMPT);
 
-  function publicar() {
+  function publicar(comoCbf = cbf) {
     const f = new FormData();
+    if (comoCbf) f.append('comoCbf', 'true');
     f.append('legenda', legenda);
     f.append('prompts', JSON.stringify(textos.map((t) => t.trim() || null)));
     prontas.forEach((i, n) => {
@@ -104,12 +108,13 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
       },
       (e) => {
         if (e.codigo === 'CANCELADO') return;
+        registrarErro(`falha ao publicar post: ${e.codigo ?? e.message}`);
         setEnvio((a) => {
           const carregado = a?.carregado ?? 0;
           const total = a?.total ?? 0;
           // tudo subiu e a resposta se perdeu: o post pode ter sido criado, então não oferece reenviar (duplicaria)
           const perdida = total > 0 && carregado >= total && (e.status === 0 || e.status >= 500);
-          const tipo = e.codigo === 'SEM_CLUBE' ? 'permissao' : e.codigo === 'IMAGEM_INVALIDA' || e.status === 429 ? 'imagem' : perdida ? 'incerto' : 'rede';
+          const tipo = e.codigo === 'NAO_E_ADMIN' ? 'admin' : e.codigo === 'SEM_CLUBE' ? 'permissao' : e.codigo === 'IMAGEM_INVALIDA' || e.status === 429 ? 'imagem' : perdida ? 'incerto' : 'rede';
           return { estado: 'falhou', carregado, total, tipo };
         });
       },
@@ -122,7 +127,14 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
     const falhou = envio.estado === 'falhou';
     return (
       <div className="tela postar">
-        {falhou && envio.tipo === 'permissao' ? (
+        {falhou && envio.tipo === 'admin' ? (
+          <>
+            <h1>Você não pode publicar como CBF</h1>
+            <p>{MSG_SEM_ADMIN}</p>
+            <button type="button" className="botao" onClick={() => { setCbf(false); publicar(false); }}>Publicar pelo meu clube</button>
+            <button type="button" className="botao secundario" onClick={() => setPasso(2)}>Voltar e editar</button>
+          </>
+        ) : falhou && envio.tipo === 'permissao' ? (
           <>
             <h1>Você não pode publicar agora</h1>
             <p>Você deixou de ser técnico de um clube, então não dá para publicar. Nada foi enviado.</p>
@@ -145,7 +157,7 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
             <div className="progresso-txt"><span className="numero">{pct}%</span><span className="giz2">{envio.total ? `${mb(envio.carregado)} de ${mb(envio.total)} MB` : ''}</span></div>
             {!falhou && <p className="giz2">Não feche o app até terminar.</p>}
             {!falhou && <button type="button" className="botao fantasma" onClick={() => { cancelar.current?.(); setPasso(2); }}>Cancelar envio</button>}
-            {falhou && envio.tipo === 'rede' && <button type="button" className="botao" onClick={publicar}>Tentar de novo</button>}
+            {falhou && envio.tipo === 'rede' && <button type="button" className="botao" onClick={() => publicar()}>Tentar de novo</button>}
             {falhou && envio.tipo === 'incerto' && <button type="button" className="botao" onClick={() => { esquecerFeed(); navegar('/'); }}>Ver o feed</button>}
             {falhou && <button type="button" className={`botao ${envio.tipo === 'rede' || envio.tipo === 'incerto' ? 'secundario' : ''}`} onClick={() => setPasso(2)}>Voltar e editar</button>}
           </>
@@ -208,13 +220,14 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
       {passo === 2 && (
         <>
           <h1>Legenda e prompts</h1>
-          <p className="giz2">Vai sair como {me.clube.nome}, por {me.nome}.</p>
+          <p className={cbf ? 'cbf-frase' : 'giz2'}>{quemPosta(me, cbf)}</p>
+          <ComoCbf me={me} ligado={cbf} aoMudar={setCbf} fixo={!me.clube} />
           <label htmlFor="legenda">Legenda</label>
           <textarea id="legenda" rows={5} value={legenda} aria-invalid={legenda.length > LIMITE_LEGENDA || undefined} onChange={(e) => setLegenda(e.target.value)} />
           <Contador texto={legenda} limite={LIMITE_LEGENDA} />
           <LinhasPrompt linhas={prontas.map((i) => ({ id: String(i.id), miniUrl: i.miniUrl! }))} prompts={textos} aoMudar={(n, v) => setPrompts({ ...prompts, [prontas[n].id]: v })} />
           <div className="acao-fixa">
-            <Botao disabled={estouro || bloqueado} onClick={publicar}>Publicar</Botao>
+            <Botao disabled={estouro || bloqueado} onClick={() => publicar()}>{cbf ? 'Publicar como CBF' : 'Publicar'}</Botao>
           </div>
         </>
       )}
@@ -247,6 +260,6 @@ export function Postar({ me }: { me: Me }) {
       ))}
     </div>
   );
-  if (!me.clube || modo === 'foto') return <PostarFoto me={me} seletor={seletor} />;
+  if (modo === 'foto' || (!me.clube && !me.isAdmin)) return <PostarFoto me={me} seletor={seletor} />;
   return <PostarTexto me={me} seletor={seletor} />;
 }

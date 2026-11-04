@@ -108,3 +108,47 @@ test('grade do clube: post só de texto vira quadrado com as primeiras palavras,
   expect(link.textContent).toContain('Bora Palmeiras, hoje tem jogo');
   expect(container.querySelectorAll('.grade-capas img')).toHaveLength(1);
 });
+
+const dadosOndaB = { liga: { posicao: 10, ultimos: ['V', 'D'], pontos: 17, jogos: 12 }, selos: [{ titulo: 'Técnico do mês', createdAt: '2026-11-15T12:00:00Z' }] };
+
+test('perfil do clube mostra posição, últimos 5 e selos', async () => {
+  fetchFalso({
+    'GET /clubes/palmeiras': { ...base, tecnico: { id: 'u1', nome: 'Abel' }, historico: [], ...dadosOndaB },
+    'GET /posts?clube=palmeiras': { itens: [], proximo: null },
+    'GET /trocas/minhas': [],
+  });
+  render(<PerfilClube id="palmeiras" me={me} />);
+  const cartao = await screen.findByRole('link', { name: '10º na Liga, últimos 2: derrota, vitória' });
+  expect(cartao.getAttribute('href')).toBe('/liga');
+  expect(screen.getByText('· 17 pontos · 12 jogos')).toBeTruthy();
+  expect(screen.getByText('Técnico do mês')).toBeTruthy();
+  expect(screen.getByText('Nov/26')).toBeTruthy();
+});
+
+test('perfil do clube sem selo nem resultado esconde as duas seções', async () => {
+  fetchFalso({
+    'GET /clubes/palmeiras': { ...base, tecnico: null, historico: [], liga: { posicao: 3, ultimos: [] }, selos: [] },
+    'GET /posts?clube=palmeiras': { itens: [], proximo: null },
+    'GET /trocas/minhas': [],
+  });
+  render(<PerfilClube id="palmeiras" me={me} />);
+  await screen.findByText('Vaga aberta');
+  expect(screen.queryByText('na Liga')).toBeNull();
+  expect(screen.queryByText('SELOS')).toBeNull();
+});
+
+test('perfil da CBF sem técnico/histórico', async () => {
+  fetchFalso({
+    'GET /clubes/cbf': { id: 'cbf', nome: 'CBF', escudoUrl: '/escudos/cbf.svg', bio: null, tecnico: null, historico: [], liga: null, selos: [] },
+    'GET /posts?clube=cbf': { itens: [], proximo: null },
+    'GET /trocas/minhas': [],
+  });
+  render(<PerfilClube id="cbf" me={me} />);
+  expect(await screen.findByText('Oficial')).toBeTruthy();
+  expect(screen.getByText('Perfil oficial da liga')).toBeTruthy();
+  expect(screen.queryByText('Vaga aberta')).toBeNull();
+  expect(screen.queryByText('Técnico atual')).toBeNull();
+  expect(screen.queryByRole('link', { name: 'Pedir este clube' })).toBeNull();
+  expect(screen.queryByRole('tab', { name: 'Histórico' })).toBeNull();
+  expect(screen.getByRole('heading', { name: 'Posts' })).toBeTruthy();
+});

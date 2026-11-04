@@ -6,6 +6,8 @@ import { Clubes } from './Clubes';
 import { Convite } from './Convite';
 import { Denuncias } from './Denuncias';
 import { Pedidos } from './Pedidos';
+import { RodadaEditar, RodadasLista } from './Rodadas';
+import { NovaVotacao, VotacoesAdmin } from './Votacoes';
 
 export const Topo = ({ titulo, voltar }: { titulo: string; voltar?: boolean }) => (
   <>
@@ -47,6 +49,8 @@ function Inicio() {
           {codigo && <span className="giz2">{codigo}</span>}
           <span aria-hidden="true">›</span>
         </Link>
+        <Link para="/admin/rodadas" className="linha-config"><span>Rodadas</span><span aria-hidden="true">›</span></Link>
+        <Link para="/admin/votacoes" className="linha-config"><span>Votações</span><span aria-hidden="true">›</span></Link>
         <Link para="/admin/clubes" className="linha-config">
           <span>Clubes e técnicos</span>
           {clubes && <span className="giz2">{clubes.com} de {clubes.total} com técnico</span>}
@@ -67,5 +71,10 @@ export function Admin({ me, caminho }: { me: Me; caminho: string }) {
   if (caminho === '/admin/denuncias') return <Denuncias />;
   if (caminho === '/admin/convite') return <Convite />;
   if (caminho === '/admin/clubes') return <Clubes />;
+  if (caminho === '/admin/rodadas') return <RodadasLista />;
+  const rodada = caminho.match(/^\/admin\/rodadas\/(\d+)$/);
+  if (rodada) return <RodadaEditar n={Number(rodada[1])} />;
+  if (caminho === '/admin/votacoes') return <VotacoesAdmin />;
+  if (caminho === '/admin/votacoes/nova') return <NovaVotacao />;
   return <Inicio />;
 }

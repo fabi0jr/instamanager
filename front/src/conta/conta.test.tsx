@@ -235,3 +235,12 @@ test('aviso de clube ocupado some ao voltar ao passo 2', async () => {
   clica('‹ Voltar');
   expect(screen.queryByRole('alert')).toBeNull();
 });
+
+test('perfil: cartão "Meu clube" no topo (técnico) com atalhos Galeria e Liga', async () => {
+  fetchFalso({ 'GET /trocas/minhas': [] });
+  render(<Perfil me={{ ...me, clube: { id: 'palmeiras', nome: 'Palmeiras', escudoUrl: '/escudos/palmeiras.svg' } }} recarregar={() => {}} />);
+  const cartao = (await screen.findByText('Meu clube')).closest('a')!;
+  expect(cartao.getAttribute('href')).toBe('/c/palmeiras');
+  expect(screen.getByRole('link', { name: 'Galeria de prompts' }).getAttribute('href')).toBe('/galeria');
+  expect(screen.getByRole('link', { name: 'Liga' }).getAttribute('href')).toBe('/liga');
+});

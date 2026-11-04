@@ -59,6 +59,23 @@ export class InteracoesService {
     await this.prisma.like.deleteMany({ where: { postId, userId: user.id } });
   }
 
+  /** Quem reagiu, por emoji (o mais usado primeiro; empate por emoji). Mesma visibilidade do post. */
+  async reacoes(postId: string, user: UserComClube) {
+    await this.garantirPost(postId, user);
+    const likes = await this.prisma.like.findMany({
+      where: { postId },
+      include: { user: { select: { id: true, name: true, avatarPath: true, club: { select: { id: true, name: true, crestPath: true } } } } },
+      orderBy: { userId: 'asc' }, // sem data na reação: ordem estável por id
+    });
+    const grupos = new Map<string, unknown[]>();
+    for (const l of likes) {
+      const u = l.user;
+      const item = { id: u.id, nome: u.name, avatarUrl: u.avatarPath, clube: u.club && { id: u.club.id, nome: u.club.name, escudoUrl: u.club.crestPath } };
+      grupos.set(l.emoji, [...(grupos.get(l.emoji) ?? []), item]);
+    }
+    return [...grupos].map(([emoji, usuarios]) => ({ emoji, usuarios })).sort((a, b) => b.usuarios.length - a.usuarios.length || a.emoji.localeCompare(b.emoji));
+  }
+
   async listar(postId: string, user: UserComClube) {
     await this.garantirPost(postId, user);
     const lista = await this.prisma.comment.findMany({ where: { postId, ...comentariosVisiveis(user.isAdmin) }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: comUsuario });

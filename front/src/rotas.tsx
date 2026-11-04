@@ -56,7 +56,7 @@ export const PUBLICAS = ['/entrar', '/cadastro', '/esqueci-senha', '/nova-senha'
 // telas de escrever/editar: sem a barra inferior no celular (cobriria o botão fixo) e sem a faixa 'Nova versão' (Atualizar perderia o que foi digitado)
 export const emEdicao = (caminho: string) => caminho === '/postar' || /^\/[pc]\/[^/]+\/editar$/.test(caminho);
 
-const PADROES = ['/p/:id', '/p/:id/editar', '/c/:id', '/c/:id/editar', '/tag/:tag'];
+const PADROES = ['/p/:id', '/p/:id/editar', '/c/:id', '/c/:id/editar', '/tag/:tag', '/votacoes/:id'];
 
 // casa o caminho com /p/:id e /c/:id; as demais rotas não têm parâmetro
 export function useRota() {
@@ -71,3 +71,7 @@ export function useRota() {
   }
   return { caminho, params };
 }
+
+// rotas que existem; qualquer outra mostra "Não achamos essa página" (nunca tela em branco)
+const CONHECIDAS = [/^\/$/, /^\/p\/[^/]+(\/editar)?$/, /^\/c\/[^/]+(\/editar)?$/, /^\/tag\/[^/]+$/, /^\/votacoes\/[^/]+$/, /^\/(clubes|galeria|liga|postar|perfil|perfil\/senha|trocar|instalar|avisos)$/, /^\/admin(\/.*)?$/];
+export const rotaConhecida = (caminho: string) => CONHECIDAS.some((r) => r.test(caminho));

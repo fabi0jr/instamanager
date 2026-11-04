@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Patch, Put, Query, Req, UploadedFile, Use
 import { FileInterceptor } from '@nestjs/platform-express';
 import { type AuthedRequest, SessionGuard } from '../auth/session.guard.js';
 import { ApiError } from '../http.js';
+import { LigaService } from '../liga/liga.service.js';
 import { apagarImagem, ehJpeg, salvarImagem } from '../posts/imagens.js';
 import { PrismaService } from '../prisma.service.js';
 
@@ -9,19 +10,23 @@ const BIO_MAX = 300;
 const tecnicoDe = (u: { id: string; name: string } | null) => u && { id: u.id, nome: u.name };
 const naoEncontrado = () => new ApiError(404, 'NAO_ENCONTRADO', 'Não encontramos o que você procurou.');
 const perfilDe = {
+  selos: { orderBy: { createdAt: 'desc' } },
   coach: { select: { id: true, name: true } },
   tenures: { orderBy: { startedAt: 'desc' }, include: { user: { select: { id: true, name: true } } } },
 } as const;
 
 @Controller('clubes')
 export class ClubesController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly liga: LigaService,
+  ) {}
 
   // pública: o cadastro lista os clubes livres antes de existir sessão
   @Get()
   async listar(@Query('livres') livres?: string) {
     const clubes = await this.prisma.club.findMany({
-      where: livres === '1' ? { coachId: null } : {},
+      where: livres === '1' ? { coachId: null, oficial: false } : { oficial: false }, // a CBF só aparece em /clubes/cbf e como autora de posts
       include: { coach: { select: { id: true, name: true } } },
     });
     return clubes
@@ -76,6 +81,8 @@ export class ClubesController {
       bio: c.bio,
       capaUrl: c.coverPath,
       tecnico: tecnicoDe(c.coach),
+      liga: await this.liga.doClube(c.id),
+      selos: c.selos.map((s) => ({ titulo: s.titulo, createdAt: s.createdAt })),
       historico: c.tenures.map((t) => ({ usuario: tecnicoDe(t.user), inicio: t.startedAt, fim: t.endedAt })),
     };
   }

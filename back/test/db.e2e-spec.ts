@@ -19,9 +19,11 @@ describe('banco (migrations + seed)', () => {
     await prisma.$disconnect();
   });
 
-  it('seed cria os 20 clubes', async () => {
+  it('seed cria os 20 clubes da Série A e a CBF (oficial)', async () => {
     await semear(prisma); // idempotente
-    expect(await prisma.club.count()).toBe(20);
+    // clubes teste-* são de outros arquivos rodando em paralelo
+    expect(await prisma.club.count({ where: { id: { not: { startsWith: 'teste-' } } } })).toBe(21);
+    expect(await prisma.club.findUnique({ where: { id: 'cbf' } })).toMatchObject({ oficial: true, coachId: null });
     expect(await prisma.setting.findUnique({ where: { key: 'inviteCode' } })).not.toBeNull();
   });
 

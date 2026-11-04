@@ -18,7 +18,7 @@ Contrato das Tasks 3–7. Tudo sob `/api`, JSON, UTF-8. Qualquer rota fora desta
 |---|---|---|
 | `CONVITE_INVALIDO` | 400 | código de convite errado |
 | `EMAIL_EM_USO` | 409 | e-mail já cadastrado |
-| `CLUBE_OCUPADO` | 409 | o clube já tem técnico (cadastro ou aprovação de troca) |
+| `CLUBE_OCUPADO` | 409 | o clube já tem técnico, ou é a CBF, que nunca tem (cadastro, pedido ou aprovação de troca) |
 | `IMAGEM_INVALIDA` | 400 | arquivo sem assinatura JPEG |
 | `SEM_CLUBE` | 403 | torcedor tentando postar |
 | `NAO_E_TECNICO` | 403 | editar/apagar post sem ser técnico atual do clube nem admin |
@@ -30,6 +30,12 @@ Contrato das Tasks 3–7. Tudo sob `/api`, JSON, UTF-8. Qualquer rota fora desta
 | `NAO_E_AUTOR` | 403 | apagar comentário de outra pessoa sem ser admin |
 | `EMOJI_INVALIDO` | 400 | emoji fora da lista de reações |
 | `LIMITE_FIXADOS` | 409 | fixar o 4º post |
+| `NAO_E_ADMIN` | 403 | rota 👑, ou `comoCbf` sem ser admin |
+| `RODADA_FECHADA` | 409 | lançar jogos numa rodada fechada (ou fechar uma já fechada) |
+| `RODADA_ABERTA` | 409 | reabrir uma rodada que já está aberta |
+| `VOTACAO_ENCERRADA` | 409 | votar depois do prazo ou da votação encerrada; encerrar de novo |
+| `JA_VOTOU` | 409 | segundo voto da mesma pessoa na votação |
+| `CORPO_GRANDE` | 413 | `POST /api/erros-front` com corpo > 4 KB |
 | `NAO_ENCONTRADO` | 404 | id inexistente |
 
 ## Tipos
@@ -65,8 +71,8 @@ Pagina<T> = { itens: T[], proximo: string|null }   // proximo = cursor opaco par
 
 | Rota | Resposta |
 |---|---|
-| `GET /api/clubes?livres=1` (pública) | `[{id, nome, escudoUrl, tecnico: {id,nome}\|null}]`, por nome. Com `livres=1`, só os sem técnico. |
-| `GET /api/clubes/:id` 🔒 | `{id, nome, escudoUrl, bio\|null, capaUrl\|null, tecnico, historico: [{usuario:{id,nome}, inicio, fim\|null}]}`, do mais novo ao mais velho. `fim null` = técnico atual. |
+| `GET /api/clubes?livres=1` (pública) | `[{id, nome, escudoUrl, tecnico: {id,nome}\|null}]`, por nome. Com `livres=1`, só os sem técnico, e a **CBF** (`id 'cbf'`, clube oficial) nunca entra na lista. Nem com nem sem o filtro: a CBF só aparece em `GET /api/clubes/cbf` e como `clube` de posts. |
+| `GET /api/clubes/:id` 🔒 | `{id, nome, escudoUrl, bio\|null, capaUrl\|null, tecnico, liga: {posicao, ultimos, pontos, jogos}\|null, selos: [{titulo, createdAt}], historico: [{usuario:{id,nome}, inicio, fim\|null}]}`, do mais novo ao mais velho. `fim null` = técnico atual. `liga` é a posição na tabela, os pontos (P), os jogos (J) e os últimos resultados (`('V'\|'E'\|'D')[]`, até 5); **`null` para a CBF**. `selos`: os selos ganhos em votações, do mais novo ao mais velho. |
 | `PATCH /api/clubes/:id` 🔒 | `{bio}` (≤ 300; vazio apaga) | o mesmo objeto do `GET`. Só o técnico atual ou o admin (`403 NAO_E_TECNICO`, ex-técnico inclusive); `400` se > 300. |
 | `PUT /api/clubes/:id/capa` 🔒 | multipart `capa` (JPEG ≤ 3 MB; o app manda 1500×500 comprimido) | o mesmo objeto do `GET`; apaga a capa antiga do disco. `IMAGEM_INVALIDA`, `413`, `403` como na bio. |
 
@@ -74,7 +80,7 @@ Pagina<T> = { itens: T[], proximo: string|null }   // proximo = cursor opaco par
 
 | Rota | Corpo | Resposta |
 |---|---|---|
-| `POST /api/posts` | multipart com os campos `legenda`, `prompts` (JSON `(string\|null)[]`), `cheia` e `mini`: cada arquivo vai como uma repetição do campo (`cheia` repetido 1–10 vezes, `mini` idem, **na mesma ordem**); o `[]` que aparece em outros pontos é só notação de lista, o nome do campo é `cheia`/`mini` sem colchetes (1–10 pares). **Post só de texto:** 0 arquivos e o campo `texto` (1–500 caracteres, sem espaços nas pontas); com imagens, `texto` não é aceito | `201 Post`. Sem arquivos e sem `texto` válido → `400 DADOS_INVALIDOS`. `SEM_CLUBE`, `IMAGEM_INVALIDA`, `413` se > 3 MB, `400` se > 10 imagens ou `cheia` e `mini` com tamanhos diferentes. Nada é gravado em disco se algum arquivo for inválido. Emite `posts.criado`. |
+| `POST /api/posts` | multipart com os campos `comoCbf` (opcional, `true`: **só o admin**, o post sai do clube `cbf`, e o admin não precisa de clube; qualquer outra pessoa recebe `403 NAO_E_ADMIN`), `legenda`, `prompts` (JSON `(string\|null)[]`), `cheia` e `mini`: cada arquivo vai como uma repetição do campo (`cheia` repetido 1–10 vezes, `mini` idem, **na mesma ordem**); o `[]` que aparece em outros pontos é só notação de lista, o nome do campo é `cheia`/`mini` sem colchetes (1–10 pares). **Post só de texto:** 0 arquivos e o campo `texto` (1–500 caracteres, sem espaços nas pontas); com imagens, `texto` não é aceito | `201 Post`. Sem arquivos e sem `texto` válido → `400 DADOS_INVALIDOS`. `SEM_CLUBE`, `IMAGEM_INVALIDA`, `413` se > 3 MB, `400` se > 10 imagens ou `cheia` e `mini` com tamanhos diferentes. Nada é gravado em disco se algum arquivo for inválido. Emite `posts.criado`. |
 | `GET /api/posts?antes=&clube=&tag=` | — | `Pagina<Post>`, 12 por página, do mais novo ao mais velho. Sem `antes` e sem `clube` (1ª página do feed geral) vem também `fixados: Post[]` (por `pinnedAt` desc, máx. 3); sem `clube`, fixados nunca entram em `itens`. Com `tag=contratacao`: mesma resposta, só posts com `#contratacao` na legenda ou no texto (sem acento nem maiúsculas, palavra inteira; `#` dentro de URL ou colado em palavra não conta), sem `fixados`. |
 | `GET /api/posts/:id` | — | `Post` |
 | `PATCH /api/posts/:id` | `{legenda?, texto?, prompts?}` (`prompts` na ordem das imagens). `texto` (1–500, sem espaços nas pontas) só vale em post sem imagens; em post com imagens → `400 DADOS_INVALIDOS`. Em post sem imagens, `legenda` e `prompts` também dão `400 DADOS_INVALIDOS` (só o `texto` é editável) | `Post` · `NAO_E_TECNICO` (mesmas permissões: técnico atual ou admin) |
@@ -93,6 +99,7 @@ Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver 
 |---|---|---|
 | `PUT /api/posts/:id/reacao` | `{emoji}` (`❤️ 🔥 😂 😮 😢 👏`) | `204`. Uma reação por pessoa: reagir de novo troca o emoji. `400 EMOJI_INVALIDO` fora da lista. |
 | `DELETE /api/posts/:id/reacao` | — | `204` (idempotente) |
+| `GET /api/posts/:id/reacoes` | — | `[{emoji, usuarios: [{id, nome, avatarUrl\|null, clube: {id,nome,escudoUrl}\|null}]}]`: quem reagiu, por emoji, o mais usado primeiro (empate por emoji). Mesma visibilidade do post: oculto → `404` (menos para o admin), id inexistente ou inválido → `404`. Nunca traz e-mail. |
 | `PUT /api/posts/:id/curtida` | — | `204`. Apelido de `PUT .../reacao {emoji:'❤️'}` (compatibilidade com o app antigo). |
 | `DELETE /api/posts/:id/curtida` | — | `204` (idempotente). Apelido de `DELETE .../reacao`. |
 | `GET /api/posts/:id/comentarios` | — | `[{id, texto, criadoEm, usuario: {id, nome, avatarUrl\|null, clube: {id,nome}\|null}}]`, do mais velho ao mais novo. `clube` é o atual de quem comentou. |
@@ -117,6 +124,48 @@ Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver 
 
 Apagar post e comentário pelo admin usa as mesmas rotas de §3 e §4.
 
+## 4b. Liga: tabela, rodadas e jogos (Task B1) 🔒
+
+Pontos corridos com os 20 clubes, 38 rodadas (já criadas, abertas). A tabela é **calculada** a cada pedido, só com jogos de rodadas **fechadas**: vitória 3, empate 1; desempate por vitórias, saldo, gols pró e nome. A CBF não entra.
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `GET /api/liga/tabela` | — | `Linha[]` por posição: `{clubeId, nome, posicao, P, J, V, E, D, GP, GC, SG, ultimos}`. `ultimos`: até 5 resultados `'V'\|'E'\|'D'`, do jogo mais recente (maior número de rodada) ao mais antigo. |
+| `GET /api/liga/rodadas` | — | `[{numero, fechada, resumoPublicado, resumoPostId: string\|null, jogos: [{id, mandante: {id,nome,escudoUrl}, visitante, golsMandante, golsVisitante}]}]`, 38 itens. |
+| `PUT /api/admin/rodadas/:n/jogos` 👑 | `{jogos: [{mandanteId, visitanteId, golsMandante, golsVisitante}]}` (até 10) | `204`. **Substitui todos** os jogos da rodada `n` (lista vazia limpa). Só com a rodada aberta (`409 RODADA_FECHADA`). `400 DADOS_INVALIDOS` e nada gravado se: clube em 2 jogos da mesma rodada (inclui jogo repetido), clube contra si mesmo, clube inexistente ou a CBF, placar fora de 0–99 ou não inteiro. `404` para `n` fora de 1–38. |
+| `POST /api/admin/rodadas/:n/fechar` 👑 | — | `204`; passa a contar na tabela. `409 RODADA_FECHADA` se já fechada. Emite `liga.rodadaFechada(n)`. |
+| `POST /api/admin/rodadas/:n/reabrir` 👑 | — | `204`; sai da tabela até fechar de novo (o post do bot que já saiu não muda). `409 RODADA_ABERTA` se já aberta. |
+
+### Bot da zoeira (Task B2) 👑
+
+Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `POST /api/admin/rodadas/:n/previa` 👑 | — | `201 {texto, citados}`. `texto`: 3 a 6 frases, uma por linha, até 500 caracteres; `citados`: ids dos técnicos que aparecem pelo nome. Não grava nada; chamar de novo sorteia de novo. `409 RODADA_ABERTA` se a rodada não está fechada, `404` para `n` fora de 1–38. |
+| `POST /api/admin/rodadas/:n/publicar` 👑 | `{texto, citados?}`: `texto` 1–500 (o admin pode ter editado); `citados`: os ids que a prévia devolveu | `201 Post`: post de texto do clube `cbf`, autor = o admin. **Push:** todos (menos o admin e os citados) recebem `CBF` / `Saiu o resumo da rodada N`, sem o nome do admin; os citados recebem só `A CBF citou você`. Vale como citado o id que é técnico de clube que jogou a rodada **e** cujo nome ainda aparece, como palavra inteira, no texto final; sem `citados`, ninguém é citado. `400` se o texto for inválido ou `citados` não for lista, `409 RODADA_ABERTA`. Não emite `posts.criado` (o push é este). **Um resumo por rodada:** publicar de novo → `409 RESUMO_JA_PUBLICADO` (reabrir a rodada não libera; apagar o post do resumo, sim). `GET /api/liga/rodadas` traz `resumoPublicado` (boolean) e `resumoPostId` (id do post, para linkar `/p/:id`; `null` se não publicado). O corpo do 409 não traz o id: use o da lista. |
+
+## 4c. Votações e selos (Task B2) 🔒
+
+`Votacao = {id, titulo, tipo: 'CLUBE'\|'TECNICO'\|'POST', prazo, aberta, encerrada, opcoes: [{id, rotulo}], meuVoto: string\|null, resultado?: [{opcao, rotulo, votos}]}`. As opções são ids: de clube (`CLUBE`, nunca a CBF), de técnico atual (`TECNICO`, id do usuário) ou de post visível (`POST`). `aberta` = não encerrada e dentro do prazo. **O voto é secreto:** `resultado` (do mais votado ao menos, empate na ordem das opções) só vem **depois de encerrada**; antes disso nenhuma contagem sai da API, nem para o admin.
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `POST /api/admin/votacoes` 👑 | `{titulo (1–100), tipo, opcoes: string[] (2–10, sem repetir), prazo (ISO, futuro)}` | `201 Votacao`. `400 DADOS_INVALIDOS` para qualquer campo fora disso ou opção inexistente. |
+| `POST /api/admin/votacoes/:id/encerrar` 👑 | — | `201 Votacao` com `resultado`. Dá o **selo** ao clube com mais votos (`CLUBE`: o clube; `TECNICO`: o clube que a pessoa comanda hoje; `POST`: o clube do post); **empate = selo para todos os empatados; sem votos = sem selo**. Publica o resultado como post de texto da CBF. Pode encerrar antes do prazo. `409 VOTACAO_ENCERRADA` se já encerrada. |
+| `GET /api/votacoes` | — | `Votacao[]` das **não encerradas** (por prazo), com `meuVoto`; as que passaram do prazo e ainda esperam o admin vêm com `aberta: false`. Sem `resultado`. Com `?encerradas=1`: só as **encerradas** (as 50 mais recentes, da mais nova à mais velha), cada `Votacao` com `resultado` e mais `encerradaEm` e `vencedor` (rótulo; empate: rótulos juntos por " e "; sem votos: `null`). |
+| `GET /api/votacoes/:id` | — | `Votacao`; `resultado` só se encerrada. `404` se não existe. |
+| `POST /api/votacoes/:id/voto` | `{opcao}` | `204`. `409 JA_VOTOU` (1 voto por pessoa, garantido por chave no banco), `409 VOTACAO_ENCERRADA` (prazo vencido ou encerrada), `400 DADOS_INVALIDOS` se `opcao` não é uma das opções. |
+
+## 4d. Prévia do WhatsApp e erros do app (Task B3)
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `GET /api/og/p/:id` (pública) | — | `200 text/html` com `og:title` (`"<Clube> no InstaManager"`), `og:description` (legenda ou texto, espaços normalizados, até 150 caracteres), `og:image` (URL **absoluta**, `APP_URL` + a **mini** da 1ª imagem; post de texto usa `/icones/icon-512.png`), `og:url`, `twitter:card summary_large_image` e `<meta http-equiv="refresh" content="0;url=/p/:id">`. Tudo escapado (`& < > " '`). Post oculto, inexistente, id inválido ou qualquer erro → **200 com a prévia genérica** (título `InstaManager`), nunca 404/500 e sem dado do post. Quem chama é o nginx. |
+| `POST /api/erros-front` (pública) | `{mensagem, url, versao, pilha?}` (texto) | `204`. Grava **uma linha** no log do back (`erro-front {json}`, com `userId` se houver sessão, nunca e-mail ou nome; `mensagem` corta em 500, `pilha` 2000, `url` 300, `versao` 40). Corpo **≤ 4 KB** (`413 CORPO_GRANDE`, decidido pelo `Content-Length`; sem ele, também 413). Limite de **30 por minuto por IP** (`429 MUITAS_TENTATIVAS` + `Retry-After`). `400 DADOS_INVALIDOS` se faltar `mensagem`/`url`/`versao` ou o tipo estiver errado. Exige `Origin` como as outras rotas que mudam estado. |
+
+**nginx (`front/nginx.conf`):** `map $http_user_agent $robo_previa` marca `WhatsApp`, `facebookexternalhit`, `Twitterbot`, `TelegramBot`, `Slackbot`, `Discordbot` e `LinkedInBot`. Em `/p/<uuid>`, robô é reescrito para `/api/og/p/<uuid>`; qualquer outro cliente recebe o `index.html` do app. Só o caminho exato `/p/<uuid>` (36 caracteres) entra nessa regra.
+
 ## 5. Push (Task 7) 🔒
 
 | Rota | Corpo | Resposta |
@@ -125,11 +174,11 @@ Apagar post e comentário pelo admin usa as mesmas rotas de §3 e §4.
 | `POST /api/push/inscricao` | `{endpoint, keys: {p256dh, auth}}` | `204` (upsert por endpoint; se outra pessoa entrar no mesmo aparelho, a inscrição passa para ela). `400` se o endpoint não for `https` de um serviço de push conhecido (`fcm.googleapis.com`, `*.push.services.mozilla.com`, `web.push.apple.com`, `*.notify.windows.com`, sem porta nem usuário), porque o servidor faz POST nele. **O front chama `DELETE /api/push/inscricao` antes de `POST /auth/sair`** (senão o aparelho segue recebendo push de quem saiu); redefinir a senha apaga todas as inscrições da conta. |
 | `DELETE /api/push/inscricao` | `{endpoint}` | `204` (só apaga a inscrição da própria pessoa) |
 
-Ligar/desligar: `PATCH /api/me {pushEnabled}`. Mensagens (`titulo` / `corpo` → `url`): post novo `"<Clube>"` / `"<técnico> postou"` → `/p/<id>`; comentário `"Novo comentário"` / `"<nome>: <80 chars>"` → `/p/<id>`; pedido de troca (só para admins, menos quem pediu) `"Pedido de troca"` → `/admin`; decisão `"Troca aprovada"` ou `"Troca recusada"` → `/perfil`. Inscrição que responde 404/410 é apagada.
+Ligar/desligar: `PATCH /api/me {pushEnabled}`. Mensagens (`titulo` / `corpo` → `url`): post novo `"<Clube>"` / `"<técnico> postou"` → `/p/<id>` (post da CBF: `"CBF"` / `"Novo comunicado da CBF"`, sem o nome do admin); comentário `"Novo comentário"` / `"<nome>: <80 chars>"` → `/p/<id>`; pedido de troca (só para admins, menos quem pediu) `"Pedido de troca"` → `/admin`; decisão `"Troca aprovada"` ou `"Troca recusada"` → `/perfil`. Inscrição que responde 404/410 é apagada.
 
 ## 6. Modelo de dados
 
-Ver `back/prisma/schema.prisma`: `User`, `Session`, `PasswordReset`, `Club` (`coachId @unique`), `CoachTenure`, `Post`, `PostImage`, `Like`, `Comment`, `TransferRequest`, `PushSubscription`, `Setting`. Apagar `Post` apaga `PostImage`, `Like` e `Comment`. `/health` fica fora do contrato (`GET /api/health`).
+Ver `back/prisma/schema.prisma`: `User`, `Session`, `PasswordReset`, `Club` (`coachId @unique`, `oficial`: a CBF), `Rodada`, `Jogo`, `Votacao`, `Voto` (`@@id([votacaoId, userId])`), `Selo`, `CoachTenure`, `Post`, `PostImage`, `Like`, `Comment`, `TransferRequest`, `PushSubscription`, `Setting`. Apagar `Post` apaga `PostImage`, `Like` e `Comment`. `/health` fica fora do contrato (`GET /api/health`).
 
 ## 7. Variáveis de ambiente
 

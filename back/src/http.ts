@@ -59,6 +59,13 @@ export function configureApp(app: NestExpressApplication) {
       return next(new ApiError(400, 'DADOS_INVALIDOS', 'Envie os dados como JSON ou multipart.'));
     next();
   });
+  // relatório de erro do app: corpo de até 4 KB, decidido pelo Content-Length antes de ler (o json global aceitaria 1 MB).
+  // Sem Content-Length (chunked) também é recusado; o nginx e o fetch do navegador sempre mandam o tamanho.
+  app.use('/api/erros-front', (req: Request, _res: Response, next: NextFunction) => {
+    const len = req.headers['content-length'];
+    if (req.headers['transfer-encoding'] || (len !== undefined && !(Number(len) <= 4096))) return next(new ApiError(413, 'CORPO_GRANDE', 'O relatório passou de 4 KB.'));
+    next();
+  });
   // depois do Origin: pedido de outra origem é recusado antes de ler o corpo
   app.useBodyParser('json', { limit: '1mb' });
   // erros dos middlewares do Express (Origin, JSON inválido, corpo grande) não passam pelo filtro do Nest

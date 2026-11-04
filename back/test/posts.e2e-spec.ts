@@ -56,7 +56,7 @@ describe('posts (e2e)', () => {
   });
   afterAll(async () => {
     vi.unstubAllEnvs();
-    await prisma.post.deleteMany({ where: { clubId: { in: ['vasco', 'vitoria', 'remo', 'mirassol'] } } });
+    await prisma.post.deleteMany({ where: { OR: [{ clubId: { in: ['vasco', 'vitoria', 'remo', 'mirassol'] } }, { authorId: admin.id }] } });
     await prisma.user.deleteMany({ where: { email: { in: emails } } });
     await app.close();
     await rm(dir, { recursive: true, force: true });
@@ -239,5 +239,13 @@ describe('posts (e2e)', () => {
       expect(pg2.body.itens).toHaveLength(1);
       expect(pg2.body.proximo).toBeNull();
     });
+  });
+
+  it('admin sem clube posta como CBF (comoCbf=true); sem comoCbf continua SEM_CLUBE', async () => {
+    const texto = (extra: object) => request(http()).post('/api/posts').set('Origin', ORIGIN).set('Cookie', admin.cookie).send({ texto: 'Nota da CBF', ...extra });
+    const ok = await texto({ comoCbf: true }).expect(201);
+    expect(ok.body.clube.id).toBe('cbf');
+    const sem = await texto({}).expect(403);
+    expect(sem.body.codigo).toBe('SEM_CLUBE');
   });
 });
