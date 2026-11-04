@@ -47,13 +47,15 @@ function Linha({ aba, item, q }: { aba: Aba; item: unknown; q: string }) {
     );
   }
   const p = item as Pessoa;
-  return (
-    <div className="res-linha">
+  const corpo = (
+    <>
       {p.avatarUrl ? <img className="av44" src={p.avatarUrl} alt="" width="44" height="44" /> : <span className="av44" aria-hidden="true">{p.nome[0]?.toUpperCase()}</span>}
       <span className="res-corpo"><strong className="res-titulo"><Destaque texto={p.nome} q={q} /></strong></span>
       {p.clube ? <span className="pilula"><Escudo src={p.clube.escudoUrl} tam={14} />{sigla(p.clube.id)}</span> : <span className="pilula">torcedor</span>}
-    </div>
+    </>
   );
+  // não existe perfil de pessoa: quem tem clube leva ao clube; o torcedor fica sem link
+  return p.clube ? <Link para={`/c/${p.clube.id}`} className="res-linha">{corpo}</Link> : <div className="res-linha">{corpo}</div>;
 }
 
 // só existe com 2 caracteres ou mais: montar este componente é o que chama a API

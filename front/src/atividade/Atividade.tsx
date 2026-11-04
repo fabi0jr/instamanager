@@ -13,8 +13,7 @@ export type ItemAtividade = {
   ator: { id: string; nome: string; avatarUrl: string | null } | null;
   post: { id: string; miniUrl: string | null; resumo: string } | null;
   votacao: { id: string; titulo: string } | null;
-  clube?: { id: string; nome: string } | null; // troca decidida
-  aprovada?: boolean;
+  troca?: { status: string; clube?: { id: string; nome: string } | null } | null; // TROCA_DECIDIDA (status vem do back)
 };
 const SELO = { REACAO: 'curtir', COMENTARIO: 'comentar', MENCAO: 'perfil', CBF_CITOU: 'liga', TROCA_DECIDIDA: 'ok', VOTACAO_RESULTADO: 'votacao' } as const;
 const INDISPONIVEL = 'Post indisponível';
@@ -28,14 +27,14 @@ function texto(i: ItemAtividade) {
     case 'COMENTARIO': return sem ? <><b>{nome}</b> comentou em um post</> : <><b>{nome}</b> comentou: “{resumo}”</>;
     case 'MENCAO': return sem ? <><b>{nome}</b> mencionou você</> : <><b>{nome}</b> mencionou você: “{resumo}”</>;
     case 'CBF_CITOU': return <>CBF citou você no comunicado da rodada</>;
-    // a API ainda não diz se foi aprovada ou recusada (item sem esse campo): texto neutro, o detalhe está no Perfil
-    case 'TROCA_DECIDIDA': return i.aprovada === undefined ? <>Seu pedido de troca foi decidido.</> : i.aprovada ? <>Seu pedido de troca foi aprovado.</> : <>Seu pedido de troca foi recusado.</>;
+    // sem `troca.status` (back antigo) o texto é neutro
+    case 'TROCA_DECIDIDA': return /aprov/i.test(i.troca?.status ?? '') ? <>Seu pedido de troca foi aprovado.</> : /recus/i.test(i.troca?.status ?? '') ? <>Seu pedido de troca foi recusado.</> : <>Seu pedido de troca foi decidido.</>;
     case 'VOTACAO_RESULTADO': return <>Resultado de {i.votacao?.titulo ?? 'votação'}</>;
   }
 }
 const destino = (i: ItemAtividade) => {
   if (i.post?.resumo === INDISPONIVEL) return null;
-  if (i.tipo === 'TROCA_DECIDIDA') return i.clube ? `/c/${i.clube.id}` : '/perfil';
+  if (i.tipo === 'TROCA_DECIDIDA') return i.troca?.clube ? `/c/${i.troca.clube.id}` : '/perfil';
   if (i.tipo === 'VOTACAO_RESULTADO' && i.votacao) return `/votacoes/${i.votacao.id}`;
   return i.post ? `/p/${i.post.id}` : null;
 };

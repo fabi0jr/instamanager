@@ -62,3 +62,13 @@ test('contador da barra: nenhum, número e 9+; zera ao abrir /atividade', async 
   render(<BarraInferior />);
   expect(document.querySelector('.contador')).toBeNull();
 });
+
+test('troca decidida mostra aprovado/recusado quando o back manda o status; sem status, texto neutro', async () => {
+  const troca = (status?: string) => item('t', 'TROCA_DECIDIDA', { ator: null, post: null, ...(status ? { troca: { status, clube: { id: 'vasco', nome: 'Vasco' } } } : {}) });
+  fetchFalso({ 'GET /atividade': { itens: [troca('APROVADA'), { ...troca('RECUSADA'), id: 't2' }, { ...troca(), id: 't3' }], proximo: null }, 'POST /atividade/lidas': { status: 204 } });
+  render(<Atividade />);
+  expect(await screen.findByText('Seu pedido de troca foi aprovado.')).toBeTruthy();
+  expect(screen.getByText('Seu pedido de troca foi recusado.')).toBeTruthy();
+  expect(screen.getByText('Seu pedido de troca foi decidido.')).toBeTruthy();
+  expect(document.querySelector('a[href="/c/vasco"]')).toBeTruthy();
+});

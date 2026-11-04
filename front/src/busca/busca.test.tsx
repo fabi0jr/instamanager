@@ -53,3 +53,12 @@ test('destaque ignora acento e maiúscula e marca a palavra inteira', () => {
   render(<p><Destaque texto="sem nada" q="xyz" /></p>);
   expect(document.querySelector('b')).toBeNull();
 });
+
+test('pessoa com clube leva a /c/:clubeId e o torcedor fica sem link', async () => {
+  fetchFalso({ 'GET /busca?q=fa&tipo=pessoas': { itens: [{ id: 'u1', nome: 'Fabio', avatarUrl: null, clube }, { id: 'u2', nome: 'Fabiana', avatarUrl: null, clube: null }], proximo: null } });
+  render(<Busca />);
+  fireEvent.click(screen.getByRole('tab', { name: 'Pessoas' }));
+  digitar('fa');
+  await screen.findByText('torcedor');
+  expect(screen.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/c/palmeiras']);
+});
