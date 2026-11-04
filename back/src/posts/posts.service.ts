@@ -33,6 +33,8 @@ const incluir = ({ id: userId, isAdmin }: { id: string; isAdmin: boolean }) =>
 type PostCompleto = Prisma.PostGetPayload<{ include: ReturnType<typeof incluir> }>;
 type Reacoes = { emoji: string; total: number }[];
 
+// `@[Nome](uuid)` como regex do Postgres
+const MARCA_MENCAO = String.raw`@\[[^\]]*\]\([0-9a-f-]{36}\)`;
 const imagemGaleria = {
   post: { select: { createdAt: true, club: true } },
 } as const;
@@ -315,7 +317,16 @@ export class PostsService {
     const visivel = ondeVisivel(user.id, user.isAdmin);
     const depois = (campo: string) => (c ? { OR: [{ [campo]: { lt: c.criadoEm } }, { [campo]: c.criadoEm, id: { lt: c.id } }] } : {});
     if (tipo === 'posts') {
-      const ids = (await this.prisma.$queryRaw<{ id: string }[]>`SELECT id FROM "Post" WHERE lower(unaccent(caption || ' ' || coalesce(texto, ''))) LIKE '%' || lower(unaccent(${p})) || '%'`).map((r) => r.id);
+      // o markup `@[Nome](uuid)` não conta como texto (nem o uuid nem o nome escrito); a menção é achada pelo nome de hoje da pessoa, no banco
+      const ids = (
+        await this.prisma.$queryRaw<{ id: string }[]>`
+          SELECT p.id FROM "Post" p
+          WHERE lower(unaccent(regexp_replace(p.caption || ' ' || coalesce(p.texto, ''), ${MARCA_MENCAO}, ' ', 'gi'))) LIKE '%' || lower(unaccent(${p})) || '%'
+             OR EXISTS (
+               SELECT 1 FROM "User" u
+               WHERE lower(unaccent(u.name)) LIKE '%' || lower(unaccent(${p})) || '%'
+                 AND (p.caption || ' ' || coalesce(p.texto, '')) LIKE '%](' || u.id::text || ')%')`
+      ).map((r) => r.id);
       const posts = await this.prisma.post.findMany({ where: { ...visivel, id: { in: ids }, ...depois('createdAt') }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: POR_PAGINA_BUSCA + 1, include: incluir(user) });
       const pagina = posts.slice(0, POR_PAGINA_BUSCA);
       const ultimo = pagina.at(-1);

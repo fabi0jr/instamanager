@@ -172,7 +172,7 @@ Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
 
 | Rota | Corpo | Resposta |
 |---|---|---|
-| `GET /api/atividade?antes=` | — | `{itens, proximo}`, 20 por página, do mais novo ao mais velho (cursor como o do feed; `400` se malformado). Item: `{id, tipo, criadoEm, lida, ator: {id, nome, avatarUrl\|null}\|null, post: {id, miniUrl\|null, resumo}\|null, votacao: {id, titulo}\|null}`. `resumo` ≤ 80 caracteres (menção vira `@Nome`). Post oculto pelo admin (para quem não é admin) → `{id, miniUrl: null, resumo: "Post indisponível"}`; post apagado → o item some. |
+| `GET /api/atividade?antes=` | — | `{itens, proximo}`, 20 por página, do mais novo ao mais velho (cursor como o do feed; `400` se malformado). Item: `{id, tipo, criadoEm, lida, ator: {id, nome, avatarUrl\|null}\|null, post: {id, miniUrl\|null, resumo}\|null, votacao: {id, titulo}\|null, troca?: {status: 'APROVADA'\|'RECUSADA', clube: ClubeMini\|null}\|null}` (`troca` só nos itens `TROCA_DECIDIDA`: `clube` é o que a pessoa pediu para assumir, `null` no pedido de sair). `resumo` ≤ 80 caracteres (menção vira `@Nome`). Post oculto pelo admin (para quem não é admin) → `{id, miniUrl: null, resumo: "Post indisponível"}`; post apagado → o item some. |
 | `GET /api/atividade/nao-lidas` | — | `{total}` |
 | `POST /api/atividade/lidas` | — | `204`: marca todas como lidas. |
 | `GET /api/pessoas?q=` | — | até **8** `[{id, nome, avatarUrl\|null, clube: ClubeMini\|null}]` para o autocompletar do `@`: pedaço do nome, sem acento e sem diferenciar maiúsculas (quem começa com o texto vem primeiro); `%` e `_` valem como texto. `q` com menos de 2 caracteres (após `trim`, cortado em 60) → `[]`, não `400`. Sem e-mail. |
@@ -183,7 +183,7 @@ Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
 - `COMENTARIO`: o técnico atual do clube do post, quando outra pessoa comenta.
 - `MENCAO`: a pessoa mencionada (post, edição ou comentário).
 - `CBF_CITOU`: os técnicos citados no resumo da rodada (`ator: null`, `post` = o resumo).
-- `TROCA_DECIDIDA`: quem pediu a troca, aprovada ou recusada (`ator: null`).
+- `TROCA_DECIDIDA`: quem pediu a troca, aprovada ou recusada (`ator: null`, `troca` com o resultado).
 - `VOTACAO_RESULTADO`: todo mundo, menos o admin que encerrou (`ator: null`, `votacao` e `post` = o resultado).
 
 Itens com mais de **60 dias** são apagados na limpeza horária. Eventos novos: `reacoes.reagida(postId, userId)` e `posts.editado(postId)`.
@@ -196,7 +196,7 @@ Itens com mais de **60 dias** são apagados na limpeza horária. Eventos novos: 
 
 Itens por `tipo`:
 
-- `posts`: `Post` (legenda **e** texto), mais novo primeiro, com a mesma visibilidade do feed (oculto pelo admin só o admin acha; "ocultar para mim" some para quem ocultou).
+- `posts`: `Post` (legenda **e** texto; o markup `@[Nome](uuid)` não conta, e quem foi mencionado é achado pelo nome de hoje), mais novo primeiro, com a mesma visibilidade do feed (oculto pelo admin só o admin acha; "ocultar para mim" some para quem ocultou).
 - `prompts`: item da galeria (`{imagemId, postId, miniUrl, cheiaUrl, prompt, clube, favorito}`), só de post visível.
 - `clubes`: `{id, nome, escudoUrl, tecnico: {id, nome}|null}` por nome; **nunca a CBF**.
 - `pessoas`: `{id, nome, avatarUrl|null, clube: ClubeMini|null}`, quem começa com o texto vem primeiro, depois por nome. Sem e-mail.

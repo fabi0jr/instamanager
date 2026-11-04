@@ -49,6 +49,16 @@ describe('busca (e2e)', () => {
     expect(r.proximo).toBeNull();
   });
 
+  it('o markup da menção não entra na busca: nem o uuid nem o nome escrito; acha pelo nome de hoje da pessoa', async () => {
+    const p = await postar(tecnico, `Grande jogo @[Nome Forjado](${outro.id}) ontem`);
+    expect((await ok(outro.id.slice(0, 8), 'posts')).itens).toEqual([]);
+    expect((await ok(outro.id, 'posts')).itens).toEqual([]);
+    expect((await ok('forjado', 'posts')).itens).toEqual([]);
+    expect((await ok('](', 'posts')).itens).toEqual([]);
+    expect((await ok('grande jogo', 'posts')).itens.map((i) => i.id)).toEqual([p.id]);
+    expect((await ok('pessoa qualquer', 'posts')).itens.map((i) => i.id)).toEqual([p.id]);
+  });
+
   it('valida q (2 a 60 caracteres) e tipo → 400', async () => {
     expect((await busca('a', 'posts').expect(400)).body.codigo).toBe('DADOS_INVALIDOS');
     await busca('  a  ', 'posts').expect(400);

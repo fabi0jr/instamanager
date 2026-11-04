@@ -38,6 +38,6 @@ export class AtividadeListeners implements OnModuleInit {
 
   private async trocaDecidida(id: string) {
     const t = await this.prisma.transferRequest.findUnique({ where: { id }, select: { userId: true, status: true } });
-    if (t && t.status !== 'PENDENTE') await this.atividade.criar([t.userId], 'TROCA_DECIDIDA');
+    if (t && t.status !== 'PENDENTE') await this.atividade.criar([t.userId], 'TROCA_DECIDIDA', { trocaId: id });
   }
 }
