@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { UserComClube } from '../auth/auth.service.js';
 import type { NotificacaoTipo } from '../generated/prisma/client.js';
-import { extrairMencoes, resolverMencoes, semMarcas } from '../mencoes.js';
+import { comNomes, extrairMencoes, resolverMencoes } from '../mencoes.js';
 import { codificarCursor, decodificarCursor } from '../posts/cursor.js';
 import { ondeVisivel } from '../posts/visibilidade.js';
 import { PrismaService } from '../prisma.service.js';
@@ -76,7 +76,9 @@ export class AtividadeService {
     const visiveis = ids.length
       ? await this.prisma.post.findMany({ where: { id: { in: ids }, ...ondeVisivel(user.id, user.isAdmin, { lista: false }) }, include: { images: { orderBy: { position: 'asc' }, take: 1 } } })
       : [];
-    const resumoDe = (p: (typeof visiveis)[number]) => curto(semMarcas(p.texto ?? (p.caption || (p.images.length ? 'Post com imagem' : 'Post'))));
+    const textoDe = (p: (typeof visiveis)[number]) => p.texto ?? (p.caption || (p.images.length ? 'Post com imagem' : 'Post'));
+    const nomes = await resolverMencoes(this.prisma, [...new Set(visiveis.flatMap((p) => extrairMencoes(textoDe(p))))]);
+    const resumoDe = (p: (typeof visiveis)[number]) => curto(comNomes(textoDe(p), nomes));
     const ultimo = pagina.at(-1);
     return {
       itens: pagina.map((n) => {

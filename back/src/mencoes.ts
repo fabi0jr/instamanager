@@ -18,5 +18,9 @@ export async function resolverMencoes(prisma: Pick<PrismaService, 'user'>, ids: 
   return ids.flatMap((id) => us.filter((u) => u.id === id).map((u) => ({ id: u.id, nome: u.name })));
 }
 
-/** `@[Nome](uuid)` → `@Nome`, para resumos em texto puro. */
-export const semMarcas = (texto: string) => texto.replace(/@\[([^\]\n]*)\]\([0-9a-f-]{36}\)/gi, '@$1');
+/** Troca cada `@[texto](uuid)` por `@Nome` com o nome do banco (o texto escrito não vale); id que não resolveu some. */
+export const comNomes = (texto: string, mencoes: { id: string; nome: string }[]) =>
+  texto.replace(/@\[[^\]\n]*\]\(([0-9a-f-]{36})\)/gi, (_, id: string) => {
+    const m = mencoes.find((x) => x.id === id.toLowerCase());
+    return m ? `@${m.nome}` : '';
+  });

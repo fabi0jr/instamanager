@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type { UserComClube } from '../auth/auth.service.js';
 import { Prisma, type Votacao, type VotacaoTipo } from '../generated/prisma/client.js';
 import { ApiError } from '../http.js';
@@ -18,6 +18,8 @@ const curto = (t: string, n: number) => (t.length > n ? `${t.slice(0, n - 1)}…
 
 @Injectable()
 export class VotacoesService {
+  private readonly logger = new Logger(VotacoesService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly posts: PostsService,
@@ -94,7 +96,7 @@ export class VotacoesService {
     const post = await this.posts.criar(user, { comoCbf: true, texto: curto(texto, MAX_TEXTO) }, [], []);
     // o resultado vai para todo mundo (menos o admin que encerrou)
     const todos = await this.prisma.user.findMany({ where: { id: { not: user.id } }, select: { id: true } });
-    await this.atividade.criar(todos.map((u) => u.id), 'VOTACAO_RESULTADO', { votacaoId: id, postId: post.id });
+    void this.atividade.criar(todos.map((u) => u.id), 'VOTACAO_RESULTADO', { votacaoId: id, postId: post.id }).catch((e: unknown) => this.logger.warn(`atividade VOTACAO_RESULTADO: ${String(e)}`));
     return this.json({ ...v, encerradaEm: new Date() }, null, true, resultado);
   }
 

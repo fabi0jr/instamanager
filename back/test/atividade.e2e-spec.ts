@@ -180,6 +180,15 @@ describe('atividade e menções (e2e)', () => {
     expect(r.startsWith('@Outro Mencionado x')).toBe(true);
   });
 
+  it('o resumo usa o nome do banco, não o escrito na menção; id inexistente some', async () => {
+    const p = await postar(tecnico0, `Fala @[Nome Forjado](${outro.id}) e @[Fantasma](00000000-0000-4000-8000-000000000000)!`);
+    await comentar(torcedor, p.id, 'oi').expect(201);
+    await esperar();
+    const r = (await itens(tecnico0))[0].post!.resumo;
+    expect(r).toBe('Fala @Outro Mencionado e !');
+    expect(r).not.toMatch(/Forjado|Fantasma/);
+  });
+
   it('decisão de troca cria TROCA_DECIDIDA para quem pediu; resultado de votação avisa todos menos o admin', async () => {
     const t = (await com('post', '/api/trocas', outro).send({ tipo: 'ASSUMIR', clubeId: c[2] }).expect(201)).body;
     await com('post', `/api/admin/trocas/${t.id}/recusar`, admin).expect(204);
@@ -188,6 +197,7 @@ describe('atividade e menções (e2e)', () => {
     const v = (await com('post', '/api/admin/votacoes', admin).send({ titulo: 'Melhor da rodada', tipo: 'CLUBE', opcoes: [c[0], c[1]], prazo: new Date(Date.now() + 86_400_000).toISOString() }).expect(201)).body;
     await com('post', `/api/votacoes/${v.id}/voto`, torcedor).send({ opcao: c[0] }).expect(204);
     await com('post', `/api/admin/votacoes/${v.id}/encerrar`, admin).expect(201);
+    await esperar();
     expect(await itens(torcedor)).toMatchObject([{ tipo: 'VOTACAO_RESULTADO', votacao: { id: v.id, titulo: 'Melhor da rodada' } }]);
     expect(await tipos(admin)).toEqual([]);
     await prisma.coachTenure.deleteMany({ where: { userId: outro.id } });
