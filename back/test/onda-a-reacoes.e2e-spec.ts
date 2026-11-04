@@ -1,10 +1,10 @@
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import type { PrismaService } from '../src/prisma.service.js';
-import { cadastrarUsuario, criarApp, ORIGIN } from './helpers.js';
+import { apagarClubesDeTeste, cadastrarUsuario, criarApp, criarClubesDeTeste, ORIGIN } from './helpers.js';
 import { montarJpeg } from './jpeg.js';
 
-// Clube só deste arquivo (os e2e rodam em paralelo): palmeiras.
+// Clube próprio (teste-reacoes-1): não disputa os clubes reais com os outros arquivos.
 describe('onda A · reações, posts de texto e fixados (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -13,24 +13,27 @@ describe('onda A · reações, posts de texto e fixados (e2e)', () => {
   type U = Awaited<ReturnType<typeof cadastrarUsuario>>;
   let tecnico: U, torcedor: U, outro: U, admin: U;
   const ids: string[] = [];
+  let clube: string;
   const com = (m: 'get' | 'put' | 'post' | 'delete', url: string, u: U) => request(http())[m](url).set('Origin', ORIGIN).set('Cookie', u.cookie);
   const postarTexto = (u: U, texto?: string) => {
     const r = com('post', '/api/posts', u);
     return texto === undefined ? r.field('legenda', '') : r.field('texto', texto);
   };
-  const novoPost = async (extra: object = {}) => (await prisma.post.create({ data: { clubId: 'palmeiras', authorId: tecnico.id, caption: 'p', ...extra } })).id;
+  const novoPost = async (extra: object = {}) => (await prisma.post.create({ data: { clubId: clube, authorId: tecnico.id, caption: 'p', ...extra } })).id;
   const obter = async (id: string, u: U) => (await com('get', `/api/posts/${id}`, u).expect(200)).body;
 
   beforeAll(async () => {
     ({ app, prisma, post, http } = await criarApp());
-    tecnico = await cadastrarUsuario(post, prisma, 'palmeiras', 'Técnico');
+    [clube] = await criarClubesDeTeste(prisma, 'reacoes', 1);
+    tecnico = await cadastrarUsuario(post, prisma, clube, 'Técnico');
     [torcedor, outro, admin] = [await cadastrarUsuario(post, prisma, null, 'Torcedor'), await cadastrarUsuario(post, prisma, null, 'Outro'), await cadastrarUsuario(post, prisma, null, 'Admin')];
     ids.push(tecnico.id, torcedor.id, outro.id, admin.id);
     await prisma.user.update({ where: { id: admin.id }, data: { isAdmin: true } });
   });
-  afterEach(() => prisma.post.deleteMany({ where: { clubId: 'palmeiras' } }));
+  afterEach(() => prisma.post.deleteMany({ where: { clubId: clube } }));
   afterAll(async () => {
     await prisma.user.deleteMany({ where: { id: { in: ids } } });
+    await apagarClubesDeTeste(prisma, [clube]);
     await app.close();
   });
 
@@ -102,7 +105,7 @@ describe('onda A · reações, posts de texto e fixados (e2e)', () => {
 
     it('galeria não lista post de texto', async () => {
       const res = await postarTexto(tecnico, 'Só texto').expect(201);
-      const g = (await com('get', '/api/galeria?clube=palmeiras', torcedor).expect(200)).body;
+      const g = (await com('get', `/api/galeria?clube=${clube}`, torcedor).expect(200)).body;
       expect(g.itens.map((i: { postId: string }) => i.postId)).not.toContain(res.body.id);
     });
   });
@@ -146,8 +149,8 @@ describe('onda A · reações, posts de texto e fixados (e2e)', () => {
     it('com ?clube= ou ?antes= não traz fixados (campo ausente)', async () => {
       const id = await novoPost();
       await fixar(id, admin).expect(204);
-      expect((await com('get', '/api/posts?clube=palmeiras', torcedor).expect(200)).body.fixados).toBeUndefined();
-      const itens = (await com('get', '/api/posts?clube=palmeiras', torcedor).expect(200)).body.itens;
+      expect((await com('get', `/api/posts?clube=${clube}`, torcedor).expect(200)).body.fixados).toBeUndefined();
+      const itens = (await com('get', `/api/posts?clube=${clube}`, torcedor).expect(200)).body.itens;
       expect(itens.map((p: { id: string }) => p.id)).toContain(id);
     });
 
