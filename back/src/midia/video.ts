@@ -18,6 +18,8 @@ const FORMATOS_OK = ['mov', 'matroska'];
 const ATOMOS_MOV = ['ftyp', 'moov', 'mdat', 'wide', 'free', 'skip'];
 
 /** MP4/MOV (átomo nos bytes 4–8) ou Matroska/WebM (assinatura EBML). Texto, playlists e o resto são recusados sem tocar no ffmpeg. */
+/** Demuxer a forçar com `-f`: o ffmpeg não adivinha pelo conteúdo. */
+export const formatoDe = (b: Buffer) => (b.readUInt32BE(0) === 0x1a45dfa3 ? 'matroska' : 'mov');
 export const ehContainerPermitido = (b: Buffer) => b.length >= 12 && (ATOMOS_MOV.includes(b.toString('latin1', 4, 8)) || b.readUInt32BE(0) === 0x1a45dfa3);
 
 export type Medida = { duracaoS: number; largura: number; altura: number; temVideo: boolean };
@@ -28,11 +30,11 @@ const publico = (pasta: string, nome: string) => `/uploads/${pasta}/${nome}`;
 const apagar = (caminho: string) => unlink(caminho).catch(() => undefined);
 
 /** ffprobe: duração e tamanho do primeiro fluxo de vídeo. Arquivo que não é vídeo (ou ffprobe falhou) → temVideo false, nunca lança. */
-export async function medir(arquivo: string): Promise<Medida> {
+export async function medir(arquivo: string, formato?: string): Promise<Medida> {
   try {
     const { stdout } = await exec(
       'ffprobe',
-      [...SO_ARQUIVO, '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height:stream_side_data=rotation:format=duration,format_name', '-of', 'json', arquivo],
+      [...SO_ARQUIVO, ...(formato ? ['-f', formato] : []), '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height:stream_side_data=rotation:format=duration,format_name', '-of', 'json', arquivo],
       { timeout: LIMITE_SONDA_MS, killSignal: 'SIGKILL' },
     );
     const j = JSON.parse(stdout) as { streams?: { width?: number; height?: number; side_data_list?: { rotation?: number }[] }[]; format?: { duration?: string; format_name?: string } };
@@ -51,7 +53,7 @@ export async function medir(arquivo: string): Promise<Medida> {
  * MP4 H.264 + AAC, lado maior 1280, +faststart, e capa JPG do 1º segundo, em UPLOADS_DIR/<pasta>/.
  * Passou de 90 s ou o ffmpeg falhou → VIDEO_INVALIDO e nenhum arquivo fica no disco.
  */
-export async function converter(entrada: string, pasta: string): Promise<Convertido> {
+export async function converter(entrada: string, pasta: string, formato?: string): Promise<Convertido> {
   const dir = join(uploads(), pasta);
   await mkdir(dir, { recursive: true });
   const base = randomBytes(16).toString('hex');
@@ -62,7 +64,7 @@ export async function converter(entrada: string, pasta: string): Promise<Convert
     const filtro = `scale='if(gte(iw,ih),min(${LADO_MAIOR},iw),-2)':'if(gte(iw,ih),-2,min(${LADO_MAIOR},ih))',scale=trunc(iw/2)*2:trunc(ih/2)*2`;
     await exec(
       'ffmpeg',
-      ['-y', '-v', 'error', ...SO_ARQUIVO, '-i', entrada, '-map', '0:v:0', '-map', '0:a:0?', '-vf', filtro, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '26', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', mp4],
+      ['-y', '-v', 'error', ...SO_ARQUIVO, ...(formato ? ['-f', formato] : []), '-i', entrada, '-map', '0:v:0', '-map', '0:a:0?', '-vf', filtro, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '26', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', mp4],
       { timeout: LIMITE_CONVERSAO_MS, killSignal: 'SIGKILL' },
     );
     const m = await medir(mp4);
@@ -86,10 +88,11 @@ export async function processarVideo(buffer: Buffer, pasta: string): Promise<Con
   const original = join(tmp, `${randomBytes(16).toString('hex')}.bin`);
   await writeFile(original, buffer);
   try {
-    const m = await medir(original);
+    const formato = formatoDe(buffer);
+    const m = await medir(original, formato);
     if (!m.temVideo) throw new ApiError(422, 'VIDEO_INVALIDO', 'Esse arquivo não é um vídeo que eu consiga ler.');
     if (m.duracaoS > MAX_VIDEO_S + TOLERANCIA_S) throw new ApiError(400, 'VIDEO_LONGO', `O vídeo passa de ${MAX_VIDEO_S} s (tem ${Math.round(m.duracaoS)} s).`);
-    return await converter(original, pasta);
+    return await converter(original, pasta, formato);
   } finally {
     await apagar(original);
   }
