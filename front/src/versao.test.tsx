@@ -58,3 +58,15 @@ test('sem rede, sem meta (dev) ou resposta estranha: silêncio', async () => {
   await act(async () => {});
   expect(f).not.toHaveBeenCalled();
 });
+
+test('em /postar e /p/:id/editar a faixa fica escondida (reload perderia o rascunho) e volta nas outras telas', async () => {
+  vi.stubGlobal('fetch', servidor('bbb'));
+  history.pushState({}, '', '/postar');
+  render(<AvisoVersao />);
+  await act(async () => {});
+  expect(screen.queryByText('Nova versão do InstaManager')).toBeNull();
+  act(() => { history.pushState({ interno: true }, '', '/p/abc/editar'); dispatchEvent(new PopStateEvent('popstate')); });
+  expect(screen.queryByText('Nova versão do InstaManager')).toBeNull();
+  act(() => { history.pushState({ interno: true }, '', '/'); dispatchEvent(new PopStateEvent('popstate')); });
+  expect(await screen.findByText('Nova versão do InstaManager')).toBeTruthy();
+});
