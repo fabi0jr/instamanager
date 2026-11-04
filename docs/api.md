@@ -33,6 +33,8 @@ Contrato das Tasks 3–7. Tudo sob `/api`, JSON, UTF-8. Qualquer rota fora desta
 | `NAO_E_ADMIN` | 403 | rota 👑, ou `comoCbf` sem ser admin |
 | `RODADA_FECHADA` | 409 | lançar jogos numa rodada fechada (ou fechar uma já fechada) |
 | `RODADA_ABERTA` | 409 | reabrir uma rodada que já está aberta |
+| `VOTACAO_ENCERRADA` | 409 | votar depois do prazo ou da votação encerrada; encerrar de novo |
+| `JA_VOTOU` | 409 | segundo voto da mesma pessoa na votação |
 | `NAO_ENCONTRADO` | 404 | id inexistente |
 
 ## Tipos
@@ -69,7 +71,7 @@ Pagina<T> = { itens: T[], proximo: string|null }   // proximo = cursor opaco par
 | Rota | Resposta |
 |---|---|
 | `GET /api/clubes?livres=1` (pública) | `[{id, nome, escudoUrl, tecnico: {id,nome}\|null}]`, por nome. Com `livres=1`, só os sem técnico, e a **CBF** (`id 'cbf'`, clube oficial) nunca entra na lista. Nem com nem sem o filtro: a CBF só aparece em `GET /api/clubes/cbf` e como `clube` de posts. |
-| `GET /api/clubes/:id` 🔒 | `{id, nome, escudoUrl, bio\|null, capaUrl\|null, tecnico, liga: {posicao, ultimos}\|null, historico: [{usuario:{id,nome}, inicio, fim\|null}]}`, do mais novo ao mais velho. `fim null` = técnico atual. `liga` é a posição na tabela e os últimos resultados (`('V'\|'E'\|'D')[]`, até 5); **`null` para a CBF**. |
+| `GET /api/clubes/:id` 🔒 | `{id, nome, escudoUrl, bio\|null, capaUrl\|null, tecnico, liga: {posicao, ultimos}\|null, selos: [{titulo, createdAt}], historico: [{usuario:{id,nome}, inicio, fim\|null}]}`, do mais novo ao mais velho. `fim null` = técnico atual. `liga` é a posição na tabela e os últimos resultados (`('V'\|'E'\|'D')[]`, até 5); **`null` para a CBF**. `selos`: os selos ganhos em votações, do mais novo ao mais velho. |
 | `PATCH /api/clubes/:id` 🔒 | `{bio}` (≤ 300; vazio apaga) | o mesmo objeto do `GET`. Só o técnico atual ou o admin (`403 NAO_E_TECNICO`, ex-técnico inclusive); `400` se > 300. |
 | `PUT /api/clubes/:id/capa` 🔒 | multipart `capa` (JPEG ≤ 3 MB; o app manda 1500×500 comprimido) | o mesmo objeto do `GET`; apaga a capa antiga do disco. `IMAGEM_INVALIDA`, `413`, `403` como na bio. |
 
@@ -132,6 +134,27 @@ Pontos corridos com os 20 clubes, 38 rodadas (já criadas, abertas). A tabela é
 | `POST /api/admin/rodadas/:n/fechar` 👑 | — | `204`; passa a contar na tabela. `409 RODADA_FECHADA` se já fechada. Emite `liga.rodadaFechada(n)`. |
 | `POST /api/admin/rodadas/:n/reabrir` 👑 | — | `204`; sai da tabela até fechar de novo (o post do bot que já saiu não muda). `409 RODADA_ABERTA` se já aberta. |
 
+### Bot da zoeira (Task B2) 👑
+
+Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `POST /api/admin/rodadas/:n/previa` 👑 | — | `201 {texto, citados}`. `texto`: 3 a 6 frases, uma por linha, até 500 caracteres; `citados`: ids dos técnicos que aparecem pelo nome. Não grava nada; chamar de novo sorteia de novo. `409 RODADA_ABERTA` se a rodada não está fechada, `404` para `n` fora de 1–38. |
+| `POST /api/admin/rodadas/:n/publicar` 👑 | `{texto}` (1–500, o admin pode ter editado) | `201 Post`: post de texto do clube `cbf`, autor = o admin. Manda push ("A CBF citou você") aos técnicos de clubes que jogaram a rodada e cujo nome aparece no texto. `400` se o texto for inválido, `409 RODADA_ABERTA`. Emite `posts.criado` como qualquer post. |
+
+## 4c. Votações e selos (Task B2) 🔒
+
+`Votacao = {id, titulo, tipo: 'CLUBE'\|'TECNICO'\|'POST', prazo, aberta, encerrada, opcoes: [{id, rotulo}], meuVoto: string\|null, resultado?: [{opcao, rotulo, votos}]}`. As opções são ids: de clube (`CLUBE`, nunca a CBF), de técnico atual (`TECNICO`, id do usuário) ou de post visível (`POST`). `aberta` = não encerrada e dentro do prazo. **O voto é secreto:** `resultado` (do mais votado ao menos, empate na ordem das opções) só vem **depois de encerrada**; antes disso nenhuma contagem sai da API, nem para o admin.
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `POST /api/admin/votacoes` 👑 | `{titulo (1–100), tipo, opcoes: string[] (2–10, sem repetir), prazo (ISO, futuro)}` | `201 Votacao`. `400 DADOS_INVALIDOS` para qualquer campo fora disso ou opção inexistente. |
+| `POST /api/admin/votacoes/:id/encerrar` 👑 | — | `201 Votacao` com `resultado`. Dá o **selo** ao clube com mais votos (`CLUBE`: o clube; `TECNICO`: o clube que a pessoa comanda hoje; `POST`: o clube do post); **empate = selo para todos os empatados; sem votos = sem selo**. Publica o resultado como post de texto da CBF. Pode encerrar antes do prazo. `409 VOTACAO_ENCERRADA` se já encerrada. |
+| `GET /api/votacoes` | — | `Votacao[]` das **não encerradas** (por prazo), com `meuVoto`; as que passaram do prazo e ainda esperam o admin vêm com `aberta: false`. Sem `resultado`. |
+| `GET /api/votacoes/:id` | — | `Votacao`; `resultado` só se encerrada. `404` se não existe. |
+| `POST /api/votacoes/:id/voto` | `{opcao}` | `204`. `409 JA_VOTOU` (1 voto por pessoa, garantido por chave no banco), `409 VOTACAO_ENCERRADA` (prazo vencido ou encerrada), `400 DADOS_INVALIDOS` se `opcao` não é uma das opções. |
+
 ## 5. Push (Task 7) 🔒
 
 | Rota | Corpo | Resposta |
@@ -144,7 +167,7 @@ Ligar/desligar: `PATCH /api/me {pushEnabled}`. Mensagens (`titulo` / `corpo` →
 
 ## 6. Modelo de dados
 
-Ver `back/prisma/schema.prisma`: `User`, `Session`, `PasswordReset`, `Club` (`coachId @unique`, `oficial`: a CBF), `Rodada`, `Jogo`, `CoachTenure`, `Post`, `PostImage`, `Like`, `Comment`, `TransferRequest`, `PushSubscription`, `Setting`. Apagar `Post` apaga `PostImage`, `Like` e `Comment`. `/health` fica fora do contrato (`GET /api/health`).
+Ver `back/prisma/schema.prisma`: `User`, `Session`, `PasswordReset`, `Club` (`coachId @unique`, `oficial`: a CBF), `Rodada`, `Jogo`, `Votacao`, `Voto` (`@@id([votacaoId, userId])`), `Selo`, `CoachTenure`, `Post`, `PostImage`, `Like`, `Comment`, `TransferRequest`, `PushSubscription`, `Setting`. Apagar `Post` apaga `PostImage`, `Like` e `Comment`. `/health` fica fora do contrato (`GET /api/health`).
 
 ## 7. Variáveis de ambiente
 

@@ -10,6 +10,7 @@ const BIO_MAX = 300;
 const tecnicoDe = (u: { id: string; name: string } | null) => u && { id: u.id, nome: u.name };
 const naoEncontrado = () => new ApiError(404, 'NAO_ENCONTRADO', 'Não encontramos o que você procurou.');
 const perfilDe = {
+  selos: { orderBy: { createdAt: 'desc' } },
   coach: { select: { id: true, name: true } },
   tenures: { orderBy: { startedAt: 'desc' }, include: { user: { select: { id: true, name: true } } } },
 } as const;
@@ -81,6 +82,7 @@ export class ClubesController {
       capaUrl: c.coverPath,
       tecnico: tecnicoDe(c.coach),
       liga: await this.liga.doClube(c.id),
+      selos: c.selos.map((s) => ({ titulo: s.titulo, createdAt: s.createdAt })),
       historico: c.tenures.map((t) => ({ usuario: tecnicoDe(t.user), inicio: t.startedAt, fim: t.endedAt })),
     };
   }

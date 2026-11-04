@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import type { UserComClube } from '../auth/auth.service.js';
+import { montarResumo } from '../bot/zoeira.js';
 import { ApiError } from '../http.js';
+import { PostsService } from '../posts/posts.service.js';
 import { PrismaService } from '../prisma.service.js';
+import { PushService } from '../push/push.service.js';
 import { LigaEventos } from './liga.eventos.js';
 import { calcularTabela, type Linha } from './tabela.js';
 
@@ -10,6 +14,7 @@ const invalido = (msg: string, campo = 'jogos') => new ApiError(400, 'DADOS_INVA
 const clubeMini = (c: { id: string; name: string; crestPath: string }) => ({ id: c.id, nome: c.name, escudoUrl: c.crestPath });
 const gols = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= MAX_GOLS;
 
+const paraFechado = (j: { rodadaNumero: number; mandanteId: string; visitanteId: string; golsMandante: number; golsVisitante: number }) => ({ rodada: j.rodadaNumero, mandanteId: j.mandanteId, visitanteId: j.visitanteId, golsMandante: j.golsMandante, golsVisitante: j.golsVisitante });
 type JogoEntrada = { mandanteId: string; visitanteId: string; golsMandante: number; golsVisitante: number };
 
 @Injectable()
@@ -17,18 +22,52 @@ export class LigaService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventos: LigaEventos,
+    private readonly posts: PostsService,
+    private readonly push: PushService,
   ) {}
 
   /** Calculada a cada pedido, só com jogos de rodadas fechadas: nada fica guardado em duplicidade. */
-  async tabela(): Promise<Linha[]> {
+  async tabela(rodadas: { lt?: number; lte?: number } = {}): Promise<Linha[]> {
     const [clubes, jogos] = await Promise.all([
       this.prisma.club.findMany({ where: { oficial: false }, select: { id: true, name: true } }),
-      this.prisma.jogo.findMany({ where: { rodada: { fechadaEm: { not: null } } } }),
+      this.prisma.jogo.findMany({ where: { rodada: { fechadaEm: { not: null }, numero: rodadas } } }),
     ]);
     return calcularTabela(
       clubes.map((c) => ({ id: c.id, nome: c.name })),
-      jogos.map((j) => ({ rodada: j.rodadaNumero, mandanteId: j.mandanteId, visitanteId: j.visitanteId, golsMandante: j.golsMandante, golsVisitante: j.golsVisitante })),
+      jogos.map(paraFechado),
     );
+  }
+
+  /** Prévia do post do bot: só de rodada fechada. Não grava nada; sortear de novo = chamar de novo. */
+  async previa(n: number) {
+    await this.exigirFechada(n);
+    const [jogos, antes, depois, clubes] = await Promise.all([
+      this.prisma.jogo.findMany({ where: { rodadaNumero: n } }),
+      this.tabela({ lt: n }),
+      this.tabela({ lte: n }),
+      this.prisma.club.findMany({ where: { coach: { isNot: null } }, include: { coach: { select: { id: true, name: true } } } }),
+    ]);
+    const tecnicos = Object.fromEntries(clubes.map((c) => [c.id, { id: c.coach!.id, nome: c.coach!.name }]));
+    return montarResumo({ numero: n, jogos: jogos.map(paraFechado), antes, depois, tecnicos });
+  }
+
+  /** Publica o texto (já editado pelo admin) como post de texto da CBF e avisa por push os técnicos citados pelo nome. */
+  async publicar(user: UserComClube, n: number, texto: unknown) {
+    await this.exigirFechada(n);
+    const criado = await this.posts.criar(user, { comoCbf: true, texto }, [], []);
+    const clubes = await this.prisma.club.findMany({
+      where: { coach: { isNot: null }, OR: [{ mandante: { some: { rodadaNumero: n } } }, { visitante: { some: { rodadaNumero: n } } }] },
+      include: { coach: { select: { id: true, name: true } } },
+    });
+    const citados = clubes.filter((c) => criado.texto?.includes(c.coach!.name) && c.coach!.id !== user.id).map((c) => c.coach!.id);
+    void this.push.enviar(citados, { titulo: 'A CBF citou você', corpo: (criado.texto ?? '').slice(0, 80), url: `/p/${criado.id}` });
+    return criado;
+  }
+
+  private async exigirFechada(n: number) {
+    const r = Number.isInteger(n) ? await this.prisma.rodada.findUnique({ where: { numero: n } }) : null;
+    if (!r) throw new ApiError(404, 'NAO_ENCONTRADO', 'Rodada não encontrada.');
+    if (!r.fechadaEm) throw new ApiError(409, 'RODADA_ABERTA', 'Feche a rodada antes de gerar ou publicar o resumo.');
   }
 
   async rodadas() {
