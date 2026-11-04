@@ -6,6 +6,9 @@ import { ApiError } from '../http.js';
 
 const MAX = { mensagem: 500, pilha: 2000, url: 300, versao: 40 };
 const corta = (v: unknown, n: number) => String(v).replace(/[\r\n\t]+/g, ' ').slice(0, n);
+// a query pode ter token (/nova-senha?token=...): no log vai só o caminho; em texto livre, tudo depois de '?' vira '?…'
+const semQuery = (v: string) => v.replace(/\?[^\s]*/g, '?…');
+const soCaminho = (v: string) => v.split(/[?#]/)[0];
 
 /** Erros do app no celular, direto no log do back (o docker gira o log). Público: o app pode quebrar antes do login. */
 @Controller('erros-front')
@@ -33,7 +36,7 @@ export class ErrosController {
     // uma linha só (JSON): quebra de linha vinda do app não forja entrada de log
     this.logger.warn(
       'erro-front ' +
-        JSON.stringify({ ...(userId && { userId }), mensagem: corta(d.mensagem, MAX.mensagem), url: corta(d.url, MAX.url), versao: corta(d.versao, MAX.versao), ...(d.pilha !== undefined && { pilha: corta(d.pilha, MAX.pilha) }) }),
+        JSON.stringify({ ...(userId && { userId }), mensagem: corta(semQuery(d.mensagem as string), MAX.mensagem), url: corta(soCaminho(d.url as string), MAX.url), versao: corta(d.versao, MAX.versao), ...(d.pilha !== undefined && { pilha: corta(semQuery(d.pilha as string), MAX.pilha) }) }),
     );
   }
 }

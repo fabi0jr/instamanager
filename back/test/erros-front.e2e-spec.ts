@@ -106,4 +106,12 @@ describe('POST /api/erros-front (e2e)', () => {
     expect(linha).not.toContain('FALSO'); // veio depois do corte
     expect(linha.length).toBeLessThan(3000);
   });
+
+  it('não grava query nem hash: o token de /nova-senha?token=tok9z não vai para o log', async () => {
+    await enviar(novoIp(), corpo({ url: 'https://app.exemplo.com/nova-senha?token=tok9z#x', mensagem: 'falhou em /nova-senha?token=tok9z ao abrir', pilha: 'at f (https://app.exemplo.com/nova-senha?token=tok9z:1:2)' })).expect(204);
+    const linha = String(aviso.mock.calls[0][0]);
+    expect(linha).not.toContain('tok9z');
+    expect(linha).toContain('/nova-senha"'); // url só com o caminho
+    expect(linha).toContain('/nova-senha?…');
+  });
 });
