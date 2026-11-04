@@ -96,6 +96,7 @@ async function abrirApp(caminho: string) {
   vi.stubGlobal('fetch', vi.fn(async (u: string) => {
     chamadas.push(u);
     if (u === '/api/me') return new Response(JSON.stringify(clubeMe));
+    if (u === '/api/trocas/minhas') return new Response('[]'); // lista, não página
     if (u === '/api/clubes/palmeiras') return new Response(JSON.stringify({ id: 'palmeiras', nome: 'Palmeiras', escudoUrl: '/e.svg', bio: null, capaUrl: null, tecnico: { id: 'u1', nome: 'L' }, historico: [] }));
     return new Response(JSON.stringify({ itens: [], proximo: null }));
   }));

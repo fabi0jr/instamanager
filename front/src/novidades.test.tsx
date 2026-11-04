@@ -11,7 +11,15 @@ beforeEach(() => {
   localStorage.clear();
   localStorage.setItem('im:instalar-visto', '1'); // aparelho que já passou por /instalar
   vi.stubGlobal('IntersectionObserver', class { observe() {} disconnect() {} unobserve() {} });
-  vi.stubGlobal('fetch', vi.fn(async (u: string) => new Response(JSON.stringify(u === '/api/me' ? me : u.startsWith('/api/clubes/') ? { ...me.clube, bio: null, capaUrl: null, tecnico: { id: '1', nome: 'L' }, historico: [] } : { itens: [], proximo: null }))));
+  // cada rota devolve o formato real (lista, objeto ou página): formato errado vira erro não tratado nas telas
+  const postUnico = { id: 'abc', clube: me.clube, autor: { id: '1', nome: 'L' }, legenda: 'x', texto: null, criadoEm: new Date().toISOString(), imagens: [], curtidas: 0, curtiu: false, reacoes: [], minhaReacao: null, comentarios: 0, podeEditar: true };
+  const corpo = (u: string): unknown =>
+    u === '/api/me' ? me
+    : u === '/api/trocas/minhas' ? []
+    : u.startsWith('/api/clubes/') ? { ...me.clube, bio: null, capaUrl: null, tecnico: { id: '1', nome: 'L' }, historico: [] }
+    : /^\/api\/posts\/[^/?]+$/.test(u) ? postUnico
+    : { itens: [], proximo: null };
+  vi.stubGlobal('fetch', vi.fn(async (u: string) => new Response(JSON.stringify(corpo(u)))));
 });
 afterEach(() => {
   cleanup();

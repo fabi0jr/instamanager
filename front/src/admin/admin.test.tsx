@@ -231,7 +231,7 @@ test('o foco volta ao título quando o botão que abriu o diálogo sumiu (pedido
   clica('Aprovar', within((await screen.findByText('Marcos')).closest('li') as HTMLElement));
   clica('Aprovar', within(await screen.findByRole('alertdialog')));
   await waitFor(() => expect(screen.queryByText('Marcos')).toBeNull());
-  expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Pedidos de troca' }));
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Pedidos de troca' })));
 });
 
 test('o foco volta ao botão de origem quando ele continua na tela (Voltar)', async () => {
