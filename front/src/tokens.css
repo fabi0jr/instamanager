@@ -51,6 +51,10 @@
 html, body { margin: 0; background: var(--im-carvao); color: var(--im-giz); font: 400 15px/22px var(--im-fonte-texto); }
 h1, h2, h3 { font-family: var(--im-fonte-display); font-weight: 700; margin: 0; }
 a, button { min-height: 44px; min-width: 44px; }
+/* iOS dá zoom ao focar campo < 16px; o !important vence os `font: inherit` de cada tela */
+input, textarea, select { font-size: 16px !important; }
+/* toque duplo (curtir) não vira zoom; a pinça segue livre */
+html, body, a, button, input, textarea, select, [role='button'] { touch-action: manipulation; }
 :focus-visible { outline: 2px solid var(--im-giz); outline-offset: 2px; }
 main { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 
