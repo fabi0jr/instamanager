@@ -32,6 +32,6 @@ export class AdminLigaController {
 
   @Post(':n/publicar')
   publicar(@Req() req: AuthedRequest, @Param('n') n: string, @Body() body: unknown) {
-    return this.liga.publicar(req.user, Number(n), typeof body === 'object' && body ? (body as { texto?: unknown }).texto : undefined);
+    return this.liga.publicar(req.user, Number(n), body);
   }
 }

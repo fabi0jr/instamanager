@@ -83,6 +83,29 @@ describe('montarResumo', () => {
   });
 });
 
+describe('montarResumo na primeira rodada (antes sem jogos)', () => {
+  // o 1º da tabela vazia (ordem por nome) perde de 0 a 3 e "despenca" para o último lugar só porque a tabela estava zerada
+  const jogos = [j(1, 'c1', 0, 3, 'c2'), j(1, 'c3', 1, 0, 'c4')];
+  const entrada = { numero: 1, jogos, antes: calcularTabela(clubes, []), depois: calcularTabela(clubes, jogos), tecnicos };
+  const modelos = (['queda', 'z4', 'lanterna'] as const).flatMap((c) => [...FRASES[c].sem, ...FRASES[c].com]).map((f) => new RegExp(`^${f.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{\w+\}/g, '.+')}$`));
+
+  it('não inventa queda, Z4 nem lanterna', () => {
+    for (const s of [fixo, () => 0.999, ...[1, 2, 3, 4, 5, 6, 7].map((k) => seq(k / 8))]) {
+      const linhas = montarResumo(entrada, s).texto.split('\n');
+      for (const l of linhas) for (const m of modelos) expect(l, l).not.toMatch(m);
+    }
+    expect(montarResumo(entrada, fixo).texto).toContain('Clube B'); // a goleada continua
+  });
+
+  it('a partir da 2ª rodada (antes com jogos) os mesmos eventos voltam a valer', () => {
+    const antesJ = [j(1, 'c5', 1, 0, 'c6')];
+    const e2 = { numero: 2, jogos, antes: calcularTabela(clubes, antesJ), depois: calcularTabela(clubes, [...antesJ, ...jogos.map((x) => ({ ...x, rodada: 2 }))]), tecnicos };
+    const visto = new Set<string>();
+    for (let k = 1; k <= 40; k++) montarResumo(e2, seq(k / 41)).texto.split('\n').forEach((l) => visto.add(l));
+    expect([...visto].some((l) => modelos.some((m) => m.test(l)))).toBe(true);
+  });
+});
+
 describe('frases.ts', () => {
   const todas = Object.entries(FRASES).flatMap(([cat, g]) => [...g.sem, ...g.com].map((f) => [cat as Categoria, f, g.com.includes(f)] as const));
 

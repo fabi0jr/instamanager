@@ -34,7 +34,8 @@ export class PushListeners implements OnModuleInit {
     const p = await this.prisma.post.findUnique({ where: { id }, include: { club: true, author: true } });
     if (!p) return;
     const todos = await this.prisma.user.findMany({ where: { id: { not: p.authorId } }, select: { id: true } });
-    await this.push.enviar(todos.map((u) => u.id), { titulo: p.club.name, corpo: `${p.author.name} postou`, url: `/p/${p.id}` });
+    const msg = p.club.oficial ? { titulo: 'CBF', corpo: 'Novo comunicado da CBF', url: `/p/${p.id}` } : { titulo: p.club.name, corpo: `${p.author.name} postou`, url: `/p/${p.id}` };
+    await this.push.enviar(todos.map((u) => u.id), msg);
   }
 
   private async comentario(id: string) {

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { UserComClube } from '../auth/auth.service.js';
 import { montarResumo } from '../bot/zoeira.js';
 import { ApiError } from '../http.js';
+import { UUID } from '../posts/cursor.js';
 import { PostsService } from '../posts/posts.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { PushService } from '../push/push.service.js';
@@ -15,6 +16,7 @@ const clubeMini = (c: { id: string; name: string; crestPath: string }) => ({ id:
 const gols = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= MAX_GOLS;
 
 const paraFechado = (j: { rodadaNumero: number; mandanteId: string; visitanteId: string; golsMandante: number; golsVisitante: number }) => ({ rodada: j.rodadaNumero, mandanteId: j.mandanteId, visitanteId: j.visitanteId, golsMandante: j.golsMandante, golsVisitante: j.golsVisitante });
+const apareceInteiro = (nome: string, texto: string) => new RegExp(`(?<![\\p{L}\\p{N}])${nome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'iu').test(texto);
 type JogoEntrada = { mandanteId: string; visitanteId: string; golsMandante: number; golsVisitante: number };
 
 @Injectable()
@@ -51,16 +53,27 @@ export class LigaService {
     return montarResumo({ numero: n, jogos: jogos.map(paraFechado), antes, depois, tecnicos });
   }
 
-  /** Publica o texto (já editado pelo admin) como post de texto da CBF e avisa por push os técnicos citados pelo nome. */
-  async publicar(user: UserComClube, n: number, texto: unknown) {
+  /**
+   * Publica o texto (já editado pelo admin) como post de texto da CBF. Push: todos recebem "CBF / Saiu o resumo da rodada N"
+   * (sem o nome do admin) exceto os citados, que recebem só "A CBF citou você". `citados` são os ids devolvidos pela prévia;
+   * valem os que são técnicos de clubes da rodada e cujo nome ainda aparece, como palavra inteira, no texto final.
+   */
+  async publicar(user: UserComClube, n: number, corpo: unknown) {
+    const { texto, citados: bruto } = (typeof corpo === 'object' && corpo ? corpo : {}) as { texto?: unknown; citados?: unknown };
+    if (bruto !== undefined && !Array.isArray(bruto)) throw new ApiError(400, 'DADOS_INVALIDOS', 'citados precisa ser uma lista de ids.', ['citados']);
     await this.exigirFechada(n);
-    const criado = await this.posts.criar(user, { comoCbf: true, texto }, [], []);
-    const clubes = await this.prisma.club.findMany({
-      where: { coach: { isNot: null }, OR: [{ mandante: { some: { rodadaNumero: n } } }, { visitante: { some: { rodadaNumero: n } } }] },
-      include: { coach: { select: { id: true, name: true } } },
-    });
-    const citados = clubes.filter((c) => criado.texto?.includes(c.coach!.name) && c.coach!.id !== user.id).map((c) => c.coach!.id);
-    void this.push.enviar(citados, { titulo: 'A CBF citou você', corpo: (criado.texto ?? '').slice(0, 80), url: `/p/${criado.id}` });
+    const criado = await this.posts.criar(user, { comoCbf: true, texto }, [], [], false);
+    const pedidos = new Set((bruto ?? []).filter((x): x is string => typeof x === 'string' && UUID.test(x)));
+    const clubes = pedidos.size
+      ? await this.prisma.club.findMany({
+          where: { coachId: { in: [...pedidos] }, OR: [{ mandante: { some: { rodadaNumero: n } } }, { visitante: { some: { rodadaNumero: n } } }] },
+          include: { coach: { select: { id: true, name: true } } },
+        })
+      : [];
+    const citados = clubes.filter((c) => c.coach!.id !== user.id && apareceInteiro(c.coach!.name, criado.texto ?? '')).map((c) => c.coach!.id);
+    const todos = await this.prisma.user.findMany({ where: { id: { notIn: [user.id, ...citados] } }, select: { id: true } });
+    void this.push.enviar(todos.map((u) => u.id), { titulo: 'CBF', corpo: `Saiu o resumo da rodada ${n}`, url: `/p/${criado.id}` });
+    if (citados.length) void this.push.enviar(citados, { titulo: 'A CBF citou você', corpo: (criado.texto ?? '').slice(0, 80), url: `/p/${criado.id}` });
     return criado;
   }
 

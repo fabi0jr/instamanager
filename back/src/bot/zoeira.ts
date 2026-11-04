@@ -70,14 +70,16 @@ function detectar(r: EntradaResumo, nome: (id: string) => string): Evento[] {
     eventos.push({ categoria: 'derrota', clube: d.res.perdedor, vars: { clube: nome(d.res.perdedor), outro: nome(d.res.vencedor), placar: placar(d.g) } });
   }
 
+  // na 1ª rodada a tabela anterior é só a ordem por nome: lanterna, queda e Z4 seriam invenção
+  const temHistorico = r.antes.some((l) => l.J > 0);
   const ultimoA = r.antes.at(-1);
   const ultimoD = r.depois.at(-1);
-  if (ultimoD && ultimoA && ultimoD.clubeId !== ultimoA.clubeId && ultimoD.J > 0 && r.antes.some((l) => l.J > 0))
+  if (temHistorico && ultimoD && ultimoA && ultimoD.clubeId !== ultimoA.clubeId && ultimoD.J > 0)
     eventos.push({ categoria: 'lanterna', clube: ultimoD.clubeId, vars: { clube: ultimoD.nome, pontos: ultimoD.P } });
 
   const posAntes = new Map(r.antes.map((l) => [l.clubeId, l.posicao]));
   const quedas = r.depois.map((l) => ({ l, n: l.posicao - (posAntes.get(l.clubeId) ?? l.posicao) })).filter((x) => x.n >= 3).sort((a, b) => b.n - a.n);
-  if (quedas[0]) eventos.push({ categoria: 'queda', clube: quedas[0].l.clubeId, vars: { clube: quedas[0].l.nome, n: quedas[0].n, pos: quedas[0].l.posicao } });
+  if (temHistorico && quedas[0]) eventos.push({ categoria: 'queda', clube: quedas[0].l.clubeId, vars: { clube: quedas[0].l.nome, n: quedas[0].n, pos: quedas[0].l.posicao } });
 
   const [p1, p2] = r.depois;
   if (p1 && p2 && p1.J > 0 && p1.P > p2.P) eventos.push({ categoria: 'lider', clube: p1.clubeId, vars: { clube: p1.nome, pontos: p1.P } });
@@ -87,7 +89,7 @@ function detectar(r: EntradaResumo, nome: (id: string) => string): Evento[] {
   if (seq[0]) eventos.push({ categoria: 'sequencia', clube: seq[0].l.clubeId, vars: { clube: seq[0].l.nome, n: seq[0].n } });
 
   const total = r.depois.length;
-  if (total >= 12) {
+  if (temHistorico && total >= 12) {
     const entrou = r.depois.find((l) => l.posicao > total - 4 && (posAntes.get(l.clubeId) ?? 0) <= total - 4 && jogaram.has(l.clubeId));
     if (entrou) eventos.push({ categoria: 'z4', clube: entrou.clubeId, vars: { clube: entrou.nome, pos: entrou.posicao } });
   }
