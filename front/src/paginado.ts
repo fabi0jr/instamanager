@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from './api/cliente';
+import { rolagem } from './rolagem';
 import type { Pagina } from './feed/tipos';
 
 // Lista paginada por cursor (?antes=) com rolagem infinita; refaz tudo quando o caminho ou os filtros mudam.
@@ -50,7 +51,7 @@ export function usePaginado<T>(caminho: string, filtros: Record<string, string |
 
   useEffect(() => {
     if (!fim.current || !proximo || erroMais) return;
-    const io = new IntersectionObserver((e) => e[0]?.isIntersecting && carregar(proximo), { rootMargin: '600px' });
+    const io = new IntersectionObserver((e) => e[0]?.isIntersecting && carregar(proximo), { root: rolagem(), rootMargin: '600px' });
     io.observe(fim.current);
     return () => io.disconnect();
   }, [proximo, erroMais, carregar, estado]);

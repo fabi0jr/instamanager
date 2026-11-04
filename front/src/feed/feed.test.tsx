@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import type { Me } from '../api/cliente';
 import { fetchFalso } from '../testes/fetchFalso';
+import { montarRolagem } from '../testes/rolagem';
 import { CardPost } from './CardPost';
 import { Comentarios } from './Comentarios';
 import { esquecerFeed, Feed } from './Feed';
@@ -208,28 +209,23 @@ test('feed vazio do torcedor explica e leva a Ver clubes livres', async () => {
   expect(screen.getByRole('link', { name: 'Ver clubes livres' }).getAttribute('href')).toBe('/clubes');
 });
 
-test('ao voltar, o feed reaparece sem nova busca e na rolagem anotada, mesmo com o scrollY já zerado na saída', async () => {
+test('ao voltar, o feed reaparece sem nova busca e na rolagem anotada, mesmo com o scrollTop já zerado na saída', async () => {
   const chamadas = fetchFalso({ 'GET /posts': { itens: [post('a')], proximo: null } });
-  window.scrollTo = vi.fn() as never;
-  const rolar = (y: number, avisar = true) => {
-    Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
-    if (avisar) window.dispatchEvent(new Event('scroll'));
-  };
-  const { unmount } = render(<Feed me={{ ...me, id: 'volta' }} />);
+  const { el, rolar } = montarRolagem();
+  const { unmount } = render(<Feed me={{ ...me, id: 'volta' }} />, { container: el.appendChild(document.createElement('div')) });
   await screen.findAllByRole('article');
   rolar(420);
-  rolar(0, false); // a tela nova encurtou a página: scrollY zera antes do cleanup, sem evento
+  rolar(0, false); // a tela nova encurtou a página: scrollTop zera antes do cleanup, sem evento
   unmount();
-  render(<Feed me={{ ...me, id: 'volta' }} />);
+  render(<Feed me={{ ...me, id: 'volta' }} />, { container: el.appendChild(document.createElement('div')) });
   expect(screen.getAllByRole('article')).toHaveLength(1);
-  expect(window.scrollTo).toHaveBeenCalledWith(0, 420);
+  expect(el.scrollTop).toBe(420);
   expect(chamadas).toHaveLength(1);
 });
 
 test('curtir em /p/:id faz o feed guardado ser esquecido (volta atualizado)', async () => {
   const { PostPagina } = await import('./PostPagina');
   const chamadas = fetchFalso({ 'GET /posts': { itens: [post('a')], proximo: null }, 'GET /posts/a': post('a'), 'PUT /posts/a/curtida': { status: 204 } });
-  window.scrollTo = vi.fn() as never;
   const { unmount } = render(<Feed me={{ ...me, id: 'esq' }} />);
   await screen.findAllByRole('article');
   unmount();

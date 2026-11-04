@@ -19,7 +19,6 @@ const post = (id: string): Post => ({
 
 beforeEach(() => {
   esquecerFeed();
-  window.scrollTo = vi.fn();
   vi.stubGlobal('IntersectionObserver', class { observe() {} disconnect() {} unobserve() {} });
 });
 afterEach(() => {

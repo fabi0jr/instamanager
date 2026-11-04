@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { api, type Me } from '../api/cliente';
 import { lerAviso } from '../aviso';
+import { posicao, rolagem, rolarPara } from '../rolagem';
 import './feed.css';
 import { Link } from '../rotas';
 import { CardPost } from './CardPost';
@@ -53,12 +54,13 @@ export function Feed({ me }: { me: Me }) {
   // então ler window.scrollY só na saída devolve 0. A restauração roda antes da pintura, com a lista já no DOM.
   const y = useRef(volta?.y ?? 0);
   useEffect(() => {
-    const anotar = () => (y.current = window.scrollY);
-    addEventListener('scroll', anotar, { passive: true });
-    return () => removeEventListener('scroll', anotar);
+    const r = rolagem();
+    const anotar = () => (y.current = posicao());
+    r?.addEventListener('scroll', anotar, { passive: true });
+    return () => r?.removeEventListener('scroll', anotar);
   }, []);
   useLayoutEffect(() => {
-    if (volta) window.scrollTo(0, volta.y);
+    if (volta) rolarPara(volta.y);
     return () => {
       const { itens, proximo, estado } = atual.current;
       // só lista carregada de verdade: guardar vazio/carregando (ex.: redirect para /instalar no 1º login) faria o feed voltar vazio
@@ -98,7 +100,7 @@ export function Feed({ me }: { me: Me }) {
     await carregar(null);
     setAtualizando(false);
   }
-  const verNovos = () => { window.scrollTo(0, 0); atualizar(); };
+  const verNovos = () => { rolarPara(0); atualizar(); };
 
   // puxar para atualizar: só vale se o gesto começou com a página no topo
   useEffect(() => {
@@ -107,7 +109,7 @@ export function Feed({ me }: { me: Me }) {
     // folha de comentários (.veu) e detalhe da galeria rolam por cima: o gesto dentro deles não é do feed
     const comeca = (e: TouchEvent) => {
       const dentro = e.target instanceof Element && e.target.closest('.veu, .detalhe');
-      inicio = window.scrollY <= 0 && !dentro ? e.touches[0]?.clientY ?? null : null;
+      inicio = posicao() <= 0 && !dentro ? e.touches[0]?.clientY ?? null : null;
       dy = 0;
     };
     const move = (e: TouchEvent) => {
@@ -134,7 +136,7 @@ export function Feed({ me }: { me: Me }) {
   // rolagem infinita: o sentinela no fim da lista pede a próxima página (começa 600 px antes)
   useEffect(() => {
     if (!fim.current || !proximo || erroMais) return;
-    const io = new IntersectionObserver((e) => e[0]?.isIntersecting && carregar(proximo), { rootMargin: '600px' });
+    const io = new IntersectionObserver((e) => e[0]?.isIntersecting && carregar(proximo), { root: rolagem(), rootMargin: '600px' });
     io.observe(fim.current);
     return () => io.disconnect();
   }, [proximo, erroMais, carregar, estado]);
