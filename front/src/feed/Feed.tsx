@@ -4,18 +4,17 @@ import { lerAviso } from '../aviso';
 import { posicao, rolagem, rolarPara } from '../rolagem';
 import './feed.css';
 import { Link } from '../rotas';
+import { cacheFeed, esquecerFeed } from './cacheFeed';
 import { CardPost } from './CardPost';
 import type { Pagina, Post } from './tipos';
 
-// Ao abrir um post/clube e voltar, o Feed remonta: guarda lista e rolagem para voltar ao mesmo ponto sem refazer a busca.
-let guardado: { meId: string; itens: Post[]; proximo: string | null; y: number; quando: number } | null = null;
 const MIN_VOLTA = 60_000; // voltar ao app antes disso não confere post novo
 const PUXAR = 80; // px de arrasto do dedo para disparar o puxar-para-atualizar
 const topoNormal = (l: Post[]) => l.find((p) => !p.fixado)?.id;
-export const esquecerFeed = () => (guardado = null); // chamar quando a lista muda por fora (ex.: post novo publicado)
+export { esquecerFeed }; // reexporta: os demais arquivos importam daqui
 
 export function Feed({ me }: { me: Me }) {
-  const volta = guardado?.meId === me.id ? guardado : null;
+  const volta = cacheFeed.atual?.meId === me.id ? cacheFeed.atual : null;
   const [itens, setItens] = useState<Post[]>(volta?.itens ?? []);
   const [proximo, setProximo] = useState<string | null>(volta?.proximo ?? null);
   const [estado, setEstado] = useState<'carregando' | 'ok' | 'erro'>(volta ? 'ok' : 'carregando');
@@ -66,8 +65,8 @@ export function Feed({ me }: { me: Me }) {
     return () => {
       const { itens, proximo, estado } = atual.current;
       // só lista carregada de verdade: guardar vazio/carregando (ex.: redirect para /instalar no 1º login) faria o feed voltar vazio
-      if (estado !== 'ok' || itens.length === 0) return void (guardado = null);
-      guardado = { meId: me.id, itens, proximo, y: y.current, quando: ultima.current };
+      if (estado !== 'ok' || itens.length === 0) return void (cacheFeed.atual = null);
+      cacheFeed.atual = { meId: me.id, itens, proximo, y: y.current, quando: ultima.current };
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {

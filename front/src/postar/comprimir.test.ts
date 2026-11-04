@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { comprimir, ErroImagem } from './comprimir';
+import { comprimir, comprimirCapa, ErroImagem } from './comprimir';
 
 let canvas: any;
 beforeEach(() => {
@@ -44,4 +44,24 @@ test('canvas sem contexto 2d → ErroImagem', async () => {
   canvas.getContext = () => null;
   vi.mocked(document.createElement).mockImplementation((() => canvas) as never);
   await expect(comprimir(new File(['x'], 'a.jpg'), 480)).rejects.toBeInstanceOf(ErroImagem);
+});
+
+test('comprimirCapa: recorta no centro para 3:1 e entrega 1500×500 em JPEG 0,82', async () => {
+  const drawImage = vi.fn();
+  vi.mocked(document.createElement).mockImplementation((() =>
+    Object.assign(canvas, { getContext: () => ({ drawImage }), toBlob: (cb: (b: Blob) => void, t: string, q: number) => cb(new Blob(['x'], { type: t + q })) })) as never);
+  imagem(4000, 3000); // mais "alta" que 3:1: corta em cima e embaixo
+  const blob = await comprimirCapa(new File(['x'], 'a.jpg'));
+  expect([canvas.width, canvas.height]).toEqual([1500, 500]);
+  expect(drawImage).toHaveBeenCalledWith(expect.anything(), 0, 834, 4000, 1333, 0, 0, 1500, 500);
+  expect(blob.type).toBe('image/jpeg0.82');
+  drawImage.mockClear();
+  imagem(6000, 1000); // mais larga que 3:1: corta dos lados
+  await comprimirCapa(new File(['x'], 'b.jpg'));
+  expect(drawImage).toHaveBeenCalledWith(expect.anything(), 1500, 0, 3000, 1000, 0, 0, 1500, 500);
+});
+
+test('comprimirCapa: arquivo ilegível → ErroImagem', async () => {
+  vi.stubGlobal('createImageBitmap', vi.fn(async () => Promise.reject(new Error('x'))));
+  await expect(comprimirCapa(new File(['x'], 'a.jpg'))).rejects.toBeInstanceOf(ErroImagem);
 });

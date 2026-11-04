@@ -90,3 +90,45 @@ test('fechar o detalhe aberto por link direto (sem origem no app) vai para a gal
   await waitFor(() => expect(location.search).toBe(''));
   expect(location.pathname).toBe('/galeria');
 });
+
+test('estrela favorita na hora (PUT), tira (DELETE) e volta se a API falhar', async () => {
+  const chamadas = fetchFalso({
+    'GET /galeria': { itens: [{ ...item('i1'), favorito: false }], proximo: null },
+    'GET /posts/p1': postDe('p1'),
+    'PUT /galeria/i1/favorito': { status: 204 },
+    'DELETE /galeria/i1/favorito': { status: 204 },
+  });
+  render(<Galeria />);
+  fireEvent.click(await screen.findByRole('link', { name: /Prompt de Palmeiras/ }));
+  const estrela = await screen.findByRole('button', { name: 'Favoritar' });
+  expect(estrela.getAttribute('aria-pressed')).toBe('false');
+  fireEvent.click(estrela);
+  expect(screen.getByRole('button', { name: 'Tirar dos favoritos' }).getAttribute('aria-pressed')).toBe('true');
+  fireEvent.click(screen.getByRole('button', { name: 'Tirar dos favoritos' }));
+  await waitFor(() => expect(chamadas.map((c) => c.chave)).toEqual(expect.arrayContaining(['PUT /galeria/i1/favorito', 'DELETE /galeria/i1/favorito'])));
+  expect(screen.getByRole('button', { name: 'Favoritar' })).toBeTruthy();
+});
+
+test('estrela: falha desfaz e avisa', async () => {
+  fetchFalso({ 'GET /galeria': { itens: [item('i1')], proximo: null }, 'GET /posts/p1': postDe('p1'), 'PUT /galeria/i1/favorito': { status: 500 } });
+  render(<Galeria />);
+  fireEvent.click(await screen.findByRole('link', { name: /Prompt de Palmeiras/ }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Favoritar' }));
+  expect((await screen.findByRole('alert')).textContent).toBe('Não deu para favoritar. Tente de novo.');
+  expect(screen.getByRole('button', { name: 'Favoritar' }).getAttribute('aria-pressed')).toBe('false');
+});
+
+test('chip Favoritos refaz o pedido com ?favoritos=1; vazio mostra o convite e Limpar filtro', async () => {
+  const chamadas = fetchFalso({
+    'GET /galeria': { itens: [item('i1')], proximo: null },
+    'GET /galeria?favoritos=1': { itens: [], proximo: null },
+  });
+  render(<Galeria />);
+  await screen.findByRole('link', { name: /Prompt de Palmeiras/ });
+  fireEvent.click(screen.getByRole('button', { name: 'Favoritos' }));
+  expect(await screen.findByText('Nenhum favorito ainda')).toBeTruthy();
+  expect(screen.getByText('Toque na estrela de um prompt para guardar aqui.')).toBeTruthy();
+  expect(chamadas.map((c) => c.chave)).toContain('GET /galeria?favoritos=1');
+  fireEvent.click(screen.getByRole('button', { name: 'Limpar filtro' }));
+  expect(await screen.findByRole('link', { name: /Prompt de Palmeiras/ })).toBeTruthy();
+});

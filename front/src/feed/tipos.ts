@@ -34,6 +34,7 @@ export type Comentario = {
   id: string;
   texto: string;
   criadoEm: string;
+  oculto?: boolean; // só o admin recebe comentário oculto
   usuario: { id: string; nome: string; avatarUrl: string | null; clube: { id: string; nome: string } | null };
 };
 

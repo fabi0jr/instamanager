@@ -14,6 +14,7 @@ import './postar.css';
 export function EditarPost({ id }: { id: string }) {
   const [post, setPost] = useState<Post | 'carregando' | 'erro'>('carregando');
   const [legenda, setLegenda] = useState('');
+  const [texto, setTexto] = useState(''); // post só de texto edita o texto, não legenda/prompts
   const [prompts, setPrompts] = useState<string[]>([]);
   const [semPermissao, setSemPermissao] = useState(false);
   const [descartar, setDescartar] = useState(false);
@@ -22,9 +23,9 @@ export function EditarPost({ id }: { id: string }) {
   useEffect(() => {
     api<Post>(`/posts/${id}`).then(
       (p) => {
-        if (p.texto) return navegar(`/p/${id}`); // post de texto não tem legenda nem prompts para editar
         setPost(p);
         setLegenda(p.legenda);
+        setTexto(p.texto ?? '');
         setPrompts(p.imagens.map((i) => i.prompt ?? ''));
         if (!p.podeEditar) {
           // torcedor ou ex-técnico: o bloqueio aparece já ao abrir, não só ao salvar
@@ -45,13 +46,14 @@ export function EditarPost({ id }: { id: string }) {
       </div>
     );
 
-  const mudou = legenda !== post.legenda || prompts.some((p, i) => p !== (post.imagens[i]?.prompt ?? ''));
-  const estouro = legenda.length > LIMITE_LEGENDA || prompts.some((p) => p.length > LIMITE_PROMPT);
+  const ehTexto = post.texto != null;
+  const mudou = ehTexto ? texto !== post.texto : legenda !== post.legenda || prompts.some((p, i) => p !== (post.imagens[i]?.prompt ?? ''));
+  const estouro = ehTexto ? texto.length > 500 || !texto.trim() : legenda.length > LIMITE_LEGENDA || prompts.some((p) => p.length > LIMITE_PROMPT);
 
   function salvar() {
     enviar(
       async () => {
-        await api<Post>(`/posts/${id}`, { method: 'PATCH', body: JSON.stringify({ legenda, prompts: prompts.map((p) => p.trim() || null) }) });
+        await api<Post>(`/posts/${id}`, { method: 'PATCH', body: JSON.stringify(ehTexto ? { texto: texto.trim() } : { legenda, prompts: prompts.map((p) => p.trim() || null) }) });
         guardarAviso('Alterações salvas');
         esquecerFeed();
         navegar('/');
@@ -71,14 +73,24 @@ export function EditarPost({ id }: { id: string }) {
       <button type="button" className="link" onClick={voltar}>‹ Voltar</button>
       <h1>Editar post</h1>
       <p>{post.clube.nome} · publicado {haQuanto(post.criadoEm)}</p>
-      <div className="miniaturas">{post.imagens.map((i) => <img key={i.id} src={i.miniUrl} alt="" width="56" height="56" />)}</div>
-      <p className="giz2">As imagens não mudam. Para trocar, apague o post e publique de novo.</p>
+      {!ehTexto && <div className="miniaturas">{post.imagens.map((i) => <img key={i.id} src={i.miniUrl} alt="" width="56" height="56" />)}</div>}
+      {!ehTexto && <p className="giz2">As imagens não mudam. Para trocar, apague o post e publique de novo.</p>}
       <Aviso>{aviso && !semPermissao ? `Não deu para salvar. Confira a conexão e tente de novo. O que você escreveu continua aqui.` : aviso}</Aviso>
       <fieldset disabled={semPermissao || enviando} className="campos">
+        {ehTexto ? (
+          <>
+            <label htmlFor="txt">Texto</label>
+            <textarea id="txt" rows={8} value={texto} aria-invalid={texto.length > 500 || undefined} onChange={(e) => setTexto(e.target.value)} />
+            <Contador texto={texto} limite={500} />
+          </>
+        ) : (
+          <>
         <label htmlFor="leg">Legenda</label>
         <textarea id="leg" rows={5} value={legenda} aria-invalid={legenda.length > LIMITE_LEGENDA || undefined} onChange={(e) => setLegenda(e.target.value)} />
         <Contador texto={legenda} limite={LIMITE_LEGENDA} />
         <LinhasPrompt linhas={post.imagens} prompts={prompts} aoMudar={(i, v) => setPrompts(prompts.map((p, j) => (j === i ? v : p)))} />
+          </>
+        )}
       </fieldset>
       <div className="acao-fixa">
         <Botao carregando={enviando ? 'Salvando…' : undefined} disabled={!mudou || estouro || semPermissao} onClick={salvar}>Salvar alterações</Botao>

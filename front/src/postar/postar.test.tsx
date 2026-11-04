@@ -260,9 +260,23 @@ test('a alternância Foto | Texto lembra a última escolha', () => {
   localStorage.clear();
 });
 
-test('editar um post de texto não quebra: volta para o post (sem legenda nem prompts para editar)', async () => {
+test('editar post de texto: edita o texto (1–500) e envia PATCH {texto}, sem legenda/prompts', async () => {
   history.pushState(null, '', '/p/t/editar');
-  fetchFalso({ 'GET /posts/t': { id: 't', clube, autor: { id: 'u1', nome: 'Lincoln' }, legenda: '', texto: 'oi', imagens: [], curtidas: 0, curtiu: false, comentarios: 0, podeEditar: true, criadoEm: new Date().toISOString() } });
+  const chamadas = fetchFalso({
+    'GET /posts/t': { id: 't', clube, autor: { id: 'u1', nome: 'Lincoln' }, legenda: '', texto: 'oi', imagens: [], curtidas: 0, curtiu: false, comentarios: 0, podeEditar: true, criadoEm: new Date().toISOString() },
+    'PATCH /posts/t': { id: 't' },
+  });
   render(<EditarPost id="t" />);
-  await waitFor(() => expect(location.pathname).toBe('/p/t'));
+  const campo = (await screen.findByLabelText('Texto')) as HTMLTextAreaElement;
+  expect(campo.value).toBe('oi');
+  expect(screen.queryByText('Legenda')).toBeNull();
+  const salvar = screen.getByRole('button', { name: 'Salvar alterações' }) as HTMLButtonElement;
+  expect(salvar.disabled).toBe(true);
+  fireEvent.change(campo, { target: { value: 'a'.repeat(501) } });
+  expect(screen.getByText('501/500. Corte 1 caracteres.')).toBeTruthy();
+  expect(salvar.disabled).toBe(true);
+  fireEvent.change(campo, { target: { value: '  novo texto  ' } });
+  fireEvent.click(salvar);
+  await waitFor(() => expect(chamadas.map((c) => c.chave)).toContain('PATCH /posts/t'));
+  expect(JSON.parse(String(chamadas.find((c) => c.chave === 'PATCH /posts/t')!.body))).toEqual({ texto: 'novo texto' });
 });

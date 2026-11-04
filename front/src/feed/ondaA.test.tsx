@@ -165,10 +165,11 @@ test('quem não é admin não vê Fixar no ⋯ (técnico)', () => {
   expect(screen.getByRole('button', { name: 'Editar legenda e prompts' })).toBeTruthy();
 });
 
-test('post de texto não oferece Editar legenda (só Apagar)', () => {
+test('post de texto oferece Editar texto (e Apagar)', () => {
   fetchFalso({});
   render(<CardPost post={deTexto('t', 'oi', { podeEditar: true })} me={me} />);
   fireEvent.click(screen.getByRole('button', { name: 'Mais opções' }));
+  expect(screen.getByRole('button', { name: 'Editar texto' })).toBeTruthy();
   expect(screen.queryByRole('button', { name: 'Editar legenda e prompts' })).toBeNull();
   expect(screen.getByRole('button', { name: 'Apagar post' })).toBeTruthy();
 });

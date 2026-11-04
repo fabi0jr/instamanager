@@ -103,9 +103,11 @@ test('escudo com erro cai no escudo genérico; proporção segue a 1ª imagem de
   expect((container.querySelector('.carrossel') as HTMLElement).style.aspectRatio).toBe('1.91 / 1');
 });
 
-test('botões editar e apagar só aparecem com podeEditar', () => {
+test('botões editar e apagar só aparecem com podeEditar (o ⋯ existe em todo post, com outro menu)', () => {
   render(<CardPost post={post('a')} me={me} />);
-  expect(screen.queryByRole('button', { name: 'Mais opções' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Mais opções' }));
+  expect(screen.queryByRole('button', { name: 'Editar legenda e prompts' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Apagar post' })).toBeNull();
   cleanup();
   render(<CardPost post={post('a', { podeEditar: true })} me={me} />);
   fireEvent.click(screen.getByRole('button', { name: 'Mais opções' }));

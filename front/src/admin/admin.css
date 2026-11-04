@@ -30,3 +30,4 @@ button.linha-clube { cursor: pointer; }
 .troca-modo { font: 600 16px var(--im-fonte-texto); min-height: 72px; padding-top: var(--im-e2); padding-bottom: var(--im-e2); }
 .troca-modo small { display: block; font-weight: 400; font-size: 13px; line-height: 18px; }
 .opcao img + * { }
+.previa-denuncia { display: block; padding: var(--im-e3); background: var(--im-superficie-alta); border-radius: var(--im-r-btn); color: var(--im-giz); text-decoration: none; } .corta2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
