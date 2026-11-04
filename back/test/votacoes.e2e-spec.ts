@@ -39,7 +39,7 @@ describe('bot da zoeira, votações e selos (e2e)', () => {
   });
   afterEach(async () => {
     await prisma.jogo.deleteMany({ where: { rodadaNumero: { in: [35, 36] } } });
-    await prisma.rodada.updateMany({ where: { numero: { in: [35, 36] } }, data: { fechadaEm: null } });
+    await prisma.rodada.updateMany({ where: { numero: { in: [35, 36] } }, data: { fechadaEm: null, resumoPostId: null } });
     await prisma.votacao.deleteMany({ where: { criadaPor: admin.id } });
     await prisma.post.deleteMany({ where: { authorId: { in: usuarios } } });
   });
@@ -78,6 +78,23 @@ describe('bot da zoeira, votações e selos (e2e)', () => {
       const p = (await com('post', '/api/admin/rodadas/35/publicar', admin).send({ texto: `Fim da rodada 35\nTécnico Zero apanhou` }).expect(201)).body;
       expect(p).toMatchObject({ clube: { id: 'cbf' }, texto: 'Fim da rodada 35\nTécnico Zero apanhou', imagens: [] });
       expect((await com('get', `/api/posts/${p.id}`, torcedor).expect(200)).body.clube.id).toBe('cbf');
+    });
+
+    it('resumo: publicar de novo → 409 RESUMO_JA_PUBLICADO (1 post só); /liga/rodadas traz resumoPublicado', async () => {
+      const rodada = async () => (await com('get', '/api/liga/rodadas', torcedor).expect(200)).body.find((r: { numero: number }) => r.numero === 35);
+      await fechar(35, [jogo(c[1], c[0], 5, 0)]);
+      expect(await rodada()).toMatchObject({ resumoPublicado: false, resumoPostId: null });
+      const p = (await com('post', '/api/admin/rodadas/35/publicar', admin).send({ texto: 'Primeiro' }).expect(201)).body;
+      expect(await rodada()).toMatchObject({ resumoPublicado: true, resumoPostId: p.id });
+      expect((await com('post', '/api/admin/rodadas/35/publicar', admin).send({ texto: 'Segundo' }).expect(409)).body.codigo).toBe('RESUMO_JA_PUBLICADO');
+      expect(await prisma.post.count({ where: { clubId: 'cbf', authorId: admin.id, texto: { in: ['Primeiro', 'Segundo'] } } })).toBe(1);
+    });
+
+    it('duas publicações ao mesmo tempo: uma passa, a outra 409 e sem post sobrando', async () => {
+      await fechar(35, [jogo(c[1], c[0], 5, 0)]);
+      const r = await Promise.all(['A', 'B'].map((texto) => com('post', '/api/admin/rodadas/35/publicar', admin).send({ texto })));
+      expect(r.map((x) => x.status).sort()).toEqual([201, 409]);
+      expect(await prisma.post.count({ where: { clubId: 'cbf', authorId: admin.id, texto: { in: ['A', 'B'] } } })).toBe(1);
     });
   });
 
@@ -181,6 +198,19 @@ describe('bot da zoeira, votações e selos (e2e)', () => {
       }
       const l = (await com('get', '/api/votacoes', admin).expect(200)).body.find((x: { id: string }) => x.id === v.id);
       expect(l.resultado).toBeUndefined();
+    });
+
+    it('GET /votacoes?encerradas=1 lista as encerradas com vencedor e data; sem votos → vencedor null', async () => {
+      const v = await novaVotacao({ titulo: 'Lista encerradas' });
+      const vazia = await novaVotacao({ titulo: 'Sem votos' });
+      await votar(v.id, c[1], torcedor).expect(204);
+      await com('post', `/api/admin/votacoes/${v.id}/encerrar`, admin).expect(201);
+      await com('post', `/api/admin/votacoes/${vazia.id}/encerrar`, admin).expect(201);
+      const l = (await com('get', '/api/votacoes?encerradas=1', torcedor).expect(200)).body as { id: string; vencedor: string | null; encerradaEm: string; encerrada: boolean }[];
+      expect(l.find((x) => x.id === v.id)).toMatchObject({ encerrada: true, vencedor: 'Teste votacoes 2', encerradaEm: expect.any(String) });
+      expect(l.find((x) => x.id === vazia.id)!.vencedor).toBeNull();
+      expect(l.every((x) => x.encerrada)).toBe(true);
+      expect((await com('get', '/api/votacoes', torcedor).expect(200)).body.map((x: { id: string }) => x.id)).not.toContain(v.id);
     });
 
     it('encerrar: não-admin → 403; cria selo para o vencedor e o post da CBF; depois o resultado aparece; 2x → 409', async () => {

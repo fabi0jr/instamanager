@@ -11,6 +11,7 @@ import { calcularTabela, type Linha } from './tabela.js';
 
 const RODADAS = 38;
 const MAX_GOLS = 99;
+const jaPublicado = () => new ApiError(409, 'RESUMO_JA_PUBLICADO', 'O resumo desta rodada já foi publicado.');
 const invalido = (msg: string, campo = 'jogos') => new ApiError(400, 'DADOS_INVALIDOS', msg, [campo]);
 const clubeMini = (c: { id: string; name: string; crestPath: string }) => ({ id: c.id, nome: c.name, escudoUrl: c.crestPath });
 const gols = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= MAX_GOLS;
@@ -61,8 +62,14 @@ export class LigaService {
   async publicar(user: UserComClube, n: number, corpo: unknown) {
     const { texto, citados: bruto } = (typeof corpo === 'object' && corpo ? corpo : {}) as { texto?: unknown; citados?: unknown };
     if (bruto !== undefined && !Array.isArray(bruto)) throw new ApiError(400, 'DADOS_INVALIDOS', 'citados precisa ser uma lista de ids.', ['citados']);
-    await this.exigirFechada(n);
+    await this.exigirFechada(n, true);
     const criado = await this.posts.criar(user, { comoCbf: true, texto }, [], [], false);
+    // reserva a vaga do resumo; quem perdeu a corrida desfaz o seu post (sem push)
+    const { count } = await this.prisma.rodada.updateMany({ where: { numero: n, resumoPostId: null }, data: { resumoPostId: criado.id } });
+    if (count === 0) {
+      await this.prisma.post.delete({ where: { id: criado.id } });
+      throw jaPublicado();
+    }
     const pedidos = new Set((bruto ?? []).filter((x): x is string => typeof x === 'string' && UUID.test(x)));
     const clubes = pedidos.size
       ? await this.prisma.club.findMany({
@@ -77,10 +84,11 @@ export class LigaService {
     return criado;
   }
 
-  private async exigirFechada(n: number) {
+  private async exigirFechada(n: number, publicar = false) {
     const r = Number.isInteger(n) ? await this.prisma.rodada.findUnique({ where: { numero: n } }) : null;
     if (!r) throw new ApiError(404, 'NAO_ENCONTRADO', 'Rodada não encontrada.');
     if (!r.fechadaEm) throw new ApiError(409, 'RODADA_ABERTA', 'Feche a rodada antes de gerar ou publicar o resumo.');
+    if (publicar && r.resumoPostId) throw jaPublicado();
   }
 
   async rodadas() {
@@ -91,6 +99,8 @@ export class LigaService {
     return lista.map((r) => ({
       numero: r.numero,
       fechada: r.fechadaEm !== null,
+      resumoPublicado: r.resumoPostId !== null,
+      resumoPostId: r.resumoPostId,
       jogos: r.jogos.map((j) => ({ id: j.id, mandante: clubeMini(j.mandante), visitante: clubeMini(j.visitante), golsMandante: j.golsMandante, golsVisitante: j.golsVisitante })),
     }));
   }

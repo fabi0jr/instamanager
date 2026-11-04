@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { type AuthedRequest, AdminGuard, SessionGuard } from '../auth/session.guard.js';
 import { VotacoesService } from './votacoes.service.js';
 
@@ -8,8 +8,8 @@ export class VotacoesController {
   constructor(private readonly votacoes: VotacoesService) {}
 
   @Get()
-  listar(@Req() req: AuthedRequest) {
-    return this.votacoes.listar(req.user);
+  listar(@Req() req: AuthedRequest, @Query('encerradas') encerradas?: string) {
+    return encerradas === '1' ? this.votacoes.encerradas() : this.votacoes.listar(req.user);
   }
 
   @Get(':id')

@@ -37,6 +37,7 @@ describe('GET /api/og/p/:id: prévia do WhatsApp (e2e)', () => {
     const id = await novoPost({ caption: 'a'.repeat(400) }, 2);
     const res = await og(id).expect(200);
     expect(res.headers['content-type']).toMatch(/text\/html/);
+    expect(res.headers.vary).toContain('User-Agent');
     const html = res.text;
     expect(meta(html, 'og:title')).toBe('Teste og 1 no InstaManager');
     expect(meta(html, 'og:image')).toBe(`${base}/uploads/posts/mini0.jpg`);

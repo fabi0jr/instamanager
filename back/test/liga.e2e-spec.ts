@@ -45,7 +45,7 @@ describe('liga: CBF, rodadas, jogos e tabela (e2e)', () => {
       await lancar(37, [jogo(c[0], c[1], 2, 1)]).expect(204);
       const r = (await com('get', '/api/liga/rodadas', torcedor).expect(200)).body;
       expect(r).toHaveLength(38);
-      expect(r[0]).toEqual({ numero: 1, fechada: false, jogos: expect.any(Array) });
+      expect(r[0]).toEqual({ numero: 1, fechada: false, resumoPublicado: false, resumoPostId: null, jogos: expect.any(Array) });
       expect(r[36]).toMatchObject({ numero: 37, fechada: false, jogos: [{ mandante: { id: c[0], nome: expect.any(String), escudoUrl: expect.any(String) }, visitante: { id: c[1] }, golsMandante: 2, golsVisitante: 1 }] });
     });
 

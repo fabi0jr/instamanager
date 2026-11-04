@@ -131,7 +131,7 @@ Pontos corridos com os 20 clubes, 38 rodadas (já criadas, abertas). A tabela é
 | Rota | Corpo | Resposta |
 |---|---|---|
 | `GET /api/liga/tabela` | — | `Linha[]` por posição: `{clubeId, nome, posicao, P, J, V, E, D, GP, GC, SG, ultimos}`. `ultimos`: até 5 resultados `'V'\|'E'\|'D'`, do jogo mais recente (maior número de rodada) ao mais antigo. |
-| `GET /api/liga/rodadas` | — | `[{numero, fechada, jogos: [{id, mandante: {id,nome,escudoUrl}, visitante, golsMandante, golsVisitante}]}]`, 38 itens. |
+| `GET /api/liga/rodadas` | — | `[{numero, fechada, resumoPublicado, resumoPostId: string\|null, jogos: [{id, mandante: {id,nome,escudoUrl}, visitante, golsMandante, golsVisitante}]}]`, 38 itens. |
 | `PUT /api/admin/rodadas/:n/jogos` 👑 | `{jogos: [{mandanteId, visitanteId, golsMandante, golsVisitante}]}` (até 10) | `204`. **Substitui todos** os jogos da rodada `n` (lista vazia limpa). Só com a rodada aberta (`409 RODADA_FECHADA`). `400 DADOS_INVALIDOS` e nada gravado se: clube em 2 jogos da mesma rodada (inclui jogo repetido), clube contra si mesmo, clube inexistente ou a CBF, placar fora de 0–99 ou não inteiro. `404` para `n` fora de 1–38. |
 | `POST /api/admin/rodadas/:n/fechar` 👑 | — | `204`; passa a contar na tabela. `409 RODADA_FECHADA` se já fechada. Emite `liga.rodadaFechada(n)`. |
 | `POST /api/admin/rodadas/:n/reabrir` 👑 | — | `204`; sai da tabela até fechar de novo (o post do bot que já saiu não muda). `409 RODADA_ABERTA` se já aberta. |
@@ -143,7 +143,7 @@ Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
 | Rota | Corpo | Resposta |
 |---|---|---|
 | `POST /api/admin/rodadas/:n/previa` 👑 | — | `201 {texto, citados}`. `texto`: 3 a 6 frases, uma por linha, até 500 caracteres; `citados`: ids dos técnicos que aparecem pelo nome. Não grava nada; chamar de novo sorteia de novo. `409 RODADA_ABERTA` se a rodada não está fechada, `404` para `n` fora de 1–38. |
-| `POST /api/admin/rodadas/:n/publicar` 👑 | `{texto, citados?}`: `texto` 1–500 (o admin pode ter editado); `citados`: os ids que a prévia devolveu | `201 Post`: post de texto do clube `cbf`, autor = o admin. **Push:** todos (menos o admin e os citados) recebem `CBF` / `Saiu o resumo da rodada N`, sem o nome do admin; os citados recebem só `A CBF citou você`. Vale como citado o id que é técnico de clube que jogou a rodada **e** cujo nome ainda aparece, como palavra inteira, no texto final; sem `citados`, ninguém é citado. `400` se o texto for inválido ou `citados` não for lista, `409 RODADA_ABERTA`. Não emite `posts.criado` (o push é este). |
+| `POST /api/admin/rodadas/:n/publicar` 👑 | `{texto, citados?}`: `texto` 1–500 (o admin pode ter editado); `citados`: os ids que a prévia devolveu | `201 Post`: post de texto do clube `cbf`, autor = o admin. **Push:** todos (menos o admin e os citados) recebem `CBF` / `Saiu o resumo da rodada N`, sem o nome do admin; os citados recebem só `A CBF citou você`. Vale como citado o id que é técnico de clube que jogou a rodada **e** cujo nome ainda aparece, como palavra inteira, no texto final; sem `citados`, ninguém é citado. `400` se o texto for inválido ou `citados` não for lista, `409 RODADA_ABERTA`. Não emite `posts.criado` (o push é este). **Um resumo por rodada:** publicar de novo → `409 RESUMO_JA_PUBLICADO` (reabrir a rodada não libera; apagar o post do resumo, sim). `GET /api/liga/rodadas` traz `resumoPublicado` (boolean) e `resumoPostId` (id do post, para linkar `/p/:id`; `null` se não publicado). O corpo do 409 não traz o id: use o da lista. |
 
 ## 4c. Votações e selos (Task B2) 🔒
 
@@ -153,7 +153,7 @@ Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
 |---|---|---|
 | `POST /api/admin/votacoes` 👑 | `{titulo (1–100), tipo, opcoes: string[] (2–10, sem repetir), prazo (ISO, futuro)}` | `201 Votacao`. `400 DADOS_INVALIDOS` para qualquer campo fora disso ou opção inexistente. |
 | `POST /api/admin/votacoes/:id/encerrar` 👑 | — | `201 Votacao` com `resultado`. Dá o **selo** ao clube com mais votos (`CLUBE`: o clube; `TECNICO`: o clube que a pessoa comanda hoje; `POST`: o clube do post); **empate = selo para todos os empatados; sem votos = sem selo**. Publica o resultado como post de texto da CBF. Pode encerrar antes do prazo. `409 VOTACAO_ENCERRADA` se já encerrada. |
-| `GET /api/votacoes` | — | `Votacao[]` das **não encerradas** (por prazo), com `meuVoto`; as que passaram do prazo e ainda esperam o admin vêm com `aberta: false`. Sem `resultado`. |
+| `GET /api/votacoes` | — | `Votacao[]` das **não encerradas** (por prazo), com `meuVoto`; as que passaram do prazo e ainda esperam o admin vêm com `aberta: false`. Sem `resultado`. Com `?encerradas=1`: só as **encerradas** (as 50 mais recentes, da mais nova à mais velha), cada `Votacao` com `resultado` e mais `encerradaEm` e `vencedor` (rótulo; empate: rótulos juntos por " e "; sem votos: `null`). |
 | `GET /api/votacoes/:id` | — | `Votacao`; `resultado` só se encerrada. `404` se não existe. |
 | `POST /api/votacoes/:id/voto` | `{opcao}` | `204`. `409 JA_VOTOU` (1 voto por pessoa, garantido por chave no banco), `409 VOTACAO_ENCERRADA` (prazo vencido ou encerrada), `400 DADOS_INVALIDOS` se `opcao` não é uma das opções. |
 
