@@ -1,5 +1,5 @@
 {
-  "proximoId": 36,
+  "proximoId": 38,
   "tarefas": [
     {
       "id": "IM-1",
@@ -2389,6 +2389,55 @@
           "quando": "2026-11-04T02:16:00.581Z",
           "quem": "PO",
           "nota": "atribuída a Bandeirinha"
+        }
+      ]
+    },
+    {
+      "id": "IM-36",
+      "titulo": "Pack 2 · Onda B: design (Prancheta)",
+      "tipo": "design",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "Penpot \"Pack 2 · Onda B\": liga, perfil CBF, admin de rodadas, votações, selos, nova barra, Quem reagiu e Postar como CBF",
+        "docs/design/onda-b.md com handoff",
+        "aprovação do Maestro"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T03:45:55.674Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-37",
+      "titulo": "Onda B · back: CBF, rodadas, jogos e tabela",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "tabela: vitória 3, empate 1; desempate vitórias > saldo > gols pró > nome",
+        "só conta rodada fechada; ultimos traz até 5, do mais recente",
+        "jogo repetido ou clube jogando 2x → 400 sem gravar; placar -1 → 400",
+        "fechar e reabrir recalcula a tabela; editar jogo de rodada fechada → 409",
+        "CBF fora de /clubes?livres=1, do cadastro e das trocas",
+        "não-admin comoCbf → 403; admin comoCbf → post do clube cbf",
+        "GET /clubes/:id traz liga.posicao",
+        "suíte inteira com código de saída 0"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-04T03:45:55.698Z",
+          "quem": "PO",
+          "nota": "criada"
         }
       ]
     }
