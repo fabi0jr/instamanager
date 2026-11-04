@@ -1,5 +1,5 @@
 {
-  "proximoId": 28,
+  "proximoId": 30,
   "tarefas": [
     {
       "id": "IM-1",
@@ -1238,7 +1238,8 @@
         "IM-11",
         "IM-12",
         "IM-13",
-        "IM-14"
+        "IM-14",
+        "IM-28"
       ],
       "responsavel": "Bandeirinha",
       "coluna": "pronto",
@@ -1264,6 +1265,11 @@
           "quando": "2026-11-03T23:31:50.268Z",
           "quem": "PO",
           "nota": "atribuída a Bandeirinha"
+        },
+        {
+          "quando": "2026-11-04T00:33:44.001Z",
+          "quem": "PO",
+          "nota": "editado: depende"
         }
       ]
     },
@@ -1929,7 +1935,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "revisao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T00:15:02.429Z",
@@ -1961,6 +1967,114 @@
           "de": "dev",
           "para": "revisao",
           "nota": "entregue 6ae1809; prévias conferidas pelo Maestro"
+        },
+        {
+          "quando": "2026-11-04T00:33:43.623Z",
+          "quem": "PO",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "no ar (pack 1)"
+        },
+        {
+          "quando": "2026-11-04T00:33:43.678Z",
+          "quem": "PO",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (pack 1)"
+        }
+      ]
+    },
+    {
+      "id": "IM-28",
+      "titulo": "1º login → feed vazio até recarregar",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "feed não fica vazio após o redirect para /instalar (lista vazia não é guardada como pronta)",
+        "primeiro login mostra os posts sem recarregar"
+      ],
+      "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "revisao",
+      "historico": [
+        {
+          "quando": "2026-11-04T00:33:43.732Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T00:33:43.775Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T00:33:43.809Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-04T00:33:43.843Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T00:36:21.504Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "hotfix 1.1, andar fixpack-1-1"
+        }
+      ]
+    },
+    {
+      "id": "IM-29",
+      "titulo": "Aviso de nova versão com botão Atualizar no PWA",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "aviso quando há versão nova do app",
+        "botão Atualizar recarrega com a versão nova"
+      ],
+      "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "revisao",
+      "historico": [
+        {
+          "quando": "2026-11-04T00:33:43.875Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T00:33:43.908Z",
+          "quem": "PO",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T00:33:43.939Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-04T00:33:43.969Z",
+          "quem": "PO",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T00:36:21.535Z",
+          "quem": "PO",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "hotfix 1.1, andar fixpack-1-1"
         }
       ]
     }
