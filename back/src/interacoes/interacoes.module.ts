@@ -8,6 +8,6 @@ import { InteracoesService } from './interacoes.service.js';
   imports: [AuthModule],
   controllers: [InteracoesController],
   providers: [InteracoesService, InteracoesEventos],
-  exports: [InteracoesEventos],
+  exports: [InteracoesEventos, InteracoesService],
 })
 export class InteracoesModule {}

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Put, Query, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { type AuthedRequest, SessionGuard } from '../auth/session.guard.js';
 import { PostsService } from './posts.service.js';
@@ -27,8 +27,8 @@ export class PostsController {
   }
 
   @Get()
-  feed(@Req() req: AuthedRequest, @Query('antes') antes?: string, @Query('clube') clube?: string) {
-    return this.posts.feed(req.user, antes, clube);
+  feed(@Req() req: AuthedRequest, @Query('antes') antes?: string, @Query('clube') clube?: string, @Query('tag') tag?: string) {
+    return this.posts.feed(req.user, antes, clube, tag);
   }
 
   @Get(':id')
@@ -39,6 +39,18 @@ export class PostsController {
   @Patch(':id')
   editar(@Req() req: AuthedRequest, @Param('id') id: string, @Body() body: unknown) {
     return this.posts.editar(id, req.user, corpo(body));
+  }
+
+  @Put(':id/ocultar-para-mim')
+  @HttpCode(204)
+  async ocultarParaMim(@Req() req: AuthedRequest, @Param('id') id: string) {
+    await this.posts.ocultarParaMim(id, req.user, true);
+  }
+
+  @Delete(':id/ocultar-para-mim')
+  @HttpCode(204)
+  async mostrarParaMim(@Req() req: AuthedRequest, @Param('id') id: string) {
+    await this.posts.ocultarParaMim(id, req.user, false);
   }
 
   @Delete(':id')
@@ -54,7 +66,19 @@ export class GaleriaController {
   constructor(private readonly posts: PostsService) {}
 
   @Get()
-  galeria(@Query('antes') antes?: string, @Query('clube') clube?: string) {
-    return this.posts.galeria(antes, clube);
+  galeria(@Req() req: AuthedRequest, @Query('antes') antes?: string, @Query('clube') clube?: string, @Query('favoritos') favoritos?: string) {
+    return this.posts.galeria(req.user, antes, clube, favoritos === '1');
+  }
+
+  @Put(':imagemId/favorito')
+  @HttpCode(204)
+  async favoritar(@Req() req: AuthedRequest, @Param('imagemId') id: string) {
+    await this.posts.favoritar(id, req.user, true);
+  }
+
+  @Delete(':imagemId/favorito')
+  @HttpCode(204)
+  async desfavoritar(@Req() req: AuthedRequest, @Param('imagemId') id: string) {
+    await this.posts.favoritar(id, req.user, false);
   }
 }
