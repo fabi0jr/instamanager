@@ -3342,7 +3342,7 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T12:28:19.656Z",
@@ -3376,6 +3376,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 941da5f+00c18fa"
+        },
+        {
+          "quando": "2026-11-04T14:52:06.275Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (97263f647170)"
         }
       ]
     },
@@ -3390,7 +3397,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T12:28:19.712Z",
@@ -3450,6 +3457,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou a lógica; a1b7e47 fecha a sintaxe (conferido pelo Maestro)"
+        },
+        {
+          "quando": "2026-11-04T14:52:06.369Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (97263f647170)"
         }
       ]
     },
@@ -3464,7 +3478,7 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T12:28:19.764Z",
@@ -3547,6 +3561,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou e53a294"
+        },
+        {
+          "quando": "2026-11-04T14:52:06.456Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (97263f647170)"
         }
       ]
     },
@@ -3561,7 +3582,7 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T12:28:19.813Z",
@@ -3581,6 +3602,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-04T14:52:06.504Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T14:52:06.560Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T14:52:06.606Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "deploy feito"
         }
       ]
     }
