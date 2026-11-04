@@ -98,3 +98,26 @@ test('paginação por cursor (?antes=) vindo do back', async () => {
   expect(await screen.findByText('Comentário feio')).toBeTruthy();
   expect(chamadas.map((c) => c.chave)).toContain('GET /admin/denuncias?antes=cur1&abertas=1');
 });
+
+test('Apagar post: o back apaga as denúncias em cascata, então o 404 do resolver conta como sucesso', async () => {
+  const chamadas = fetchFalso({
+    'GET /admin/denuncias?abertas=1': pagina([doPost('1'), doPost('2')]),
+    'DELETE /posts/p1': { status: 204 },
+    'POST /admin/denuncias/1/resolver': { status: 404, corpo: { codigo: 'NAO_ENCONTRADO', mensagem: 'x' } },
+    'POST /admin/denuncias/2/resolver': { status: 404, corpo: { codigo: 'NAO_ENCONTRADO', mensagem: 'x' } },
+  });
+  render(<Admin me={admin} caminho="/admin/denuncias" />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Apagar' }));
+  fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Apagar' }));
+  expect(await screen.findByText('Post apagado.')).toBeTruthy();
+  expect(screen.getByText('Sem denúncias abertas')).toBeTruthy();
+  expect(chamadas.map((c) => c.chave)).toContain('DELETE /posts/p1');
+});
+
+test('um erro que não é 404 no resolver continua sendo falha', async () => {
+  fetchFalso({ 'GET /admin/denuncias?abertas=1': pagina([doPost('1')]), 'DELETE /posts/p1': { status: 204 }, 'POST /admin/denuncias/1/resolver': { status: 500 } });
+  render(<Admin me={admin} caminho="/admin/denuncias" />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Apagar' }));
+  fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Apagar' }));
+  expect(await screen.findByText(/Não deu para completar/)).toBeTruthy();
+});

@@ -9,7 +9,7 @@ import { Texto } from './Texto';
 import { Folha } from './Folha';
 import { compartilhar } from './compartilhar';
 import { IcBandeira, IcCompartilhar, IcComentar, IcEditar, IcFixar, IcLixo, IcMais, IcOlhoOff } from './icones';
-import { esquecerFeed } from './cacheFeed';
+import { devolverAoCache, esconderNoCache } from './cacheFeed';
 import { BotaoReagir, comReacao, LinhaReacoes } from './Reacoes';
 import { haQuanto, type Emoji, type Post } from './tipos';
 
@@ -20,6 +20,7 @@ type Props = {
   abrirComentarios?: boolean;
   aoApagar?: (id: string) => void;
   aoMudar?: (p: Post) => void; // o Feed guarda a versão mais nova (curtida, contagem) para ao voltar
+  aoOcultarParaMim?: (id: string) => void; // acabou o Desfazer: sai da lista (sem o aviso de 'Post apagado')
   aoReordenar?: () => void; // fixar/desafixar muda a ordem da lista: quem lista recarrega
 };
 
@@ -36,7 +37,7 @@ function BlocoTexto({ texto, aoDuploToque }: { texto: string; aoDuploToque: () =
   );
 }
 
-export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoApagar, aoMudar, aoReordenar }: Props) {
+export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoApagar, aoMudar, aoReordenar, aoOcultarParaMim }: Props) {
   const [post, setPost] = useState(inicial);
   // o Feed pode trazer a versão nova do mesmo post (puxar/Novos posts): sem isto o card seguiria com curtidas e legenda velhas
   const [recebido, setRecebido] = useState(inicial);
@@ -88,7 +89,7 @@ export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoAp
     setAviso('');
     try {
       await api(`/posts/${post.id}/ocultar-para-mim`, { method: 'PUT' });
-      esquecerFeed(); // o feed guardado ainda teria o post
+      esconderNoCache(post); // já no clique: sair da tela nos 6 s não pode trazer o post de volta
       setSumindo(true);
     } catch {
       setAviso('Não deu para ocultar. Tente de novo.');
@@ -96,16 +97,18 @@ export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoAp
   }
   async function desfazerOcultar() {
     setSumindo(false);
+    devolverAoCache(post);
     try {
       await api(`/posts/${post.id}/ocultar-para-mim`, { method: 'DELETE' });
     } catch {
+      esconderNoCache(post);
       setSumindo(true);
       setAviso('Não deu para desfazer. Tente de novo.');
     }
   }
   useEffect(() => {
     if (!sumindo) return;
-    const t = setTimeout(() => aoApagar?.(post.id), 6000);
+    const t = setTimeout(() => aoOcultarParaMim?.(post.id), 6000);
     return () => clearTimeout(t);
   }, [sumindo]); // eslint-disable-line react-hooks/exhaustive-deps
 

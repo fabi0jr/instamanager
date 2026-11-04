@@ -4,7 +4,7 @@ import { lerAviso } from '../aviso';
 import { posicao, rolagem, rolarPara } from '../rolagem';
 import './feed.css';
 import { Link } from '../rotas';
-import { cacheFeed, esquecerFeed } from './cacheFeed';
+import { cacheFeed, escondidos, esquecerFeed } from './cacheFeed';
 import { CardPost } from './CardPost';
 import type { Pagina, Post } from './tipos';
 
@@ -63,7 +63,8 @@ export function Feed({ me }: { me: Me }) {
   useLayoutEffect(() => {
     if (volta) rolarPara(volta.y);
     return () => {
-      const { itens, proximo, estado } = atual.current;
+      const { itens: todos, proximo, estado } = atual.current;
+      const itens = todos.filter((p) => !escondidos.has(p.id)); // ocultados para mim ainda no Desfazer
       // só lista carregada de verdade: guardar vazio/carregando (ex.: redirect para /instalar no 1º login) faria o feed voltar vazio
       if (estado !== 'ok' || itens.length === 0) return void (cacheFeed.atual = null);
       cacheFeed.atual = { meId: me.id, itens, proximo, y: y.current, quando: ultima.current };
@@ -143,6 +144,9 @@ export function Feed({ me }: { me: Me }) {
     return () => io.disconnect();
   }, [proximo, erroMais, carregar, estado]);
 
+  // sumiu de vez (acabou o Desfazer do 'Ocultar para mim'): sai da lista sem aviso
+  const sumiu = (id: string) => setItens((l) => l.filter((p) => p.id !== id));
+
   function apagado(id: string) {
     setItens((l) => l.filter((p) => p.id !== id));
     setAviso('Post apagado');
@@ -179,7 +183,7 @@ export function Feed({ me }: { me: Me }) {
           )}
         </div>
       )}
-      {itens.map((p, i) => <CardPost key={p.id} post={p} me={me} prioridade={i === 0} aoApagar={apagado} aoReordenar={() => carregar(null)} aoMudar={(n) => setItens((l) => l.map((x) => (x.id === n.id && x !== n ? n : x)))} />)}
+      {itens.map((p, i) => <CardPost key={p.id} post={p} me={me} prioridade={i === 0} aoApagar={apagado} aoOcultarParaMim={sumiu} aoReordenar={() => carregar(null)} aoMudar={(n) => setItens((l) => l.map((x) => (x.id === n.id && x !== n ? n : x)))} />)}
       {erroMais && (
         <div className="caixa-info" role="alert">
           <p>Não deu para carregar mais posts.</p>

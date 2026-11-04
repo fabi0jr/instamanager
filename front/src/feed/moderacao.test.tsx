@@ -2,7 +2,9 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import type { Me } from '../api/cliente';
 import { fetchFalso } from '../testes/fetchFalso';
+import { cacheFeed, esquecerFeed } from './cacheFeed';
 import { CardPost } from './CardPost';
+import { Feed } from './Feed';
 import { Comentarios } from './Comentarios';
 import type { Post } from './tipos';
 
@@ -65,14 +67,16 @@ test('ocultar para mim: vira linha com Desfazer e depois de 6 s sai da lista', a
   vi.useFakeTimers();
   const chamadas = fetchFalso({ 'PUT /posts/a/ocultar-para-mim': { status: 204 } });
   const aoApagar = vi.fn();
-  render(<CardPost post={post()} me={me} aoApagar={aoApagar} />);
+  const aoOcultarParaMim = vi.fn();
+  render(<CardPost post={post()} me={me} aoApagar={aoApagar} aoOcultarParaMim={aoOcultarParaMim} />);
   abrirMenu();
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Ocultar para mim' })); });
   expect(screen.getByText('Post oculto para você.')).toBeTruthy();
   expect(screen.queryByRole('article')).toBeNull();
   expect(chamadas[0].chave).toBe('PUT /posts/a/ocultar-para-mim');
   act(() => { vi.advanceTimersByTime(6100); });
-  expect(aoApagar).toHaveBeenCalledWith('a');
+  expect(aoOcultarParaMim).toHaveBeenCalledWith('a'); // callback próprio, não o de apagar (que avisa 'Post apagado')
+  expect(aoApagar).not.toHaveBeenCalled();
 });
 
 test('ocultar para mim: Desfazer devolve o card e chama DELETE', async () => {
@@ -148,4 +152,51 @@ test('comentário: admin oculta/mostra e apaga; comentário oculto aparece com s
 test('hashtag no comentário vira link', async () => {
   montarComentarios(me, [com('c1', 'u3')]);
   expect((await screen.findByRole('link', { name: '#bora' })).getAttribute('href')).toBe('/tag/bora');
+});
+
+test('ocultar para mim grava a remoção no cache do Feed já no clique; Desfazer reinsere na mesma posição', async () => {
+  esquecerFeed();
+  const [a, b, c] = [post({ id: 'a' }), post({ id: 'b' }), post({ id: 'c' })];
+  cacheFeed.atual = { meId: 'u1', itens: [a, b, c], proximo: null, y: 0, quando: Date.now() };
+  fetchFalso({ 'PUT /posts/b/ocultar-para-mim': { status: 204 }, 'DELETE /posts/b/ocultar-para-mim': { status: 204 } });
+  render(<CardPost post={b} me={me} />);
+  abrirMenu();
+  fireEvent.click(screen.getByRole('button', { name: 'Ocultar para mim' }));
+  await screen.findByText('Post oculto para você.');
+  expect(cacheFeed.atual!.itens.map((p) => p.id)).toEqual(['a', 'c']); // antes de qualquer timer
+  fireEvent.click(screen.getByRole('button', { name: 'Desfazer' }));
+  await screen.findByRole('article');
+  expect(cacheFeed.atual!.itens.map((p) => p.id)).toEqual(['a', 'b', 'c']);
+  esquecerFeed();
+});
+
+test('no Feed: ocultar para mim some sem aviso de "Post apagado", e sair da tela nos 6 s não traz o post de volta', async () => {
+  esquecerFeed();
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  fetchFalso({ 'GET /posts': { itens: [post({ id: 'a' }), post({ id: 'b' })], proximo: null }, 'PUT /posts/b/ocultar-para-mim': { status: 204 } });
+  const primeira = render(<Feed me={me} />);
+  await screen.findAllByRole('article');
+  fireEvent.click(screen.getAllByRole('button', { name: 'Mais opções' })[1]);
+  fireEvent.click(screen.getByRole('button', { name: 'Ocultar para mim' }));
+  await screen.findByText('Post oculto para você.');
+  primeira.unmount(); // saiu da tela no meio do Desfazer
+  render(<Feed me={me} />);
+  expect(screen.getAllByRole('article')).toHaveLength(1);
+  esquecerFeed();
+});
+
+test('no Feed: passados os 6 s o card sai da lista sem o aviso de apagado', async () => {
+  esquecerFeed();
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  fetchFalso({ 'GET /posts': { itens: [post({ id: 'a' }), post({ id: 'b' })], proximo: null }, 'PUT /posts/b/ocultar-para-mim': { status: 204 } });
+  render(<Feed me={me} />);
+  await screen.findAllByRole('article');
+  fireEvent.click(screen.getAllByRole('button', { name: 'Mais opções' })[1]);
+  fireEvent.click(screen.getByRole('button', { name: 'Ocultar para mim' }));
+  await screen.findByText('Post oculto para você.');
+  await act(async () => { vi.advanceTimersByTime(6100); });
+  await waitFor(() => expect(screen.queryByText('Post oculto para você.')).toBeNull());
+  expect(screen.getAllByRole('article')).toHaveLength(1);
+  expect(screen.queryByText('Post apagado')).toBeNull();
+  esquecerFeed();
 });

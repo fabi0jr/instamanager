@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { api } from '../api/cliente';
+import { api, ErroApi } from '../api/cliente';
 import { Botao } from '../conta/ui';
 import { haQuanto } from '../feed/tipos';
 import { usePaginado } from '../paginado';
@@ -48,7 +48,14 @@ export function Denuncias() {
     try {
       if (acao === 'ocultar') await api(g.tipo === 'post' ? `/admin/posts/${g.alvoId}/ocultar` : `/admin/comentarios/${g.alvoId}/ocultar`, { method: 'PUT' });
       if (acao === 'apagar') await api(g.tipo === 'post' ? `/posts/${g.alvoId}` : `/comentarios/${g.alvoId}`, { method: 'DELETE' });
-      await Promise.all(g.denuncias.map((d) => api(`/admin/denuncias/${d.id}/resolver`, { method: 'POST' })));
+      // apagar leva as denúncias junto (cascata no back): resolver depois dá 404, e isso é sucesso
+      await Promise.all(
+        g.denuncias.map((d) =>
+          api(`/admin/denuncias/${d.id}/resolver`, { method: 'POST' }).catch((e) => {
+            if (!(e instanceof ErroApi && e.status === 404)) throw e;
+          }),
+        ),
+      );
       const ids = new Set(g.denuncias.map((d) => d.id));
       lista.setItens((l) => l.filter((d) => !ids.has(d.id)));
       avisar(acao === 'ignorar' ? 'Denúncia ignorada.' : `${g.tipo === 'post' ? 'Post' : 'Comentário'} ${acao === 'ocultar' ? 'oculto' : 'apagado'}.`);
