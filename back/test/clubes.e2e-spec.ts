@@ -68,6 +68,7 @@ describe('clubes (e2e)', () => {
       escudoUrl: '/escudos/internacional.svg',
       bio: null,
       capaUrl: null,
+      liga: { posicao: expect.any(Number), ultimos: [] },
       tecnico: { id: atual.id, nome: 'Atual' },
       historico: [
         { usuario: { id: atual.id, nome: 'Atual' }, inicio: '2026-02-10T12:00:00.000Z', fim: null },

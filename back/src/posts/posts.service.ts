@@ -113,10 +113,14 @@ export class PostsService {
     return p;
   }
 
-  async criar(user: UserComClube, corpo: { legenda?: unknown; texto?: unknown; prompts?: unknown }, cheia: Arquivo[], mini: Arquivo[]) {
-    if (!user.club) throw new ApiError(403, 'SEM_CLUBE', 'Só técnicos com clube podem postar.');
+  async criar(user: UserComClube, corpo: { legenda?: unknown; texto?: unknown; prompts?: unknown; comoCbf?: unknown }, cheia: Arquivo[], mini: Arquivo[]) {
+    // multipart manda string; só o admin posta pela CBF (o admin pode nem ter clube)
+    const comoCbf = corpo.comoCbf === true || corpo.comoCbf === 'true';
+    if (comoCbf && !user.isAdmin) throw new ApiError(403, 'NAO_E_ADMIN', 'Só o admin posta como CBF.');
+    const clubId = comoCbf ? 'cbf' : user.club?.id;
+    if (!clubId) throw new ApiError(403, 'SEM_CLUBE', 'Só técnicos com clube podem postar.');
     const n = cheia.length;
-    if (n === 0 && mini.length === 0) return this.criarTexto(user, user.club.id, corpo.texto);
+    if (n === 0 && mini.length === 0) return this.criarTexto(user, clubId, corpo.texto);
     if (corpo.texto !== undefined) throw invalido('O texto é só para posts sem imagem.', 'texto');
     if (n < 1 || n > MAX_IMAGENS || mini.length !== n) throw invalido(`Envie de 1 a ${MAX_IMAGENS} imagens, com a cheia e a miniatura de cada uma.`, 'cheia');
     const legenda = lerLegenda(corpo.legenda ?? '');
@@ -138,7 +142,7 @@ export class PostsService {
         imagens.push({ position: i, fullPath, thumbPath, width: dims[i]!.largura, height: dims[i]!.altura, prompt: prompts[i] });
       }
       const criado = await this.prisma.post.create({
-        data: { clubId: user.club.id, authorId: user.id, caption: legenda, images: { create: imagens } },
+        data: { clubId, authorId: user.id, caption: legenda, images: { create: imagens } },
         include: incluir(user),
       });
       this.eventos.emit('posts.criado', criado.id);

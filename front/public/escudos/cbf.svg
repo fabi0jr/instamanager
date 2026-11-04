@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300" role="img" aria-label="CBF">
+  <path d="M150 12 L274 52 V150 C274 222 222 266 150 290 C78 266 26 222 26 150 V52 Z" fill="#009c3b" stroke="#ffdf00" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M150 52 L236 150 L150 248 L64 150 Z" fill="#ffdf00"/>
+  <circle cx="150" cy="150" r="52" fill="#002776"/>
+  <text x="150" y="166" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="42" fill="#ffffff">CBF</text>
+</svg>

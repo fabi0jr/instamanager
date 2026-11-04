@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Patch, Put, Query, Req, UploadedFile, Use
 import { FileInterceptor } from '@nestjs/platform-express';
 import { type AuthedRequest, SessionGuard } from '../auth/session.guard.js';
 import { ApiError } from '../http.js';
+import { LigaService } from '../liga/liga.service.js';
 import { apagarImagem, ehJpeg, salvarImagem } from '../posts/imagens.js';
 import { PrismaService } from '../prisma.service.js';
 
@@ -15,13 +16,16 @@ const perfilDe = {
 
 @Controller('clubes')
 export class ClubesController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly liga: LigaService,
+  ) {}
 
   // pública: o cadastro lista os clubes livres antes de existir sessão
   @Get()
   async listar(@Query('livres') livres?: string) {
     const clubes = await this.prisma.club.findMany({
-      where: livres === '1' ? { coachId: null } : {},
+      where: livres === '1' ? { coachId: null, oficial: false } : {},
       include: { coach: { select: { id: true, name: true } } },
     });
     return clubes
@@ -76,6 +80,7 @@ export class ClubesController {
       bio: c.bio,
       capaUrl: c.coverPath,
       tecnico: tecnicoDe(c.coach),
+      liga: await this.liga.doClube(c.id),
       historico: c.tenures.map((t) => ({ usuario: tecnicoDe(t.user), inicio: t.startedAt, fim: t.endedAt })),
     };
   }

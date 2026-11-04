@@ -21,3 +21,6 @@ export const clubes = [
   ['vasco', 'Vasco da Gama'],
   ['vitoria', 'Vitória'],
 ].map(([id, name]) => ({ id, name, crestPath: `/escudos/${id}.svg` }));
+
+// Clube oficial: nunca tem técnico; fora de clubes livres, cadastro, trocas e tabela. Só o admin posta por ele.
+export const cbf = { id: 'cbf', name: 'CBF', crestPath: '/escudos/cbf.svg', oficial: true };
