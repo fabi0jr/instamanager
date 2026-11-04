@@ -90,6 +90,9 @@ model Rodada {
   numero    Int       @id
   fechadaEm DateTime?
   jogos     Jogo[]
+  // post do resumo da CBF (null = ainda não publicado); se o post for apagado, a rodada volta a aceitar resumo
+  resumoPostId String? @db.Uuid
+  resumoPost   Post?   @relation(fields: [resumoPostId], references: [id], onDelete: SetNull)
 }
 
 model Jogo {
@@ -121,6 +124,7 @@ model CoachTenure {
 
 model Post {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  resumoDe  Rodada[]
   clubId    String
   authorId  String    @db.Uuid // técnico que publicou
   caption   String

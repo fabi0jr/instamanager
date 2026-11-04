@@ -41,6 +41,18 @@ export class VotacoesService {
     return Promise.all(lista.map((v) => this.json(v, meus.find((m) => m.votacaoId === v.id)?.opcao ?? null, false)));
   }
 
+  /** As 50 últimas encerradas, da mais nova à mais velha: só o nome do vencedor (empate: nomes com ' e '; sem votos: null). */
+  async encerradas() {
+    const lista = await this.prisma.votacao.findMany({ where: { encerradaEm: { not: null } }, orderBy: [{ encerradaEm: 'desc' }, { id: 'asc' }], take: 50 });
+    return Promise.all(
+      lista.map(async (v) => {
+        const r = await this.apurar(this.prisma, v);
+        const topo = r[0]?.votos ?? 0;
+        return { ...(await this.json(v, null, true, r)), encerradaEm: v.encerradaEm, vencedor: topo > 0 ? r.filter((x) => x.votos === topo).map((x) => x.rotulo).join(' e ') : null };
+      }),
+    );
+  }
+
   async obter(id: string, user: UserComClube) {
     const v = await this.buscar(id);
     const meu = await this.prisma.voto.findUnique({ where: { votacaoId_userId: { votacaoId: id, userId: user.id } } });

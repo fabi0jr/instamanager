@@ -9,6 +9,7 @@ export class OgController {
   @Get('p/:id')
   @Header('Content-Type', 'text/html; charset=utf-8')
   @Header('Cache-Control', 'public, max-age=300')
+  @Header('Vary', 'User-Agent')
   pagina(@Param('id') id: string) {
     return this.og.pagina(id);
   }
