@@ -104,3 +104,8 @@ main { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 .barra-inferior.so-desktop { display: none; } main.tela-cheia { padding-bottom: 0; }
 @media (min-width: 768px) { .barra-inferior.so-desktop { display: flex; } }
 @media (min-width: 1100px) { .barra-inferior.so-desktop { display: flex; } }
+
+/* faixa 'Nova versão' (AvisoVersao): fixa no topo, acima de tudo */
+.faixa-versao { position: fixed; top: env(safe-area-inset-top); left: 0; right: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: var(--im-e3);
+  padding: var(--im-e2) var(--im-e4); background: var(--im-superficie-alta); border-bottom: 1px solid var(--im-amarelo); }
+.faixa-versao .botao { width: auto; height: 44px; padding: 0 var(--im-e4); }
