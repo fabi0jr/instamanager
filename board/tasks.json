@@ -2848,7 +2848,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "correcao",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-04T04:18:22.002Z",
@@ -2887,6 +2887,27 @@
           "de": "revisao",
           "para": "correcao",
           "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:26:18.926Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "a4a6fe8 + 810d104"
+        },
+        {
+          "quando": "2026-11-04T04:26:18.949Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T04:28:18.553Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou até 810d104"
         }
       ]
     },
@@ -2901,7 +2922,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "dev",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-04T04:18:22.116Z",
@@ -2926,6 +2947,20 @@
           "de": "pronto",
           "para": "dev",
           "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T04:20:47.133Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "8ec0652"
+        },
+        {
+          "quando": "2026-11-04T04:22:27.594Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 8ec0652; QA junto da onda B"
         }
       ]
     },
@@ -2940,7 +2975,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "backlog",
+      "coluna": "revisao",
       "historico": [
         {
           "quando": "2026-11-04T04:18:22.196Z",
@@ -2951,6 +2986,76 @@
           "quando": "2026-11-04T04:18:22.235Z",
           "quem": "PO",
           "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-04T04:27:19.745Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T04:27:19.770Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T04:27:19.792Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "44b5f3d, 0d23ef5, 1c8d9d1"
+        },
+        {
+          "quando": "2026-11-04T04:29:54.067Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: publicar 2×; fechar sem confirmação"
+        },
+        {
+          "quando": "2026-11-04T04:32:38.800Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T04:32:38.824Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "9bc13dc + back 9268cc7"
+        },
+        {
+          "quando": "2026-11-04T04:35:25.926Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 9bc13dc"
+        },
+        {
+          "quando": "2026-11-04T04:53:04.534Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "correcao",
+          "nota": "QA: barras de ação fixas atrás da barra inferior"
+        },
+        {
+          "quando": "2026-11-04T04:56:23.128Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T04:56:23.183Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "ffd3e9c"
         }
       ]
     },
@@ -2965,12 +3070,26 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "backlog",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-04T04:18:22.295Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T04:35:25.951Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T04:35:25.976Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     }
