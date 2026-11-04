@@ -95,3 +95,16 @@ test('lista de clubes: técnico ou "Vaga aberta", cada linha leva ao clube', asy
   expect(screen.getByText('Vaga aberta')).toBeTruthy();
   expect(screen.getByRole('link', { name: /Remo/ }).getAttribute('href')).toBe('/c/remo');
 });
+
+test('grade do clube: post só de texto vira quadrado com as primeiras palavras, sem quebrar (sem imagens[0])', async () => {
+  fetchFalso({
+    'GET /clubes/palmeiras': { ...base, tecnico: { id: 'u1', nome: 'Abel' }, historico: [] },
+    'GET /posts?clube=palmeiras': { itens: [{ ...post('t', 0), texto: 'Bora Palmeiras, hoje tem jogo', legenda: '' }, post('a')], proximo: null },
+    'GET /trocas/minhas': [],
+  });
+  const { container } = render(<PerfilClube id="palmeiras" me={me} />);
+  const link = await screen.findByRole('link', { name: 'Post de texto de Abel, Palmeiras' });
+  expect(link.getAttribute('href')).toBe('/p/t');
+  expect(link.textContent).toContain('Bora Palmeiras, hoje tem jogo');
+  expect(container.querySelectorAll('.grade-capas img')).toHaveLength(1);
+});

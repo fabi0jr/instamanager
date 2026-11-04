@@ -10,3 +10,6 @@
 .cartao-prompt h2 { font: 600 18px var(--im-fonte-display); } .prompt-texto { margin: var(--im-e2) 0 0; white-space: pre-wrap; user-select: text; max-height: 30dvh; overflow-y: auto; }
 .detalhe-acoes { position: sticky; bottom: 0; display: flex; gap: var(--im-e2); padding: var(--im-e4); padding-bottom: calc(var(--im-e4) + env(safe-area-inset-bottom)); background: var(--im-carvao); max-width: 640px; width: 100%; margin: 0 auto; }
 .detalhe-acoes .botao { flex: 1; } .detalhe-acoes .botao:first-child { flex: 2; }
+
+.detalhe-topo .estrela { margin-left: auto; background: none; border: 0; color: var(--im-giz-2); } .detalhe-topo .estrela.ligada { color: var(--im-amarelo); }
+.chip.ligado { border: 1.5px solid var(--im-giz); } .chip[aria-pressed='true'] .icone { color: var(--im-amarelo); } .chip-linha { display: flex; gap: var(--im-e2); flex-wrap: wrap; }

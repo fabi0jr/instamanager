@@ -1,20 +1,32 @@
 import { useEffect, useState } from 'react';
 import { api, type Me } from '../api/cliente';
 import { Escudo } from '../feed/Escudo';
-import { IcGaleria } from '../feed/icones';
+import { GradeCapas } from '../feed/GradeCapas';
+import { Texto } from '../feed/Texto';
 import type { Post } from '../feed/tipos';
 import { usePaginado } from '../paginado';
 import { Link } from '../rotas';
 import './clube.css';
 
 type Historico = { usuario: { id: string; nome: string }; inicio: string; fim: string | null };
-type Clube = { id: string; nome: string; escudoUrl: string; tecnico: { id: string; nome: string } | null; historico: Historico[] };
+export type Clube = { id: string; nome: string; escudoUrl: string; bio?: string | null; capaUrl?: string | null; tecnico: { id: string; nome: string } | null; historico: Historico[] };
 type Troca = { id: string; tipo: string; status: string; clubeId: string | null };
 
 export const data = (iso: string) => new Date(iso).toLocaleDateString('pt-BR');
 export const Inicial = ({ nome, tam }: { nome: string; tam: number }) => (
   <span className="av-inicial" style={{ width: tam, height: tam, fontSize: tam * 0.4 }} aria-hidden="true">{nome[0]?.toUpperCase()}</span>
 );
+
+// Bio do clube (≤ 300): corta em 3 linhas com "mais"
+function Bio({ texto }: { texto: string }) {
+  const [aberta, setAberta] = useState(false);
+  return (
+    <div className="bio-clube">
+      <p className={aberta ? '' : 'corta3'}><Texto>{texto}</Texto></p>
+      {!aberta && texto.length > 120 && <button type="button" className="link giz2" onClick={() => setAberta(true)}>mais</button>}
+    </div>
+  );
+}
 
 export function PerfilClube({ id, me }: { id: string; me: Me }) {
   const [clube, setClube] = useState<Clube | 'carregando' | 'erro'>('carregando');
@@ -50,10 +62,13 @@ export function PerfilClube({ id, me }: { id: string; me: Me }) {
   const atual = clube.historico.find((h) => h.fim === null);
   const meu = me.clube?.id === clube.id;
   const podePedir = !clube.tecnico && !meu;
+  const souTecnico = clube.tecnico?.id === me.id; // técnico atual (ex-técnico não casa)
+  const podeEditarClube = souTecnico || me.isAdmin;
 
   return (
     <div className="clube">
-      <header className="clube-topo">
+      <div className="clube-capa" style={clube.capaUrl ? { backgroundImage: `url(${clube.capaUrl})` } : undefined} data-sem-capa={!clube.capaUrl || undefined} />
+      <header className="clube-topo com-capa">
         <Escudo src={clube.escudoUrl} tam={88} />
         <h1>{clube.nome}</h1>
         {clube.tecnico ? (
@@ -67,6 +82,9 @@ export function PerfilClube({ id, me }: { id: string; me: Me }) {
             <p className="giz2">Sem técnico no momento.</p>
           </div>
         )}
+        {clube.bio && <Bio texto={clube.bio} />}
+        {!clube.bio && souTecnico && <Link para={`/c/${clube.id}/editar`} className="adicionar-bio giz2">Adicionar bio</Link>}
+        {podeEditarClube && <Link para={`/c/${clube.id}/editar`} className="botao fantasma editar-clube-btn">Editar clube</Link>}
         {podePedir && (
           <>
             {pendente && pendente.clubeId === clube.id ? (
@@ -105,16 +123,7 @@ export function PerfilClube({ id, me }: { id: string; me: Me }) {
               {meu && <Link para="/postar" className="botao">Novo post</Link>}
             </div>
           )}
-          <div className="grade-capas" role="list">
-            {posts.itens.map((p) => (
-              <div key={p.id} role="listitem">
-                <Link para={`/p/${p.id}`} aria-label={`Post de ${p.autor.nome}, ${p.clube.nome}, ${p.imagens.length} ${p.imagens.length === 1 ? 'imagem' : 'imagens'}`}>
-                  <img src={p.imagens[0].miniUrl} alt="" loading="lazy" />
-                  {p.imagens.length > 1 && <span className="multi"><IcGaleria /></span>}
-                </Link>
-              </div>
-            ))}
-          </div>
+          <GradeCapas posts={posts.itens} />
           {posts.erroMais && <div className="caixa-info" role="alert"><p>Não deu para carregar mais posts.</p><button type="button" className="botao secundario" onClick={posts.maisUm}>Tentar de novo</button></div>}
           <div ref={posts.fim} />
         </div>

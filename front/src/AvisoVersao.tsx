@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useCaminho } from './rotas';
+import { emEdicao, useCaminho } from './rotas';
 
 // O build grava o hash em <meta name="versao"> e em /version.json (plugin no vite.config). Se divergirem, há versão nova no ar.
 const atual = () => document.querySelector<HTMLMetaElement>('meta[name=versao]')?.content;
@@ -7,7 +7,7 @@ const atual = () => document.querySelector<HTMLMetaElement>('meta[name=versao]')
 export function AvisoVersao() {
   const [nova, setNova] = useState(false);
   const caminho = useCaminho();
-  const escrevendo = caminho === '/postar' || caminho.endsWith('/editar'); // Atualizar recarrega a página e perderia o rascunho
+  const escrevendo = emEdicao(caminho); // Atualizar recarrega a página e perderia o rascunho
   useEffect(() => {
     if (!atual()) return; // dev: sem hash
     async function conferir() {

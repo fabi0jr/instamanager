@@ -53,7 +53,10 @@ export function Link({ para, onClick, ...props }: { para: string } & AnchorHTMLA
 // rotas do grupo de acesso: abertas sem sessão
 export const PUBLICAS = ['/entrar', '/cadastro', '/esqueci-senha', '/nova-senha'];
 
-const PADROES = ['/p/:id', '/p/:id/editar', '/c/:id'];
+// telas de escrever/editar: sem a barra inferior no celular (cobriria o botão fixo) e sem a faixa 'Nova versão' (Atualizar perderia o que foi digitado)
+export const emEdicao = (caminho: string) => caminho === '/postar' || /^\/[pc]\/[^/]+\/editar$/.test(caminho);
+
+const PADROES = ['/p/:id', '/p/:id/editar', '/c/:id', '/c/:id/editar', '/tag/:tag'];
 
 // casa o caminho com /p/:id e /c/:id; as demais rotas não têm parâmetro
 export function useRota() {

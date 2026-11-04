@@ -28,3 +28,8 @@
 
 .quadro.add { display: grid; place-items: center; border: 2px dashed var(--im-linha); background: none; color: var(--im-giz-2); font: 500 14px var(--im-fonte-texto); cursor: pointer; text-align: center; }
 .postar:has(#arquivos-postar:focus-visible) label[for='arquivos-postar'] { outline: 2px solid var(--im-giz); outline-offset: 2px; }
+
+.alternancia { display: flex; width: 100%; height: 44px; padding: 3px; background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: var(--im-r-pilula); }
+.alternancia button { flex: 1; min-height: 0; border: 0; border-radius: var(--im-r-pilula); background: none; color: var(--im-giz-2); font: 500 15px var(--im-fonte-texto); cursor: pointer; }
+.alternancia button[aria-checked='true'] { background: var(--im-superficie-alta); color: var(--im-giz); font-weight: 600; }
+.postar .campo-texto { min-height: 220px; resize: vertical; }

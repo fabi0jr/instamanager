@@ -1,6 +1,9 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { AdminGuard, SessionGuard } from '../auth/session.guard.js';
 import { ApiError } from '../http.js';
+import { DenunciasService } from '../denuncias/denuncias.service.js';
+import { InteracoesService } from '../interacoes/interacoes.service.js';
+import { PostsService } from '../posts/posts.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { TrocasService } from '../trocas/trocas.service.js';
 
@@ -10,6 +13,9 @@ export class AdminController {
   constructor(
     private readonly trocas: TrocasService,
     private readonly prisma: PrismaService,
+    private readonly posts: PostsService,
+    private readonly interacoes: InteracoesService,
+    private readonly denuncias: DenunciasService,
   ) {}
 
   @Get('trocas')
@@ -27,6 +33,53 @@ export class AdminController {
   @HttpCode(204)
   async recusar(@Param('id') id: string) {
     await this.trocas.recusar(id);
+  }
+
+  @Put('posts/:id/fixar')
+  @HttpCode(204)
+  async fixar(@Param('id') id: string) {
+    await this.posts.fixar(id, true);
+  }
+
+  @Delete('posts/:id/fixar')
+  @HttpCode(204)
+  async desafixar(@Param('id') id: string) {
+    await this.posts.fixar(id, false);
+  }
+
+  @Put('posts/:id/ocultar')
+  @HttpCode(204)
+  async ocultar(@Param('id') id: string) {
+    await this.posts.ocultar(id, true);
+  }
+
+  @Delete('posts/:id/ocultar')
+  @HttpCode(204)
+  async mostrar(@Param('id') id: string) {
+    await this.posts.ocultar(id, false);
+  }
+
+  @Put('comentarios/:id/ocultar')
+  @HttpCode(204)
+  async ocultarComentario(@Param('id') id: string) {
+    await this.interacoes.ocultar(id, true);
+  }
+
+  @Delete('comentarios/:id/ocultar')
+  @HttpCode(204)
+  async mostrarComentario(@Param('id') id: string) {
+    await this.interacoes.ocultar(id, false);
+  }
+
+  @Get('denuncias')
+  listarDenuncias(@Query('abertas') abertas?: string, @Query('antes') antes?: string) {
+    return this.denuncias.listar(abertas === '1', antes);
+  }
+
+  @Post('denuncias/:id/resolver')
+  @HttpCode(204)
+  async resolverDenuncia(@Param('id') id: string) {
+    await this.denuncias.resolver(id);
   }
 
   @Get('convite')

@@ -41,6 +41,9 @@ model User {
   comments      Comment[]
   transfers     TransferRequest[]
   subscriptions PushSubscription[]
+  favorites     PromptFavorite[]
+  hiddenPosts   HiddenPost[]
+  reports       Report[]
 }
 
 model Session {
@@ -66,6 +69,8 @@ model Club {
   id        String  @id // slug, ex. "palmeiras"
   name      String
   crestPath String
+  bio       String? // até 300, editada pelo técnico
+  coverPath String? // capa JPEG (/uploads/capas/…)
   coachId   String? @unique @db.Uuid // único: um técnico por clube e um clube por pessoa
   coach     User?   @relation(fields: [coachId], references: [id], onDelete: SetNull)
 
@@ -87,33 +92,39 @@ model CoachTenure {
 }
 
 model Post {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   clubId    String
-  authorId  String   @db.Uuid // técnico que publicou
+  authorId  String    @db.Uuid // técnico que publicou
   caption   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  club      Club     @relation(fields: [clubId], references: [id])
-  author    User     @relation(fields: [authorId], references: [id])
+  texto     String? // post só de texto (1–500); null = post com imagens
+  pinnedAt  DateTime? // fixado no topo do feed (máx. 3)
+  hiddenAt  DateTime? // ocultado pelo admin (reversível; só o admin vê)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  club      Club      @relation(fields: [clubId], references: [id])
+  author    User      @relation(fields: [authorId], references: [id])
 
   images   PostImage[]
   likes    Like[]
   comments Comment[]
+  hiddenBy HiddenPost[]
+  reports  Report[]
 
   @@index([createdAt(sort: Desc), id(sort: Desc)])
   @@index([clubId, createdAt(sort: Desc)])
 }
 
 model PostImage {
-  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  postId    String  @db.Uuid
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId    String           @db.Uuid
   position  Int
   fullPath  String
   thumbPath String
   width     Int
   height    Int
   prompt    String?
-  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post      Post             @relation(fields: [postId], references: [id], onDelete: Cascade)
+  favorites PromptFavorite[]
 
   @@unique([postId, position])
 }
@@ -121,6 +132,7 @@ model PostImage {
 model Like {
   postId String @db.Uuid
   userId String @db.Uuid
+  emoji  String @default("❤️") // a curtida da v1 é a reação ❤️
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -128,13 +140,15 @@ model Like {
 }
 
 model Comment {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  postId    String   @db.Uuid
-  userId    String   @db.Uuid
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId    String    @db.Uuid
+  userId    String    @db.Uuid
   text      String
-  createdAt DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hiddenAt  DateTime? // ocultado pelo admin
+  createdAt DateTime  @default(now())
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reports   Report[]
 
   @@index([postId, createdAt])
 }
@@ -165,4 +179,39 @@ model PushSubscription {
 model Setting {
   key   String @id
   value String
+}
+
+model PromptFavorite {
+  userId    String    @db.Uuid
+  imageId   String    @db.Uuid
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  image     PostImage @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  @@id([userId, imageId])
+}
+
+/// "Ocultar para mim": o post some só da lista de quem ocultou.
+model HiddenPost {
+  userId String @db.Uuid
+  postId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+}
+
+model Report {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @db.Uuid
+  postId      String?   @db.Uuid
+  commentId   String?   @db.Uuid
+  motivo      String? // até 300
+  createdAt   DateTime  @default(now())
+  resolvidaEm DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post        Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment     Comment?  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([resolvidaEm, createdAt])
 }

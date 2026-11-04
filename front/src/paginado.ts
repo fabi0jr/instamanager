@@ -56,5 +56,5 @@ export function usePaginado<T>(caminho: string, filtros: Record<string, string |
     return () => io.disconnect();
   }, [proximo, erroMais, carregar, estado]);
 
-  return { itens, proximo, estado, erroMais, fim, recarregar: () => { setEstado('carregando'); carregar(null); }, maisUm: () => carregar(proximo) };
+  return { itens, setItens, proximo, estado, erroMais, fim, recarregar: () => { setEstado('carregando'); carregar(null); }, maisUm: () => carregar(proximo) };
 }

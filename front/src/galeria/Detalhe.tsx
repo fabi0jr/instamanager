@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { api, type Me } from '../api/cliente';
 import { Escudo } from '../feed/Escudo';
-import { IcCopiar, IcFechar, IcOk } from '../feed/icones';
+import { IcCopiar, IcEstrela, IcFechar, IcOk } from '../feed/icones';
 import { haQuanto, type Post } from '../feed/tipos';
 import { Link, voltar } from '../rotas';
 
@@ -21,7 +21,9 @@ async function copiar(texto: string, no: HTMLElement | null) {
   }
 }
 
-export function Detalhe({ imagemId, postId }: { imagemId: string; postId: string }) {
+export function Detalhe({ imagemId, postId, favoritoInicial, aoFavoritar }: { imagemId: string; postId: string; favoritoInicial?: boolean; aoFavoritar?: (v: boolean) => void }) {
+  const [favorito, setFavorito] = useState(!!favoritoInicial);
+  const [erroFav, setErroFav] = useState(false);
   const [post, setPost] = useState<Post | 'carregando' | 'erro'>('carregando');
   const [indice, setIndice] = useState<number | null>(null);
   const [copia, setCopia] = useState<'ok' | 'falhou' | null>(null);
@@ -33,6 +35,22 @@ export function Detalhe({ imagemId, postId }: { imagemId: string; postId: string
     api<Post>(`/posts/${postId}`).then(setPost, () => setPost('erro'));
   }, [postId]);
   useEffect(() => caixa.current?.focus(), [post]);
+  useEffect(() => setFavorito(!!favoritoInicial), [favoritoInicial, imagemId]);
+
+  // favorito de quem vê: troca na hora e volta se a API falhar
+  async function alternarFavorito(imagem: string) {
+    const novo = !favorito;
+    setErroFav(false);
+    setFavorito(novo);
+    aoFavoritar?.(novo);
+    try {
+      await api(`/galeria/${imagem}/favorito`, { method: novo ? 'PUT' : 'DELETE' });
+    } catch {
+      setFavorito(!novo);
+      aoFavoritar?.(!novo);
+      setErroFav(true);
+    }
+  }
   useEffect(() => {
     if (copia !== 'ok') return;
     const t = setTimeout(() => setCopia(null), 2000);
@@ -60,7 +78,13 @@ export function Detalhe({ imagemId, postId }: { imagemId: string; postId: string
       <header className="detalhe-topo">
         <button type="button" aria-label="Fechar" onClick={fechar}><IcFechar /></button>
         {comPrompt.length > 1 && <span>Imagem {atual + 1} de {comPrompt.length}</span>}
+        {img && (
+          <button type="button" className={`estrela ${favorito ? 'ligada' : ''}`} aria-pressed={favorito} aria-label={favorito ? 'Tirar dos favoritos' : 'Favoritar'} onClick={() => alternarFavorito(img.id)}>
+            <IcEstrela cheia={favorito} />
+          </button>
+        )}
       </header>
+      {erroFav && <p role="alert" className="erro-txt aviso-card">Não deu para favoritar. Tente de novo.</p>}
       {post === 'carregando' && <div className="esqueleto" style={{ height: 390 }} aria-busy="true" />}
       {post === 'erro' && <div className="caixa-info" role="alert"><h2>Não deu para carregar o prompt</h2><button type="button" className="botao secundario" onClick={fechar}>Voltar à galeria</button></div>}
       {typeof post === 'object' && img && (

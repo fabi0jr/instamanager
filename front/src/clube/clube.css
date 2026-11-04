@@ -30,3 +30,14 @@
 .interruptor { width: 52px; height: 32px; min-width: 52px; border-radius: 999px; border: 1px solid var(--im-linha); background: var(--im-superficie-alta); padding: 3px; cursor: pointer; display: flex; align-items: center; }
 .interruptor span { width: 24px; height: 24px; border-radius: 50%; background: var(--im-giz-2); transition: transform .15s; } .interruptor.ligado { background: var(--im-vermelho); border-color: var(--im-vermelho); } .interruptor.ligado span { background: var(--im-giz); transform: translateX(20px); }
 .recusa { margin: var(--im-e2) 0 0; } .linha.sair { border-bottom: 0; margin-top: var(--im-e4); } .folha-form { display: flex; flex-direction: column; gap: var(--im-e3); }
+
+.grade-capas .capa-texto { display: flex; padding: var(--im-e2); background: var(--im-superficie); color: var(--im-giz); text-decoration: none; overflow: hidden; }
+.grade-capas .capa-texto > span:first-child { font: 700 18px/20px var(--im-fonte-display); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+
+.clube-capa { height: 130px; margin-top: calc(-1 * env(safe-area-inset-top)); background: center / cover no-repeat; } .clube-capa[data-sem-capa] { background: linear-gradient(var(--im-superficie-alta), var(--im-superficie)); }
+.clube-topo.com-capa > :first-child { margin-top: -44px; border-radius: 50%; box-shadow: 0 0 0 4px var(--im-carvao); position: relative; }
+.bio-clube p, .adicionar-bio { margin: 0; } .bio-clube .corta3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; } .adicionar-bio { text-decoration: underline; }
+.editar-clube-btn { width: auto; height: 40px; padding: 0 var(--im-e4); align-self: flex-end; }
+.previa-capa { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 3 / 1; border-radius: 12px; background: center / cover no-repeat; } .previa-capa[data-sem-capa] { background: linear-gradient(var(--im-superficie-alta), var(--im-superficie)); }
+.previa-capa .botao-capa { display: inline-flex; align-items: center; gap: var(--im-e2); padding: 0 var(--im-e4); border: 0; border-radius: var(--im-r-pilula); background: rgb(14 15 17 / .72); color: var(--im-giz); font: 600 15px var(--im-fonte-texto); cursor: pointer; }
+.previa-capa .véu { position: absolute; inset: 0; border-radius: 12px; background: rgb(0 0 0 / .55); }

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, type Me } from '../api/cliente';
+import { Denunciar } from './Denunciar';
 import { Escudo } from './Escudo';
 import { Folha } from './Folha';
-import { IcFechar, IcMais } from './icones';
+import { Texto } from './Texto';
+import { IcBandeira, IcFechar, IcLixo, IcMais, IcOlhoOff } from './icones';
 import { sigla } from './siglas';
 import { haQuanto, type Comentario } from './tipos';
 
@@ -16,6 +18,8 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
   const [lista, setLista] = useState<Item[] | 'carregando' | 'erro'>('carregando');
   const [texto, setTexto] = useState('');
   const [menu, setMenu] = useState<Item | null>(null);
+  const [denunciando, setDenunciando] = useState<Item | null>(null);
+  const [enviada, setEnviada] = useState(false);
   const [aviso, setAviso] = useState('');
   const fim = useRef<HTMLDivElement>(null);
   const seq = useRef(0);
@@ -62,6 +66,18 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
     }
   }
 
+  async function ocultar(c: Item) {
+    setMenu(null);
+    const novo = !c.oculto;
+    mudar((l) => l.map((x) => (x.id === c.id ? { ...x, oculto: novo } : x)));
+    try {
+      await api(`/admin/comentarios/${c.id}/ocultar`, { method: novo ? 'PUT' : 'DELETE' });
+    } catch {
+      mudar((l) => l.map((x) => (x.id === c.id ? { ...x, oculto: !novo } : x)));
+      setAviso('Não deu para ocultar o comentário. Tente de novo.');
+    }
+  }
+
   return (
     <Folha titulo="Comentários" aoFechar={aoFechar} alta>
       <div className="alca" aria-hidden="true" />
@@ -82,21 +98,22 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
           <div><h3>Ainda ninguém comentou</h3><p className="giz2">Seja o primeiro a mandar um recado.</p></div>
         )}
         {Array.isArray(lista) && lista.map((c) => (
-          <div key={c.id} className="comentario" style={{ opacity: c.estado === 'enviando' ? 0.55 : 1 }}>
+          <div key={c.id} className="comentario" style={{ opacity: c.estado === 'enviando' ? 0.55 : c.oculto ? 0.6 : 1 }}>
             <Avatar nome={c.usuario.nome} url={c.usuario.avatarUrl} />
             <div className="corpo">
               <div>
                 <strong>{c.usuario.nome}</strong>{' '}
+                {c.oculto && <span className="pilula oculto-selo"><IcOlhoOff />Oculto</span>}
                 {c.usuario.clube && <span className="pilula" aria-label={`Clube ${c.usuario.clube.nome}`}><Escudo src={`/escudos/${c.usuario.clube.id}.svg`} tam={12} />{sigla(c.usuario.clube.id)}</span>}
               </div>
-              <p>{c.texto}</p>
+              <p><Texto>{c.texto}</Texto></p>
               {c.estado === 'falhou' ? (
                 <button type="button" className="link erro-txt sem-sublinhado" onClick={() => enviar(c.texto, c.id)}>Não enviou. Toque para tentar de novo.</button>
               ) : (
                 <span className="giz2 mini">{c.estado === 'enviando' ? 'Enviando…' : haQuanto(c.criadoEm)}</span>
               )}
             </div>
-            {!c.estado && (c.usuario.id === me.id || me.isAdmin) && (
+            {!c.estado && (
               <button type="button" aria-label="Opções do comentário" onClick={() => setMenu(c)}><IcMais /></button>
             )}
           </div>
@@ -109,10 +126,16 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
         {texto.length >= 900 && <span className="giz2 mini">{texto.length}/1000</span>}
         <button type="submit" className={texto.trim() ? 'ativo' : ''} disabled={!texto.trim()}>Publicar</button>
       </form>
+      {denunciando && <Denunciar alvo={{ commentId: denunciando.id }} aoFechar={() => setDenunciando(null)} aoEnviada={() => { setDenunciando(null); setAviso(''); setEnviada(true); }} />}
+      {enviada && <p role="status" className="toast-card">Denúncia enviada. O admin vai olhar.</p>}
       {menu && (
         <Folha titulo="Comentário" aoFechar={() => setMenu(null)}>
           <div className="alca" aria-hidden="true" />
-          <button type="button" className="item-folha perigo" onClick={() => apagar(menu)}>Apagar comentário</button>
+          {menu.usuario.id !== me.id && !me.isAdmin && (
+            <button type="button" className="item-folha" onClick={() => { setDenunciando(menu); setMenu(null); }}><IcBandeira />Denunciar comentário</button>
+          )}
+          {me.isAdmin && <button type="button" className="item-folha" onClick={() => ocultar(menu)}><IcOlhoOff />{menu.oculto ? 'Mostrar de novo' : 'Ocultar comentário'}</button>}
+          {(menu.usuario.id === me.id || me.isAdmin) && <button type="button" className="item-folha perigo" onClick={() => apagar(menu)}><IcLixo />Apagar comentário</button>}
           <button type="button" className="botao fantasma" onClick={() => setMenu(null)}>Cancelar</button>
         </Folha>
       )}

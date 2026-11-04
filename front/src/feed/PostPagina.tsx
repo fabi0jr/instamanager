@@ -32,6 +32,7 @@ export function PostPagina({ id, me }: { id: string; me: Me }) {
         prioridade
         // curtir/comentar/apagar aqui mudam o post: o feed guardado ficaria desatualizado
         aoMudar={(n) => n !== post && esquecerFeed()}
+        aoOcultarParaMim={() => navegar('/')} // o cache do feed já foi ajustado no clique
         aoApagar={() => {
           esquecerFeed();
           navegar('/');

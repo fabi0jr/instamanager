@@ -4,17 +4,17 @@ import { lerAviso } from '../aviso';
 import { posicao, rolagem, rolarPara } from '../rolagem';
 import './feed.css';
 import { Link } from '../rotas';
+import { cacheFeed, escondidos, esquecerFeed } from './cacheFeed';
 import { CardPost } from './CardPost';
 import type { Pagina, Post } from './tipos';
 
-// Ao abrir um post/clube e voltar, o Feed remonta: guarda lista e rolagem para voltar ao mesmo ponto sem refazer a busca.
-let guardado: { meId: string; itens: Post[]; proximo: string | null; y: number; quando: number } | null = null;
 const MIN_VOLTA = 60_000; // voltar ao app antes disso não confere post novo
 const PUXAR = 80; // px de arrasto do dedo para disparar o puxar-para-atualizar
-export const esquecerFeed = () => (guardado = null); // chamar quando a lista muda por fora (ex.: post novo publicado)
+const topoNormal = (l: Post[]) => l.find((p) => !p.fixado)?.id;
+export { esquecerFeed }; // reexporta: os demais arquivos importam daqui
 
 export function Feed({ me }: { me: Me }) {
-  const volta = guardado?.meId === me.id ? guardado : null;
+  const volta = cacheFeed.atual?.meId === me.id ? cacheFeed.atual : null;
   const [itens, setItens] = useState<Post[]>(volta?.itens ?? []);
   const [proximo, setProximo] = useState<string | null>(volta?.proximo ?? null);
   const [estado, setEstado] = useState<'carregando' | 'ok' | 'erro'>(volta ? 'ok' : 'carregando');
@@ -35,7 +35,8 @@ export function Feed({ me }: { me: Me }) {
     setErroMais(false);
     try {
       const pg = await api<Pagina<Post>>('/posts' + (cursor ? `?antes=${encodeURIComponent(cursor)}` : ''));
-      setItens((l) => (cursor ? [...l, ...pg.itens] : pg.itens));
+      // fixados só vêm na 1ª página e ficam no topo; o servidor não os repete em itens
+      setItens((l) => (cursor ? [...l, ...pg.itens] : [...(pg.fixados ?? []), ...pg.itens]));
       setProximo(pg.proximo);
       setEstado('ok');
       if (!cursor) { ultima.current = Date.now(); setNovos(false); }
@@ -62,10 +63,11 @@ export function Feed({ me }: { me: Me }) {
   useLayoutEffect(() => {
     if (volta) rolarPara(volta.y);
     return () => {
-      const { itens, proximo, estado } = atual.current;
+      const { itens: todos, proximo, estado } = atual.current;
+      const itens = todos.filter((p) => !escondidos.has(p.id)); // ocultados para mim ainda no Desfazer
       // só lista carregada de verdade: guardar vazio/carregando (ex.: redirect para /instalar no 1º login) faria o feed voltar vazio
-      if (estado !== 'ok' || itens.length === 0) return void (guardado = null);
-      guardado = { meId: me.id, itens, proximo, y: y.current, quando: ultima.current };
+      if (estado !== 'ok' || itens.length === 0) return void (cacheFeed.atual = null);
+      cacheFeed.atual = { meId: me.id, itens, proximo, y: y.current, quando: ultima.current };
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -84,7 +86,8 @@ export function Feed({ me }: { me: Me }) {
       try {
         const pg = await api<Pagina<Post>>('/posts');
         ultima.current = Date.now();
-        if (pg.itens[0]?.id !== atual.current.itens[0]?.id) setNovos(true);
+        // compara o 1º post que não é fixado: um fixado novo no topo não é "post novo"
+        if (topoNormal([...(pg.fixados ?? []), ...pg.itens]) !== topoNormal(atual.current.itens)) setNovos(true);
       } catch {
         // sem rede ao voltar: tenta de novo na próxima volta
       } finally {
@@ -141,6 +144,9 @@ export function Feed({ me }: { me: Me }) {
     return () => io.disconnect();
   }, [proximo, erroMais, carregar, estado]);
 
+  // sumiu de vez (acabou o Desfazer do 'Ocultar para mim'): sai da lista sem aviso
+  const sumiu = (id: string) => setItens((l) => l.filter((p) => p.id !== id));
+
   function apagado(id: string) {
     setItens((l) => l.filter((p) => p.id !== id));
     setAviso('Post apagado');
@@ -177,7 +183,7 @@ export function Feed({ me }: { me: Me }) {
           )}
         </div>
       )}
-      {itens.map((p, i) => <CardPost key={p.id} post={p} me={me} prioridade={i === 0} aoApagar={apagado} aoMudar={(n) => setItens((l) => l.map((x) => (x.id === n.id && x !== n ? n : x)))} />)}
+      {itens.map((p, i) => <CardPost key={p.id} post={p} me={me} prioridade={i === 0} aoApagar={apagado} aoOcultarParaMim={sumiu} aoReordenar={() => carregar(null)} aoMudar={(n) => setItens((l) => l.map((x) => (x.id === n.id && x !== n ? n : x)))} />)}
       {erroMais && (
         <div className="caixa-info" role="alert">
           <p>Não deu para carregar mais posts.</p>

@@ -4,6 +4,7 @@ import { Link, navegar } from '../rotas';
 import './admin.css';
 import { Clubes } from './Clubes';
 import { Convite } from './Convite';
+import { Denuncias } from './Denuncias';
 import { Pedidos } from './Pedidos';
 
 export const Topo = ({ titulo, voltar }: { titulo: string; voltar?: boolean }) => (
@@ -18,10 +19,12 @@ export const Topo = ({ titulo, voltar }: { titulo: string; voltar?: boolean }) =
 
 function Inicio() {
   const [pedidos, setPedidos] = useState<number>();
+  const [denuncias, setDenuncias] = useState<{ n: number; mais: boolean }>();
   const [codigo, setCodigo] = useState<string>();
   const [clubes, setClubes] = useState<{ com: number; total: number }>();
   useEffect(() => {
     api<unknown[]>('/admin/trocas?status=PENDENTE').then((l) => setPedidos(l.length), () => undefined);
+    api<{ itens: unknown[]; proximo: string | null }>('/admin/denuncias?abertas=1').then((p) => setDenuncias({ n: p.itens.length, mais: !!p.proximo }), () => undefined);
     api<{ codigo: string | null }>('/admin/convite').then((c) => setCodigo(c.codigo ?? undefined), () => undefined);
     api<{ tecnico: unknown }[]>('/clubes').then((l) => setClubes({ com: l.filter((c) => c.tecnico).length, total: l.length }), () => undefined);
   }, []);
@@ -32,6 +35,11 @@ function Inicio() {
         <Link para="/admin/pedidos" className="linha-config">
           <span>Pedidos de troca</span>
           {!!pedidos && <span className="selo" aria-label={`${pedidos} ${pedidos === 1 ? 'pedido pendente' : 'pedidos pendentes'}`}>{pedidos}</span>}
+          <span aria-hidden="true">›</span>
+        </Link>
+        <Link para="/admin/denuncias" className="linha-config">
+          <span>Denúncias</span>
+          {!!denuncias?.n && <span className="selo" aria-label={`${denuncias.n}${denuncias.mais ? ' ou mais' : ''} ${denuncias.n === 1 && !denuncias.mais ? 'denúncia aberta' : 'denúncias abertas'}`}>{denuncias.n}{denuncias.mais && '+'}</span>}
           <span aria-hidden="true">›</span>
         </Link>
         <Link para="/admin/convite" className="linha-config">
@@ -56,6 +64,7 @@ export function Admin({ me, caminho }: { me: Me; caminho: string }) {
   }, [me.isAdmin]);
   if (!me.isAdmin) return null;
   if (caminho === '/admin/pedidos') return <Pedidos />;
+  if (caminho === '/admin/denuncias') return <Denuncias />;
   if (caminho === '/admin/convite') return <Convite />;
   if (caminho === '/admin/clubes') return <Clubes />;
   return <Inicio />;

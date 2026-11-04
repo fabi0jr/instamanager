@@ -2,21 +2,23 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/cliente';
 import { Escudo } from '../feed/Escudo';
 import { Folha } from '../feed/Folha';
-import { IcFechar, IcFiltro, IcSeta } from '../feed/icones';
+import { IcEstrela, IcFechar, IcFiltro, IcSeta } from '../feed/icones';
 import { usePaginado } from '../paginado';
 import { Link, useBusca } from '../rotas';
 import { Detalhe } from './Detalhe';
 import '../clube/clube.css';
 import './galeria.css';
 
-type ItemGaleria = { imagemId: string; postId: string; miniUrl: string; cheiaUrl: string; prompt: string; clube: { id: string; nome: string; escudoUrl: string } };
+type ItemGaleria = { imagemId: string; postId: string; miniUrl: string; cheiaUrl: string; prompt: string; favorito?: boolean; clube: { id: string; nome: string; escudoUrl: string } };
 type ClubeLinha = { id: string; nome: string; escudoUrl: string };
 
 export function Galeria() {
   const [clube, setClube] = useState<ClubeLinha | null>(null);
   const [filtrando, setFiltrando] = useState(false);
   const [clubes, setClubes] = useState<ClubeLinha[] | null>(null);
-  const lista = usePaginado<ItemGaleria>('/galeria', { clube: clube?.id });
+  const [soFavoritos, setSoFavoritos] = useState(false);
+  const [marcados, setMarcados] = useState<Record<string, boolean>>({}); // estrelas mexidas no detalhe, por cima do que a lista trouxe
+  const lista = usePaginado<ItemGaleria>('/galeria', { clube: clube?.id, favoritos: soFavoritos ? '1' : undefined });
   const busca = useBusca();
   const imagem = busca.get('imagem');
   const postId = busca.get('post');
@@ -38,6 +40,7 @@ export function Galeria() {
         ) : (
           <button type="button" className="chip" onClick={() => setFiltrando(true)}><IcFiltro />Todos os clubes<IcSeta /></button>
         )}
+        <button type="button" className={`chip ${soFavoritos ? 'ligado' : ''}`} aria-pressed={soFavoritos} onClick={() => setSoFavoritos(!soFavoritos)}><IcEstrela cheia={soFavoritos} />Favoritos</button>
       </div>
 
       {lista.estado === 'carregando' && <div className="grade-capas" aria-busy="true">{Array.from({ length: 12 }, (_, i) => <div key={i} className="esqueleto" />)}</div>}
@@ -46,9 +49,9 @@ export function Galeria() {
       )}
       {lista.estado === 'ok' && lista.itens.length === 0 && (
         <div className="caixa-info">
-          <h2>{clube ? `Ainda sem prompts do ${clube.nome}` : 'Ainda sem prompts'}</h2>
-          <p className="giz2">Quando o técnico publicar uma imagem com prompt, ela aparece aqui.</p>
-          {clube && <button type="button" className="botao secundario" onClick={() => setClube(null)}>Limpar filtro</button>}
+          <h2>{soFavoritos ? 'Nenhum favorito ainda' : clube ? `Ainda sem prompts do ${clube.nome}` : 'Ainda sem prompts'}</h2>
+          <p className="giz2">{soFavoritos ? 'Toque na estrela de um prompt para guardar aqui.' : 'Quando o técnico publicar uma imagem com prompt, ela aparece aqui.'}</p>
+          {(clube || soFavoritos) && <button type="button" className="botao secundario" onClick={() => { setClube(null); setSoFavoritos(false); }}>Limpar filtro</button>}
         </div>
       )}
       <div className="grade-capas" role="list">
@@ -77,7 +80,7 @@ export function Galeria() {
           </div>
         </Folha>
       )}
-      {imagem && postId && <Detalhe imagemId={imagem} postId={postId} />}
+      {imagem && postId && <Detalhe imagemId={imagem} postId={postId} favoritoInicial={marcados[imagem] ?? lista.itens.find((i) => i.imagemId === imagem)?.favorito} aoFavoritar={(v) => setMarcados((m) => ({ ...m, [imagem]: v }))} />}
     </div>
   );
 }

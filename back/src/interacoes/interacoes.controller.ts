@@ -7,6 +7,18 @@ import { InteracoesService } from './interacoes.service.js';
 export class InteracoesController {
   constructor(private readonly interacoes: InteracoesService) {}
 
+  @Put('posts/:id/reacao')
+  @HttpCode(204)
+  async reagir(@Req() req: AuthedRequest, @Param('id') id: string, @Body() body: unknown) {
+    await this.interacoes.reagir(id, req.user, typeof body === 'object' && body ? (body as { emoji?: unknown }).emoji : undefined);
+  }
+
+  @Delete('posts/:id/reacao')
+  @HttpCode(204)
+  async tirarReacao(@Req() req: AuthedRequest, @Param('id') id: string) {
+    await this.interacoes.descurtir(id, req.user);
+  }
+
   @Put('posts/:id/curtida')
   @HttpCode(204)
   async curtir(@Req() req: AuthedRequest, @Param('id') id: string) {
@@ -20,8 +32,8 @@ export class InteracoesController {
   }
 
   @Get('posts/:id/comentarios')
-  listar(@Param('id') id: string) {
-    return this.interacoes.listar(id);
+  listar(@Req() req: AuthedRequest, @Param('id') id: string) {
+    return this.interacoes.listar(id, req.user);
   }
 
   @Post('posts/:id/comentarios')
