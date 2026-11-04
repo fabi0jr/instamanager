@@ -3,10 +3,10 @@
 .bolinha { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 72px; color: var(--im-giz); text-decoration: none; } .bolinha-esq { flex: none; width: 64px; height: 64px; border-radius: 50%; }
 .anel { position: relative; display: grid; place-items: center; width: 64px; height: 64px; box-sizing: border-box; border-radius: 50%; border: 3px solid var(--im-vermelho); } .anel.visto { border: 2px solid var(--im-linha); } .anel.vazio { border: 2px dashed var(--im-linha); }
 .anel > img { border-radius: 50%; }
-.mais-visual { position: absolute; right: -4px; bottom: -4px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: var(--im-vermelho); border: 2px solid var(--im-carvao); font: 700 16px/1 var(--im-fonte-texto); }
+.mais-visual { position: absolute; right: -4px; bottom: -4px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: var(--im-vermelho); border: 2px solid var(--im-carvao); font: 700 16px/1 var(--im-fonte-texto); }
 .item-bolinha { position: relative; }
-.mais-story { position: absolute; z-index: 1; right: 4px; top: 40px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: var(--im-vermelho); border: 2px solid var(--im-carvao); color: var(--im-giz); text-decoration: none; font: 700 16px/1 var(--im-fonte-texto); }
-.mais-story::after { content: ''; position: absolute; inset: -10px; } /* alvo de toque de 44 px */
+.mais-story { position: absolute; z-index: 1; right: 4px; top: 42px; width: 22px; height: 22px; min-width: 0; min-height: 0; padding: 0; display: grid; place-items: center; border-radius: 50%; background: var(--im-vermelho); border: 2px solid var(--im-carvao); color: var(--im-giz); text-decoration: none; font: 700 16px/1 var(--im-fonte-texto); }
+.mais-story::after { content: ''; position: absolute; inset: -11px; } /* alvo de toque de 44 px */
 .nome-bolinha { max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 12px var(--im-fonte-texto); }
 
 .visualizador { position: fixed; inset: 0; z-index: 25; background: var(--im-carvao); display: flex; align-items: center; justify-content: center; touch-action: none; user-select: none; }
