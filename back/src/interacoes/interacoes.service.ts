@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { UserComClube } from '../auth/auth.service.js';
 import { ApiError } from '../http.js';
+import { extrairMencoes, resolverMencoes } from '../mencoes.js';
 import { UUID } from '../posts/cursor.js';
 import { comentariosVisiveis, ondeVisivel } from '../posts/visibilidade.js';
 import { PrismaService } from '../prisma.service.js';
@@ -20,9 +21,11 @@ type ComentarioCompleto = {
 };
 const comUsuario = { user: { select: { id: true, name: true, avatarPath: true, club: { select: { id: true, name: true } } } } } as const;
 
-const comentarioJson = (c: ComentarioCompleto) => ({
+type Mencoes = { id: string; nome: string }[];
+const comentarioJson = (c: ComentarioCompleto, mencoes: Mencoes) => ({
   id: c.id,
   texto: c.text,
+  mencoes,
   criadoEm: c.createdAt,
   oculto: c.hiddenAt !== null,
   // a tag é o clube de hoje de quem comentou, não o de quando comentou
@@ -47,6 +50,7 @@ export class InteracoesService {
     if (typeof e !== 'string' || !EMOJIS.includes(e)) throw new ApiError(400, 'EMOJI_INVALIDO', `Use um destes emojis: ${EMOJIS.join(' ')}`, ['emoji']);
     await this.garantirPost(postId, user);
     await this.prisma.like.upsert({ where: { postId_userId: { postId, userId: user.id } }, update: { emoji: e }, create: { postId, userId: user.id, emoji: e } });
+    this.eventos.emit('reacoes.reagida', postId, user.id);
   }
 
   /** Curtida da v1 = reação ❤️. */
@@ -79,7 +83,8 @@ export class InteracoesService {
   async listar(postId: string, user: UserComClube) {
     await this.garantirPost(postId, user);
     const lista = await this.prisma.comment.findMany({ where: { postId, ...comentariosVisiveis(user.isAdmin) }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: comUsuario });
-    return lista.map(comentarioJson);
+    const nomes = await resolverMencoes(this.prisma, [...new Set(lista.flatMap((c) => extrairMencoes(c.text)))]);
+    return lista.map((c) => comentarioJson(c, nomes.filter((m) => extrairMencoes(c.text).includes(m.id))));
   }
 
   async comentar(postId: string, user: UserComClube, corpo: unknown) {
@@ -89,7 +94,7 @@ export class InteracoesService {
     await this.garantirPost(postId, user);
     const c = await this.prisma.comment.create({ data: { postId, userId: user.id, text: texto }, include: comUsuario });
     this.eventos.emit('comentarios.criado', c.id);
-    return comentarioJson(c);
+    return comentarioJson(c, await resolverMencoes(this.prisma, extrairMencoes(c.text)));
   }
 
   async apagar(id: string, user: UserComClube) {

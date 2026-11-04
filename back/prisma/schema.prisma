@@ -46,6 +46,8 @@ model User {
   reports       Report[]
   votacoes      Votacao[]
   votos         Voto[]
+  recebidas     Notificacao[] @relation("NotificacaoDestino")
+  geradas       Notificacao[] @relation("NotificacaoAtor")
 }
 
 model Session {
@@ -125,6 +127,7 @@ model CoachTenure {
 model Post {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   resumoDe  Rodada[]
+  notificacoes Notificacao[]
   clubId    String
   authorId  String    @db.Uuid // técnico que publicou
   caption   String
@@ -181,6 +184,7 @@ model Comment {
   post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   reports   Report[]
+  notificacoes Notificacao[]
 
   @@index([postId, createdAt])
 }
@@ -195,6 +199,7 @@ model TransferRequest {
   decidedAt DateTime?
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   club      Club?       @relation(fields: [clubId], references: [id])
+  avisos    Notificacao[]
 
   @@index([status, createdAt])
 }
@@ -267,6 +272,7 @@ model Votacao {
   criador     User        @relation(fields: [criadaPor], references: [id], onDelete: Cascade)
   votos       Voto[]
   selos       Selo[]
+  notificacoes Notificacao[]
 }
 
 model Voto {
@@ -287,4 +293,35 @@ model Selo {
   createdAt DateTime @default(now())
   club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   votacao   Votacao  @relation(fields: [votacaoId], references: [id], onDelete: Cascade)
+}
+
+enum NotificacaoTipo {
+  REACAO
+  COMENTARIO
+  MENCAO
+  CBF_CITOU
+  TROCA_DECIDIDA
+  VOTACAO_RESULTADO
+}
+
+// Histórico do que a pessoa foi avisada (o push continua igual). Apagada após 60 dias pela limpeza.
+model Notificacao {
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String          @db.Uuid
+  tipo         NotificacaoTipo
+  atorId       String?         @db.Uuid
+  postId       String?         @db.Uuid
+  comentarioId String?         @db.Uuid
+  votacaoId    String?         @db.Uuid
+  trocaId      String?         @db.Uuid
+  lidaEm       DateTime?
+  createdAt    DateTime        @default(now())
+  user         User            @relation("NotificacaoDestino", fields: [userId], references: [id], onDelete: Cascade)
+  ator         User?           @relation("NotificacaoAtor", fields: [atorId], references: [id], onDelete: Cascade)
+  post         Post?           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comentario   Comment?        @relation(fields: [comentarioId], references: [id], onDelete: Cascade)
+  votacao      Votacao?        @relation(fields: [votacaoId], references: [id], onDelete: Cascade)
+  troca        TransferRequest? @relation(fields: [trocaId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

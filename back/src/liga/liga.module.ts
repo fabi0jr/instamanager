@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module.js';
+import { AtividadeModule } from '../atividade/atividade.module.js';
 import { PostsModule } from '../posts/posts.module.js';
 import { PushModule } from '../push/push.module.js';
 import { AdminLigaController } from './admin-liga.controller.js';
@@ -8,7 +9,7 @@ import { LigaEventos } from './liga.eventos.js';
 import { LigaService } from './liga.service.js';
 
 @Module({
-  imports: [AuthModule, PostsModule, PushModule],
+  imports: [AuthModule, PostsModule, PushModule, AtividadeModule],
   controllers: [LigaController, AdminLigaController],
   providers: [LigaService, LigaEventos],
   exports: [LigaService, LigaEventos],

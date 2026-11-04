@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type { UserComClube } from '../auth/auth.service.js';
 import { montarResumo } from '../bot/zoeira.js';
 import { ApiError } from '../http.js';
 import { UUID } from '../posts/cursor.js';
+import { AtividadeService } from '../atividade/atividade.service.js';
 import { PostsService } from '../posts/posts.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { PushService } from '../push/push.service.js';
@@ -22,11 +23,14 @@ type JogoEntrada = { mandanteId: string; visitanteId: string; golsMandante: numb
 
 @Injectable()
 export class LigaService {
+  private readonly logger = new Logger(LigaService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventos: LigaEventos,
     private readonly posts: PostsService,
     private readonly push: PushService,
+    private readonly atividade: AtividadeService,
   ) {}
 
   /** Calculada a cada pedido, só com jogos de rodadas fechadas: nada fica guardado em duplicidade. */
@@ -80,6 +84,7 @@ export class LigaService {
     const citados = clubes.filter((c) => c.coach!.id !== user.id && apareceInteiro(c.coach!.name, criado.texto ?? '')).map((c) => c.coach!.id);
     const todos = await this.prisma.user.findMany({ where: { id: { notIn: [user.id, ...citados] } }, select: { id: true } });
     void this.push.enviar(todos.map((u) => u.id), { titulo: 'CBF', corpo: `Saiu o resumo da rodada ${n}`, url: `/p/${criado.id}` });
+    void this.atividade.criar(citados, 'CBF_CITOU', { postId: criado.id }).catch((e: unknown) => this.logger.warn(`atividade CBF_CITOU: ${String(e)}`));
     if (citados.length) void this.push.enviar(citados, { titulo: 'A CBF citou você', corpo: (criado.texto ?? '').slice(0, 80), url: `/p/${criado.id}` });
     return criado;
   }

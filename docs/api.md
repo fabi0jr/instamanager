@@ -43,7 +43,7 @@ Contrato das Tasks 3–7. Tudo sob `/api`, JSON, UTF-8. Qualquer rota fora desta
 ```
 Me      = { id, nome, email, avatarUrl|null, isAdmin, pushEnabled, clube: ClubeMini|null }
 ClubeMini = { id, nome, escudoUrl }
-Post    = { id, clube: ClubeMini, autor: {id, nome}, legenda, texto|null, fixado, oculto, criadoEm,
+Post    = { id, clube: ClubeMini, autor: {id, nome}, legenda, texto|null, mencoes: [{id, nome}], fixado, oculto, criadoEm,
             imagens: [{ id, miniUrl, cheiaUrl, largura, altura, prompt|null }],
             curtidas, curtiu, reacoes: [{emoji, total}], minhaReacao|null, comentarios, podeEditar }
             // oculto: ocultado pelo admin (só o admin vê posts com oculto: true).
@@ -102,7 +102,7 @@ Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver 
 | `GET /api/posts/:id/reacoes` | — | `[{emoji, usuarios: [{id, nome, avatarUrl\|null, clube: {id,nome,escudoUrl}\|null}]}]`: quem reagiu, por emoji, o mais usado primeiro (empate por emoji). Mesma visibilidade do post: oculto → `404` (menos para o admin), id inexistente ou inválido → `404`. Nunca traz e-mail. |
 | `PUT /api/posts/:id/curtida` | — | `204`. Apelido de `PUT .../reacao {emoji:'❤️'}` (compatibilidade com o app antigo). |
 | `DELETE /api/posts/:id/curtida` | — | `204` (idempotente). Apelido de `DELETE .../reacao`. |
-| `GET /api/posts/:id/comentarios` | — | `[{id, texto, criadoEm, usuario: {id, nome, avatarUrl\|null, clube: {id,nome}\|null}}]`, do mais velho ao mais novo. `clube` é o atual de quem comentou. |
+| `GET /api/posts/:id/comentarios` | — | `[{id, texto, mencoes: [{id, nome}], criadoEm, usuario: {id, nome, avatarUrl\|null, clube: {id,nome}\|null}}]`, do mais velho ao mais novo. `clube` é o atual de quem comentou. |
 | `POST /api/posts/:id/comentarios` | `{texto}` | `201` comentário · `400` se vazio ou > 1000. Emite `comentarios.criado`. |
 | `DELETE /api/comentarios/:id` | — | `204` (autor ou admin) · `403 NAO_E_AUTOR` |
 | `POST /api/trocas` | `{tipo: 'SAIR'\|'ASSUMIR', clubeId?}` | `201 {id, tipo, clubeId, status, criadoEm, decididoEm}` (`clubeId` só no `ASSUMIR`). `ASSUMIR` exige `clubeId` livre agora (`CLUBE_OCUPADO`); `SAIR` exige ter clube (`SEM_CLUBE`). `TROCA_PENDENTE` se já houver um. Emite `trocas.pedida`. |
@@ -166,6 +166,43 @@ Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
 
 **nginx (`front/nginx.conf`):** `map $http_user_agent $robo_previa` marca `WhatsApp`, `facebookexternalhit`, `Twitterbot`, `TelegramBot`, `Slackbot`, `Discordbot` e `LinkedInBot`. Em `/p/<uuid>`, robô é reescrito para `/api/og/p/<uuid>`; qualquer outro cliente recebe o `index.html` do app. Só o caminho exato `/p/<uuid>` (36 caracteres) entra nessa regra.
 
+## 4e. Atividade e @menções (Task C1) 🔒
+
+**Menção:** guardada no texto (legenda, texto do post, comentário) como `@[Nome](uuid)`. O back só considera o formato com uuid de usuário que existe (o resto é texto comum) e no máximo as **10** primeiras. `mencoes` em `Post` e no comentário traz `[{id, nome}]` com o **nome de hoje, do banco** (o nome escrito no texto não vale); o front troca a marca pelo chip. Quem é mencionado recebe push `<nome> mencionou você` → `/p/<id>` e um item `MENCAO`, **uma vez por texto**: editar a legenda/texto mantendo a menção não repete, menção nova avisa só a nova. Ninguém é avisado da própria ação (nem se mencionar). No comentário, o técnico do clube já ganha `COMENTARIO` (e o push de comentário), então não ganha também `MENCAO` do mesmo comentário.
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `GET /api/atividade?antes=` | — | `{itens, proximo}`, 20 por página, do mais novo ao mais velho (cursor como o do feed; `400` se malformado). Item: `{id, tipo, criadoEm, lida, ator: {id, nome, avatarUrl\|null}\|null, post: {id, miniUrl\|null, resumo}\|null, votacao: {id, titulo}\|null, troca?: {status: 'APROVADA'\|'RECUSADA', clube: ClubeMini\|null}\|null}` (`troca` só nos itens `TROCA_DECIDIDA`: `clube` é o que a pessoa pediu para assumir, `null` no pedido de sair). `resumo` ≤ 80 caracteres (menção vira `@Nome`). Post oculto pelo admin (para quem não é admin) → `{id, miniUrl: null, resumo: "Post indisponível"}`; post apagado → o item some. |
+| `GET /api/atividade/nao-lidas` | — | `{total}` |
+| `POST /api/atividade/lidas` | — | `204`: marca todas como lidas. |
+| `GET /api/pessoas?q=` | — | até **8** `[{id, nome, avatarUrl\|null, clube: ClubeMini\|null}]` para o autocompletar do `@`: pedaço do nome, sem acento e sem diferenciar maiúsculas (quem começa com o texto vem primeiro); `%` e `_` valem como texto. `q` com menos de 2 caracteres (após `trim`, cortado em 60) → `[]`, não `400`. Sem e-mail. |
+
+**Tipos e quem recebe** (o push continua igual; a atividade é o histórico):
+
+- `REACAO`: o técnico atual do clube do post, quando outra pessoa reage. 1 item por pessoa por post: reagir de novo (trocar o emoji) troca o item e ele volta a não lido.
+- `COMENTARIO`: o técnico atual do clube do post, quando outra pessoa comenta.
+- `MENCAO`: a pessoa mencionada (post, edição ou comentário).
+- `CBF_CITOU`: os técnicos citados no resumo da rodada (`ator: null`, `post` = o resumo).
+- `TROCA_DECIDIDA`: quem pediu a troca, aprovada ou recusada (`ator: null`, `troca` com o resultado).
+- `VOTACAO_RESULTADO`: todo mundo, menos o admin que encerrou (`ator: null`, `votacao` e `post` = o resultado).
+
+Itens com mais de **60 dias** são apagados na limpeza horária. Eventos novos: `reacoes.reagida(postId, userId)` e `posts.editado(postId)`.
+
+## 4f. Busca (Task C2) 🔒
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `GET /api/busca?q=&tipo=&antes=` | — | `{itens, proximo}`, **20 por página**. `q`: 2 a 60 caracteres depois do `trim` (`400 DADOS_INVALIDOS` fora disso); `tipo`: `posts`, `prompts`, `clubes` ou `pessoas` (`400` se faltar ou for outro). Sem acento e sem diferenciar maiúsculas; `%`, `_` e `\` valem como texto; sempre parametrizada (aspas e `'; drop` não dão erro, só não acham nada). |
+
+Itens por `tipo`:
+
+- `posts`: `Post` (legenda **e** texto; o markup `@[Nome](uuid)` não conta, e quem foi mencionado é achado pelo nome de hoje), mais novo primeiro, com a mesma visibilidade do feed (oculto pelo admin só o admin acha; "ocultar para mim" some para quem ocultou).
+- `prompts`: item da galeria (`{imagemId, postId, miniUrl, cheiaUrl, prompt, clube, favorito}`), só de post visível.
+- `clubes`: `{id, nome, escudoUrl, tecnico: {id, nome}|null}` por nome; **nunca a CBF**.
+- `pessoas`: `{id, nome, avatarUrl|null, clube: ClubeMini|null}`, quem começa com o texto vem primeiro, depois por nome. Sem e-mail.
+
+`antes`: em `posts` e `prompts` é o cursor do feed (`400` se malformado); em `clubes` e `pessoas` é a posição (número) devolvida em `proximo`. `proximo` é `null` na última página.
+
 ## 5. Push (Task 7) 🔒
 
 | Rota | Corpo | Resposta |
@@ -178,7 +215,7 @@ Ligar/desligar: `PATCH /api/me {pushEnabled}`. Mensagens (`titulo` / `corpo` →
 
 ## 6. Modelo de dados
 
-Ver `back/prisma/schema.prisma`: `User`, `Session`, `PasswordReset`, `Club` (`coachId @unique`, `oficial`: a CBF), `Rodada`, `Jogo`, `Votacao`, `Voto` (`@@id([votacaoId, userId])`), `Selo`, `CoachTenure`, `Post`, `PostImage`, `Like`, `Comment`, `TransferRequest`, `PushSubscription`, `Setting`. Apagar `Post` apaga `PostImage`, `Like` e `Comment`. `/health` fica fora do contrato (`GET /api/health`).
+Ver `back/prisma/schema.prisma`: `User`, `Session`, `PasswordReset`, `Club` (`coachId @unique`, `oficial`: a CBF), `Rodada`, `Jogo`, `Votacao`, `Voto` (`@@id([votacaoId, userId])`), `Selo`, `CoachTenure`, `Post`, `PostImage`, `Like`, `Comment`, `Notificacao`, `TransferRequest`, `PushSubscription`, `Setting`. Apagar `Post` apaga `PostImage`, `Like` e `Comment`. `/health` fica fora do contrato (`GET /api/health`).
 
 ## 7. Variáveis de ambiente
 
