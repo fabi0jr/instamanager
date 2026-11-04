@@ -110,3 +110,25 @@ test('falha ao atualizar mantém a lista na tela', async () => {
   await waitFor(() => expect(n).toBe(2));
   expect(screen.getAllByRole('article')).toHaveLength(1);
 });
+
+test('post que já estava na lista mostra os dados novos depois de atualizar', async () => {
+  fetchFalso(rotas([post('a')], [{ ...post('a'), curtidas: 9, legenda: 'Legenda editada' }]));
+  render(<Feed me={me} />);
+  await screen.findByText('Legenda a');
+  puxar(100, 260);
+  expect(await screen.findByText('Legenda editada')).toBeTruthy();
+  expect(screen.getByText(/9 curtidas/)).toBeTruthy();
+});
+
+test('gesto dentro da folha de comentários (.veu) não atualiza o feed', async () => {
+  const chamadas = fetchFalso(rotas([post('a')]));
+  const { container } = render(<Feed me={me} />);
+  await screen.findAllByRole('article');
+  const veu = document.createElement('div');
+  veu.className = 'veu';
+  container.append(veu);
+  fireEvent.touchStart(veu, { touches: [{ clientY: 100 }] });
+  fireEvent.touchMove(veu, { touches: [{ clientY: 300 }] });
+  fireEvent.touchEnd(veu);
+  expect(chamadas).toHaveLength(1);
+});

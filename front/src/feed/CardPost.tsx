@@ -19,6 +19,9 @@ type Props = {
 
 export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoApagar, aoMudar }: Props) {
   const [post, setPost] = useState(inicial);
+  // o Feed pode trazer a versão nova do mesmo post (puxar/Novos posts): sem isto o card seguiria com curtidas e legenda velhas
+  const [recebido, setRecebido] = useState(inicial);
+  if (inicial !== recebido) { setRecebido(inicial); setPost(inicial); }
   useEffect(() => { aoMudar?.(post); }, [post]); // eslint-disable-line react-hooks/exhaustive-deps
   const [aviso, setAviso] = useState('');
   const [menu, setMenu] = useState<'menu' | 'apagar' | null>(null);

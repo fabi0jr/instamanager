@@ -102,7 +102,12 @@ export function Feed({ me }: { me: Me }) {
   useEffect(() => {
     let inicio: number | null = null;
     let dy = 0;
-    const comeca = (e: TouchEvent) => { inicio = window.scrollY <= 0 ? e.touches[0]?.clientY ?? null : null; dy = 0; };
+    // folha de comentários (.veu) e detalhe da galeria rolam por cima: o gesto dentro deles não é do feed
+    const comeca = (e: TouchEvent) => {
+      const dentro = e.target instanceof Element && e.target.closest('.veu, .detalhe');
+      inicio = window.scrollY <= 0 && !dentro ? e.touches[0]?.clientY ?? null : null;
+      dy = 0;
+    };
     const move = (e: TouchEvent) => {
       if (inicio === null) return;
       dy = Math.max(0, (e.touches[0]?.clientY ?? inicio) - inicio);
