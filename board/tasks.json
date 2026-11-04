@@ -2742,7 +2742,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T04:18:21.794Z",
@@ -2781,6 +2781,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T05:09:43.866Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (c68e7a435f95)"
         }
       ]
     },
@@ -2795,7 +2802,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T04:18:21.888Z",
@@ -2834,6 +2841,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "sincronizando com o estado real"
+        },
+        {
+          "quando": "2026-11-04T05:09:43.918Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (c68e7a435f95)"
         }
       ]
     },
@@ -2848,7 +2862,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T04:18:22.002Z",
@@ -2908,6 +2922,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou até 810d104"
+        },
+        {
+          "quando": "2026-11-04T05:09:43.967Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (c68e7a435f95)"
         }
       ]
     },
@@ -2922,7 +2943,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T04:18:22.116Z",
@@ -2961,6 +2982,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 8ec0652; QA junto da onda B"
+        },
+        {
+          "quando": "2026-11-04T05:09:44.020Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (c68e7a435f95)"
         }
       ]
     },
@@ -3070,7 +3098,7 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T04:18:22.295Z",
@@ -3090,6 +3118,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-04T05:09:44.120Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T05:09:44.171Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T05:09:44.221Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "deploy feito"
         }
       ]
     }
