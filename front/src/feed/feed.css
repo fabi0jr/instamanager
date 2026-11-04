@@ -59,3 +59,6 @@
 .comentario { padding-bottom: var(--im-e3); border-bottom: 1px solid var(--im-linha); } .comentario:last-of-type { border-bottom: 0; }
 .sem-sublinhado { text-decoration: none; text-align: left; }
 @media (min-width: 768px) { .veu.veu-centro .folha.centro { max-width: 342px; } }
+
+.puxar { overflow: hidden; display: flex; align-items: center; justify-content: center; } .puxar .carregando { margin: 0; }
+.novos-posts { position: sticky; top: calc(var(--im-e2) + env(safe-area-inset-top)); display: block; margin: var(--im-e2) auto; z-index: 4; border-radius: var(--im-r-pilula); padding: 0 var(--im-e4); }
