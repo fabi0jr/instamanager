@@ -149,12 +149,18 @@ describe('onda A · hashtags, favoritos, bio/capa, denúncias e ocultar (e2e)', 
       expect((await com('get', `/api/posts/${postId}`, torcedor).expect(200)).body.oculto).toBe(false);
     });
 
-    it('post ocultado sai dos fixados e da conta do limite', async () => {
+    it('ocultar desafixa e libera a vaga; mostrar de novo não volta fixado e o limite segue em 3', async () => {
       const [a, b, c, d] = [await novoPost(), await novoPost(), await novoPost(), await novoPost()];
       for (const id of [a, b, c]) await com('put', `/api/admin/posts/${id}/fixar`, admin).expect(204);
       await com('put', `/api/admin/posts/${a}/ocultar`, admin).expect(204);
       expect(idsDe((await com('get', '/api/posts', torcedor).expect(200)).body.fixados)).not.toContain(a);
-      await com('put', `/api/admin/posts/${d}/fixar`, admin).expect(204); // vaga liberada pelo oculto
+      await com('put', `/api/admin/posts/${d}/fixar`, admin).expect(204); // vaga liberada pelo ocultar
+      await com('delete', `/api/admin/posts/${a}/ocultar`, admin).expect(204);
+      expect((await com('get', `/api/posts/${a}`, admin).expect(200)).body.fixado).toBe(false);
+      const fixados = idsDe((await com('get', '/api/posts', torcedor).expect(200)).body.fixados);
+      expect(fixados).toHaveLength(3);
+      expect(fixados).not.toContain(a);
+      expect((await com('put', `/api/admin/posts/${a}/fixar`, admin).expect(409)).body.codigo).toBe('LIMITE_FIXADOS');
       for (const id of [b, c, d]) await com('delete', `/api/admin/posts/${id}/fixar`, admin).expect(204);
     });
 
@@ -191,23 +197,59 @@ describe('onda A · hashtags, favoritos, bio/capa, denúncias e ocultar (e2e)', 
     it('denúncia aparece em /admin/denuncias e some ao resolver (?abertas=1)', async () => {
       const id = await novoPost({ caption: 'denunciado' });
       const r = await com('post', '/api/denuncias', torcedor).send({ postId: id, motivo: 'spam' }).expect(201);
-      const abertas = (await com('get', '/api/admin/denuncias?abertas=1', admin).expect(200)).body;
+      const abertas = (await com('get', '/api/admin/denuncias?abertas=1', admin).expect(200)).body.itens;
       const d = abertas.find((x: { id: string }) => x.id === r.body.id);
       expect(d).toMatchObject({ motivo: 'spam', resolvidaEm: null, denunciante: { id: torcedor.id }, post: { id } });
       await com('get', '/api/admin/denuncias', torcedor).expect(403);
       await com('post', `/api/admin/denuncias/${r.body.id}/resolver`, torcedor).expect(403);
       await com('post', `/api/admin/denuncias/${r.body.id}/resolver`, admin).expect(204);
       await com('post', `/api/admin/denuncias/${r.body.id}/resolver`, admin).expect(204);
-      expect(idsDe((await com('get', '/api/admin/denuncias?abertas=1', admin).expect(200)).body)).not.toContain(r.body.id);
-      expect(idsDe((await com('get', '/api/admin/denuncias', admin).expect(200)).body)).toContain(r.body.id);
+      expect(idsDe((await com('get', '/api/admin/denuncias?abertas=1', admin).expect(200)).body.itens)).not.toContain(r.body.id);
+      expect(idsDe((await com('get', '/api/admin/denuncias', admin).expect(200)).body.itens)).toContain(r.body.id);
       await com('post', '/api/admin/denuncias/00000000-0000-4000-8000-000000000000/resolver', admin).expect(404);
+    });
+
+    it('denúncia aberta repetida da mesma pessoa no mesmo post/comentário é ignorada (201, mesma linha); outra pessoa ou depois de resolver abre nova', async () => {
+      const id = await novoPost();
+      const c = (await com('post', `/api/posts/${id}/comentarios`, outro).send({ texto: 'x' }).expect(201)).body;
+      const r1 = await com('post', '/api/denuncias', torcedor).send({ postId: id }).expect(201);
+      const r2 = await com('post', '/api/denuncias', torcedor).send({ postId: id, motivo: 'de novo' }).expect(201);
+      expect(r2.body.id).toBe(r1.body.id);
+      const rc1 = await com('post', '/api/denuncias', torcedor).send({ commentId: c.id }).expect(201);
+      expect((await com('post', '/api/denuncias', torcedor).send({ commentId: c.id }).expect(201)).body.id).toBe(rc1.body.id);
+      expect(rc1.body.id).not.toBe(r1.body.id);
+      expect((await com('post', '/api/denuncias', outro).send({ postId: id }).expect(201)).body.id).not.toBe(r1.body.id);
+      expect(await prisma.report.count({ where: { postId: id } })).toBe(2);
+      await com('post', `/api/admin/denuncias/${r1.body.id}/resolver`, admin).expect(204);
+      expect((await com('post', '/api/denuncias', torcedor).send({ postId: id }).expect(201)).body.id).not.toBe(r1.body.id);
+      expect(await prisma.report.count({ where: { postId: id } })).toBe(3);
+    });
+
+    it('GET /admin/denuncias pagina de 20 em 20 com cursor, sem repetir', async () => {
+      const id = await novoPost();
+      const criadas = [];
+      for (let i = 0; i < 21; i++) criadas.push((await prisma.report.create({ data: { userId: torcedor.id, postId: id, createdAt: new Date(Date.now() - i * 1000) } })).id);
+      const p1 = (await com('get', '/api/admin/denuncias?abertas=1', admin).expect(200)).body;
+      expect(p1.itens).toHaveLength(20);
+      expect(p1.proximo).toEqual(expect.any(String));
+      const todas = [...p1.itens];
+      for (let cursor = p1.proximo; cursor; ) {
+        const p = (await com('get', `/api/admin/denuncias?abertas=1&antes=${cursor}`, admin).expect(200)).body;
+        expect(p.itens.length).toBeLessThanOrEqual(20);
+        todas.push(...p.itens);
+        cursor = p.proximo;
+      }
+      const vistos = idsDe(todas);
+      expect(new Set(vistos).size).toBe(vistos.length);
+      expect(vistos).toEqual(expect.arrayContaining(criadas));
+      await com('get', '/api/admin/denuncias?antes=lixo', admin).expect(400);
     });
 
     it('denunciar comentário; motivo opcional; validações', async () => {
       const id = await novoPost();
       const c = (await com('post', `/api/posts/${id}/comentarios`, outro).send({ texto: 'x' }).expect(201)).body;
       const r = await com('post', '/api/denuncias', torcedor).send({ commentId: c.id }).expect(201);
-      const d = (await com('get', '/api/admin/denuncias?abertas=1', admin).expect(200)).body.find((x: { id: string }) => x.id === r.body.id);
+      const d = (await com('get', '/api/admin/denuncias?abertas=1', admin).expect(200)).body.itens.find((x: { id: string }) => x.id === r.body.id);
       expect(d).toMatchObject({ motivo: null, comentario: { id: c.id, texto: 'x', postId: id } });
       await com('post', '/api/denuncias', torcedor).send({}).expect(400);
       await com('post', '/api/denuncias', torcedor).send({ postId: id, commentId: c.id }).expect(400);

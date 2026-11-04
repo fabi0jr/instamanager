@@ -72,8 +72,8 @@ export class AdminController {
   }
 
   @Get('denuncias')
-  listarDenuncias(@Query('abertas') abertas?: string) {
-    return this.denuncias.listar(abertas === '1');
+  listarDenuncias(@Query('abertas') abertas?: string, @Query('antes') antes?: string) {
+    return this.denuncias.listar(abertas === '1', antes);
   }
 
   @Post('denuncias/:id/resolver')
