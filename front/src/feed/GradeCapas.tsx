@@ -1,4 +1,4 @@
-import { IcGaleria, IcTexto } from './icones';
+import { IcGaleria, IcTexto, IcVideo } from './icones';
 import { Link } from '../rotas';
 import type { Post } from './tipos';
 
@@ -8,7 +8,12 @@ export function GradeCapas({ posts }: { posts: Post[] }) {
     <div className="grade-capas" role="list">
       {posts.map((p) => (
         <div key={p.id} role="listitem">
-          {p.imagens.length === 0 ? (
+          {p.video ? (
+            <Link para={`/p/${p.id}`} aria-label={`Vídeo de ${p.autor.nome}, ${p.clube.nome}`}>
+              <img src={p.video.capaUrl} alt="" loading="lazy" />
+              <span className="multi"><IcVideo /></span>
+            </Link>
+          ) : p.imagens.length === 0 ? (
             <Link para={`/p/${p.id}`} aria-label={`Post de texto de ${p.autor.nome}, ${p.clube.nome}`} className="capa-texto">
               <span>{p.texto ?? p.legenda}</span>
               <span className="multi"><IcTexto /></span>

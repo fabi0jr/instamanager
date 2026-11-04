@@ -10,6 +10,7 @@ import { Folha } from './Folha';
 import { compartilhar } from './compartilhar';
 import { IcBandeira, IcCompartilhar, IcComentar, IcEditar, IcFixar, IcLixo, IcMais, IcOlhoOff } from './icones';
 import { devolverAoCache, esconderNoCache } from './cacheFeed';
+import { VideoCard } from './VideoCard';
 import { QuemReagiu } from './QuemReagiu';
 import { BotaoReagir, comReacao, LinhaReacoes } from './Reacoes';
 import { haQuanto, type Emoji, type Post } from './tipos';
@@ -174,7 +175,9 @@ export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoAp
         <button type="button" aria-label="Mais opções" onClick={() => setMenu('menu')}><IcMais /></button>
       </header>
 
-      {post.texto ? (
+      {post.video ? (
+        <div onDoubleClick={duploToque}><VideoCard post={post} /></div>
+      ) : post.texto ? (
         <BlocoTexto texto={post.texto} mencoes={post.mencoes} aoDuploToque={duploToque} />
       ) : (
         <Carrossel post={post} prioridade={prioridade} aoDuploToque={duploToque} />

@@ -18,6 +18,7 @@ export type Post = {
   legenda: string;
   // campos do pack 2 (opcionais: o app tolera resposta de servidor antigo)
   texto?: string | null; // post só de texto: imagens = [] e legenda = ''
+  video?: { url: string; capaUrl: string; duracaoS: number; largura: number; altura: number } | null; // post de vídeo: imagens = []
   mencoes?: { id: string; nome: string }[]; // nomes de hoje, do banco, das @[Nome](id) da legenda/texto
   fixado?: boolean;
   oculto?: boolean;

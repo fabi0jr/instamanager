@@ -13,6 +13,7 @@ import { ComoCbf, MSG_SEM_ADMIN, quemPosta } from './ComoCbf';
 import { enviarPost } from './enviar';
 import { Contador, LIMITE_LEGENDA, LIMITE_PROMPT, LinhasPrompt } from './LinhasPrompt';
 import { PostarTexto } from './PostarTexto';
+import { PostarVideo } from './PostarVideo';
 import './postar.css';
 
 const MAX = 10;
@@ -251,22 +252,23 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
 }
 
 const CHAVE_MODO = 'im:postar-modo';
-type Modo = 'foto' | 'texto';
+type Modo = 'foto' | 'texto' | 'video';
 
 // Foto | Texto: lembra a última escolha; o modo Texto tem um passo só
 export function Postar({ me }: { me: Me }) {
-  const [modo, setModo] = useState<Modo>(() => (localStorage.getItem(CHAVE_MODO) === 'texto' ? 'texto' : 'foto'));
+  const [modo, setModo] = useState<Modo>(() => ((['texto', 'video'] as const).find((m) => m === localStorage.getItem(CHAVE_MODO)) ?? 'foto'));
   const escolher = (m: Modo) => {
     setModo(m);
     localStorage.setItem(CHAVE_MODO, m);
   };
   const seletor = (
     <div className="alternancia" role="radiogroup" aria-label="Tipo de post">
-      {(['foto', 'texto'] as const).map((m) => (
-        <button key={m} type="button" role="radio" aria-checked={modo === m} onClick={() => escolher(m)}>{m === 'foto' ? 'Foto' : 'Texto'}</button>
+      {(['foto', 'texto', 'video'] as const).map((m) => (
+        <button key={m} type="button" role="radio" aria-checked={modo === m} onClick={() => escolher(m)}>{m === 'foto' ? 'Foto' : m === 'texto' ? 'Texto' : 'Vídeo'}</button>
       ))}
     </div>
   );
   if (modo === 'foto' || (!me.clube && !me.isAdmin)) return <PostarFoto me={me} seletor={seletor} />;
+  if (modo === 'video') return <PostarVideo me={me} seletor={seletor} />;
   return <PostarTexto me={me} seletor={seletor} />;
 }

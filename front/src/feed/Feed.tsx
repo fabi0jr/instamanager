@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { api, type Me } from '../api/cliente';
 import { lerAviso } from '../aviso';
 import { posicao, rolagem, rolarPara } from '../rolagem';
@@ -14,7 +14,7 @@ const PUXAR = 80; // px de arrasto do dedo para disparar o puxar-para-atualizar
 const topoNormal = (l: Post[]) => l.find((p) => !p.fixado)?.id;
 export { esquecerFeed }; // reexporta: os demais arquivos importam daqui
 
-export function Feed({ me }: { me: Me }) {
+export function Feed({ me, abaixoDoTopo }: { me: Me; abaixoDoTopo?: ReactNode }) {
   const volta = cacheFeed.atual?.meId === me.id ? cacheFeed.atual : null;
   const [itens, setItens] = useState<Post[]>(volta?.itens ?? []);
   const [proximo, setProximo] = useState<string | null>(volta?.proximo ?? null);
@@ -161,6 +161,7 @@ export function Feed({ me }: { me: Me }) {
           <Link para="/galeria" aria-label="Galeria de prompts"><IcGaleria /></Link>
         </span>
       </header>
+      {abaixoDoTopo}
       {(puxado > 0 || atualizando) && (
         <div className="puxar" style={{ height: atualizando ? 48 : puxado }} role={atualizando ? 'status' : undefined} aria-label={atualizando ? 'Atualizando' : undefined}>
           <div className="carregando" style={{ opacity: atualizando ? 1 : puxado / 64 }} />

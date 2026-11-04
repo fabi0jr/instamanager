@@ -4,6 +4,9 @@ import { BarraInferior } from './BarraInferior';
 import { Admin } from './admin/Admin';
 import { Atividade } from './atividade/Atividade';
 import { Busca } from './busca/Busca';
+import { FaixaStories } from './stories/Faixa';
+import { CriarStory } from './stories/CriarStory';
+import { Visualizador } from './stories/Visualizador';
 import { Cadastro } from './conta/Cadastro';
 import { Entrar } from './conta/Entrar';
 import { Esqueci } from './conta/Esqueci';
@@ -71,7 +74,7 @@ export function App() {
             <button type="button" className="botao" onClick={() => voltar('/')}>Voltar</button>
           </div>
         )}
-        {caminho === '/' && <><AvisoVotacao /><Feed me={me} /></>}
+        {caminho === '/' && <><AvisoVotacao /><Feed me={me} abaixoDoTopo={<FaixaStories me={me} />} /></>}
         {params.id && /^\/p\/[^/]+$/.test(caminho) && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
         {params.id && /^\/p\/[^/]+\/editar$/.test(caminho) && <div className="post-pagina"><EditarPost id={params.id} /></div>}
         {params.id && /^\/c\/[^/]+$/.test(caminho) && <PerfilClube id={params.id} me={me} />}
@@ -81,6 +84,8 @@ export function App() {
         {params.id && /^\/votacoes\/[^/]+$/.test(caminho) && <Votar id={params.id} />}
         {caminho === '/liga' && <Liga me={me} />}
         {caminho === '/atividade' && <Atividade />}
+        {caminho === '/stories/novo' && <CriarStory me={me} />}
+        {params.clubeId && /^\/stories\/[^/]+$/.test(caminho) && caminho !== '/stories/novo' && <Visualizador clubeId={params.clubeId} me={me} />}
         {caminho === '/busca' && <Busca />}
         {caminho === '/galeria' && <Galeria />}
         {caminho === '/postar' && <Postar me={me} />}
