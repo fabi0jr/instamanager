@@ -12,6 +12,7 @@ const POR_PAGINA = 20;
 const RESUMO_MAX = 80;
 const PESSOAS_MAX = 8;
 const INDISPONIVEL = 'Post indisponível';
+const INDISPONIVEL_COMENTARIO = 'Comentário indisponível';
 const curto = (t: string) => (t.length > RESUMO_MAX ? `${t.slice(0, RESUMO_MAX - 1)}…` : t);
 
 type Extra = { atorId?: string; postId?: string; comentarioId?: string; votacaoId?: string; trocaId?: string };
@@ -68,7 +69,7 @@ export class AtividadeService {
       where: { userId: user.id, ...(c && { OR: [{ createdAt: { lt: c.criadoEm } }, { createdAt: c.criadoEm, id: { lt: c.id } }] }) },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: POR_PAGINA + 1,
-      include: { ator: { select: { id: true, name: true, avatarPath: true } }, votacao: { select: { id: true, titulo: true } }, troca: { select: { status: true, club: { select: { id: true, name: true, crestPath: true } } } } },
+      include: { ator: { select: { id: true, name: true, avatarPath: true } }, votacao: { select: { id: true, titulo: true } }, comentario: { select: { id: true, text: true, hiddenAt: true } }, troca: { select: { status: true, club: { select: { id: true, name: true, crestPath: true } } } } },
     });
     const pagina = itens.slice(0, POR_PAGINA);
     const ids = [...new Set(pagina.flatMap((n) => (n.postId ? [n.postId] : [])))];
@@ -76,7 +77,11 @@ export class AtividadeService {
       ? await this.prisma.post.findMany({ where: { id: { in: ids }, ...ondeVisivel(user.id, user.isAdmin, { lista: false }) }, include: { images: { orderBy: { position: 'asc' }, take: 1 }, video: { select: { capaPath: true } } } })
       : [];
     const textoDe = (p: (typeof visiveis)[number]) => p.texto ?? (p.caption || (p.images.length ? 'Post com imagem' : p.video ? 'Post com vídeo' : 'Post'));
-    const nomes = await resolverMencoes(this.prisma, [...new Set(visiveis.flatMap((p) => extrairMencoes(textoDe(p))))]);
+    // comentário só aparece se o post está visível e o comentário não foi ocultado pelo admin (o admin vê tudo)
+    const comentarioVisivel = (n: (typeof pagina)[number]) => n.comentario && visiveis.some((v) => v.id === n.postId) && (user.isAdmin || n.comentario.hiddenAt === null) ? n.comentario.text : null;
+    const comTexto = (n: (typeof pagina)[number]) => n.tipo === 'COMENTARIO' || n.tipo === 'MENCAO'; // MENCAO feita dentro de comentário também mostra o trecho
+    const textos = pagina.flatMap((n) => (comTexto(n) ? [comentarioVisivel(n) ?? ''] : []));
+    const nomes = await resolverMencoes(this.prisma, [...new Set([...visiveis.map(textoDe), ...textos].flatMap(extrairMencoes))]);
     const resumoDe = (p: (typeof visiveis)[number]) => curto(comNomes(textoDe(p), nomes));
     const ultimo = pagina.at(-1);
     return {
@@ -90,6 +95,7 @@ export class AtividadeService {
           ator: n.ator && { id: n.ator.id, nome: n.ator.name, avatarUrl: n.ator.avatarPath },
           post: n.postId ? { id: n.postId, miniUrl: p?.images[0]?.thumbPath ?? p?.video?.capaPath ?? null, resumo: p ? resumoDe(p) : INDISPONIVEL } : null,
           votacao: n.votacao,
+          ...(comTexto(n) && { comentario: n.comentario && { id: n.comentario.id, resumo: curto(comentarioVisivel(n) !== null ? comNomes(comentarioVisivel(n)!, nomes) : INDISPONIVEL_COMENTARIO) } }),
           // clube = o que ela queria assumir (null no pedido de sair); itens antigos sem pedido ligado ficam com troca null
           ...(n.tipo === 'TROCA_DECIDIDA' && { troca: n.troca && n.troca.status !== 'PENDENTE' ? { status: n.troca.status, clube: n.troca.club && { id: n.troca.club.id, nome: n.troca.club.name, escudoUrl: n.troca.club.crestPath } } : null }),
         };

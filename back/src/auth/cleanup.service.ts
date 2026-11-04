@@ -11,8 +11,9 @@ export class CleanupService implements OnModuleInit, OnModuleDestroy {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  // sem rodar no boot; unref para não segurar o processo
+  // roda uma vez no boot (story vencido não fica no disco se o back ficou parado) e depois a cada hora; unref para não segurar o processo
   onModuleInit() {
+    void this.limpar();
     this.timer = setInterval(() => void this.limpar(), HORA_MS);
     this.timer.unref();
   }

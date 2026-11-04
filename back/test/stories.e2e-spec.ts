@@ -169,6 +169,21 @@ describe('stories (e2e)', () => {
     expect(await prisma.story.findUnique({ where: { id: vivo.id } })).not.toBeNull();
   });
 
+  it('a limpeza também roda uma vez quando o back sobe (story vencido some sem esperar 1 h)', async () => {
+    const velho = (await guardar(foto(tecnico0))).body;
+    await prisma.story.update({ where: { id: velho.id }, data: { expiraEm: new Date(Date.now() - 1000) } });
+    const arquivo = join(dir, velho.url.replace('/uploads/', ''));
+    expect(existsSync(arquivo)).toBe(true);
+    const segundo = await criarApp(); // novo boot, mesma pasta de uploads
+    try {
+      for (let i = 0; i < 40 && (await prisma.story.findUnique({ where: { id: velho.id } })); i++) await new Promise((r) => setTimeout(r, 50));
+      expect(await prisma.story.findUnique({ where: { id: velho.id } })).toBeNull();
+      expect(existsSync(arquivo)).toBe(false);
+    } finally {
+      await segundo.app.close();
+    }
+  });
+
   it('apagar: o autor, o técnico atual do clube ou o admin; outra pessoa → 403; apaga os arquivos', async () => {
     const meu = (await guardar(foto(tecnico0))).body;
     await com('delete', `/api/stories/${meu.id}`, torcedor).expect(403);
