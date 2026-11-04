@@ -3,7 +3,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { type AuthedRequest, SessionGuard } from '../auth/session.guard.js';
 import { PostsService } from './posts.service.js';
 
-type Arquivos = { cheia?: { buffer: Buffer }[]; mini?: { buffer: Buffer }[] };
+type Arquivos = { cheia?: { buffer: Buffer }[]; mini?: { buffer: Buffer }[]; video?: { buffer: Buffer }[] };
 const corpo = (b: unknown) => (typeof b === 'object' && b ? (b as Record<string, unknown>) : {});
 
 @Controller('posts')
@@ -11,19 +11,20 @@ const corpo = (b: unknown) => (typeof b === 'object' && b ? (b as Record<string,
 export class PostsController {
   constructor(private readonly posts: PostsService) {}
 
-  // maxCount 10 e 3 MB por arquivo: o multer recusa antes de qualquer coisa chegar ao disco (400 / 413)
+  // maxCount 10 imagens (3 MB cada, conferido no service) ou 1 vídeo (60 MB): o multer recusa antes de qualquer coisa chegar ao disco (400 / 413)
   @Post()
   @UseInterceptors(
     FileFieldsInterceptor(
       [
         { name: 'cheia', maxCount: 10 },
         { name: 'mini', maxCount: 10 },
+        { name: 'video', maxCount: 1 },
       ],
-      { limits: { fileSize: 3 * 1024 * 1024 } },
+      { limits: { fileSize: 60 * 1024 * 1024 } }, // imagem > 3 MB é recusada no service (413); vídeo vai até 60 MB
     ),
   )
   criar(@Req() req: AuthedRequest, @Body() body: unknown, @UploadedFiles() arquivos: Arquivos | undefined) {
-    return this.posts.criar(req.user, corpo(body), arquivos?.cheia ?? [], arquivos?.mini ?? []);
+    return this.posts.criar(req.user, corpo(body), arquivos?.cheia ?? [], arquivos?.mini ?? [], true, arquivos?.video?.[0]);
   }
 
   @Get()

@@ -73,9 +73,9 @@ export class AtividadeService {
     const pagina = itens.slice(0, POR_PAGINA);
     const ids = [...new Set(pagina.flatMap((n) => (n.postId ? [n.postId] : [])))];
     const visiveis = ids.length
-      ? await this.prisma.post.findMany({ where: { id: { in: ids }, ...ondeVisivel(user.id, user.isAdmin, { lista: false }) }, include: { images: { orderBy: { position: 'asc' }, take: 1 } } })
+      ? await this.prisma.post.findMany({ where: { id: { in: ids }, ...ondeVisivel(user.id, user.isAdmin, { lista: false }) }, include: { images: { orderBy: { position: 'asc' }, take: 1 }, video: { select: { capaPath: true } } } })
       : [];
-    const textoDe = (p: (typeof visiveis)[number]) => p.texto ?? (p.caption || (p.images.length ? 'Post com imagem' : 'Post'));
+    const textoDe = (p: (typeof visiveis)[number]) => p.texto ?? (p.caption || (p.images.length ? 'Post com imagem' : p.video ? 'Post com vídeo' : 'Post'));
     const nomes = await resolverMencoes(this.prisma, [...new Set(visiveis.flatMap((p) => extrairMencoes(textoDe(p))))]);
     const resumoDe = (p: (typeof visiveis)[number]) => curto(comNomes(textoDe(p), nomes));
     const ultimo = pagina.at(-1);
@@ -88,7 +88,7 @@ export class AtividadeService {
           criadoEm: n.createdAt,
           lida: n.lidaEm !== null,
           ator: n.ator && { id: n.ator.id, nome: n.ator.name, avatarUrl: n.ator.avatarPath },
-          post: n.postId ? { id: n.postId, miniUrl: p?.images[0]?.thumbPath ?? null, resumo: p ? resumoDe(p) : INDISPONIVEL } : null,
+          post: n.postId ? { id: n.postId, miniUrl: p?.images[0]?.thumbPath ?? p?.video?.capaPath ?? null, resumo: p ? resumoDe(p) : INDISPONIVEL } : null,
           votacao: n.votacao,
           // clube = o que ela queria assumir (null no pedido de sair); itens antigos sem pedido ligado ficam com troca null
           ...(n.tipo === 'TROCA_DECIDIDA' && { troca: n.troca && n.troca.status !== 'PENDENTE' ? { status: n.troca.status, clube: n.troca.club && { id: n.troca.club.id, nome: n.troca.club.name, escudoUrl: n.troca.club.crestPath } } : null }),

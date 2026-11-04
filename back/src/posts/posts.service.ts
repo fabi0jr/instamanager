@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma.service.js';
 import { codificarCursor, decodificarCursor, UUID } from './cursor.js';
 import { apagarImagem, dimensoesJpeg, ehJpeg, salvarImagem } from './imagens.js';
 import { escaparLike } from '../like.js';
+import { processarVideo } from '../midia/video.js';
 import { PostsEventos } from './posts.eventos.js';
 import { normalizarTag } from './tags.js';
 import { comentariosVisiveis, ondeVisivel } from './visibilidade.js';
@@ -19,6 +20,7 @@ const PROMPT_MAX = 4000;
 const MAX_IMAGENS = 10;
 const TEXTO_MAX = 500;
 const MAX_FIXADOS = 3;
+const MAX_IMAGEM = 3 * 1024 * 1024; // o multer aceita até 60 MB (vídeo); imagem acima de 3 MB é recusada aqui
 
 type Arquivo = { buffer: Buffer };
 
@@ -27,6 +29,7 @@ const incluir = ({ id: userId, isAdmin }: { id: string; isAdmin: boolean }) =>
     club: true,
     author: { select: { id: true, name: true } },
     images: { orderBy: { position: 'asc' } },
+    video: true,
     _count: { select: { likes: true, comments: { where: comentariosVisiveis(isAdmin) } } },
     likes: { where: { userId }, select: { emoji: true } },
   }) satisfies Prisma.PostInclude;
@@ -96,6 +99,7 @@ export class PostsService {
       fixado: p.pinnedAt !== null,
       oculto: p.hiddenAt !== null,
       criadoEm: p.createdAt,
+      video: p.video && { url: p.video.path, capaUrl: p.video.capaPath, duracaoS: p.video.duracaoS, largura: p.video.largura, altura: p.video.altura },
       imagens: p.images.map((i) => ({ id: i.id, miniUrl: i.thumbPath, cheiaUrl: i.fullPath, largura: i.width, altura: i.height, prompt: i.prompt })),
       curtidas: p._count.likes,
       curtiu: p.likes.length > 0,
@@ -133,13 +137,15 @@ export class PostsService {
     return p;
   }
 
-  async criar(user: UserComClube, corpo: { legenda?: unknown; texto?: unknown; prompts?: unknown; comoCbf?: unknown }, cheia: Arquivo[], mini: Arquivo[], avisar = true) {
+  async criar(user: UserComClube, corpo: { legenda?: unknown; texto?: unknown; prompts?: unknown; comoCbf?: unknown }, cheia: Arquivo[], mini: Arquivo[], avisar = true, video?: Arquivo) {
     // multipart manda string; só o admin posta pela CBF (o admin pode nem ter clube)
     const comoCbf = corpo.comoCbf === true || corpo.comoCbf === 'true';
     if (comoCbf && !user.isAdmin) throw new ApiError(403, 'NAO_E_ADMIN', 'Só o admin posta como CBF.');
     const clubId = comoCbf ? 'cbf' : user.club?.id;
     if (!clubId) throw new ApiError(403, 'SEM_CLUBE', 'Só técnicos com clube podem postar.');
     const n = cheia.length;
+    if (video) return this.criarVideo(user, clubId, corpo, n + mini.length, video);
+    if ([...cheia, ...mini].some((a) => a.buffer.length > MAX_IMAGEM)) throw new ApiError(413, 'ARQUIVO_GRANDE', 'A imagem passou de 3 MB.');
     if (n === 0 && mini.length === 0) return this.criarTexto(user, clubId, corpo.texto, avisar);
     if (corpo.texto !== undefined) throw invalido('O texto é só para posts sem imagem.', 'texto');
     if (n < 1 || n > MAX_IMAGENS || mini.length !== n) throw invalido(`Envie de 1 a ${MAX_IMAGENS} imagens, com a cheia e a miniatura de cada uma.`, 'cheia');
@@ -173,6 +179,25 @@ export class PostsService {
     }
   }
 
+  /** Post de vídeo: um vídeo (≤ 30 s, convertido para MP4 H.264) no lugar das imagens, com legenda opcional. */
+  private async criarVideo(user: UserComClube, clubId: string, corpo: { legenda?: unknown; texto?: unknown }, imagens: number, video: Arquivo) {
+    if (imagens > 0) throw invalido('Um post tem imagens ou um vídeo, não os dois.', 'video');
+    if (corpo.texto !== undefined) throw invalido('O texto é só para posts sem imagem nem vídeo.', 'texto');
+    const legenda = lerLegenda(corpo.legenda ?? '');
+    const v = await processarVideo(video.buffer, 'videos');
+    try {
+      const criado = await this.prisma.post.create({
+        data: { clubId, authorId: user.id, caption: legenda, video: { create: { path: v.path, capaPath: v.capaPath, duracaoS: v.duracaoS, largura: v.largura, altura: v.altura } } },
+        include: incluir(user),
+      });
+      this.eventos.emit('posts.criado', criado.id);
+      return (await this.jsonDe([criado], user))[0];
+    } catch (e) {
+      await Promise.all([apagarImagem(v.path), apagarImagem(v.capaPath)]);
+      throw e;
+    }
+  }
+
   /** Post sem imagem: `texto` de 1 a 500 caracteres (legenda fica vazia). */
   private async criarTexto(user: UserComClube, clubId: string, bruto: unknown, avisar = true) {
     const criado = await this.prisma.post.create({ data: { clubId, authorId: user.id, caption: '', texto: lerTexto(bruto) }, include: incluir(user) });
@@ -200,10 +225,10 @@ export class PostsService {
   async editar(id: string, user: UserComClube, corpo: { legenda?: unknown; texto?: unknown; prompts?: unknown }) {
     const p = await this.buscar(id, user);
     if (!this.podeEditar(p, user)) throw new ApiError(403, 'NAO_E_TECNICO', 'Só o técnico atual do clube edita este post.');
-    if (p.images.length === 0 && (corpo.legenda !== undefined || corpo.prompts !== undefined)) throw invalido('Post de texto não tem legenda nem prompts; edite o texto.', 'legenda');
+    if (p.images.length === 0 && !p.video && (corpo.legenda !== undefined || corpo.prompts !== undefined)) throw invalido('Post de texto não tem legenda nem prompts; edite o texto.', 'legenda');
     const legenda = corpo.legenda === undefined ? undefined : lerLegenda(corpo.legenda);
     const prompts = corpo.prompts === undefined ? undefined : lerPrompts(corpo.prompts, p.images.length);
-    if (corpo.texto !== undefined && p.images.length > 0) throw invalido('Só post sem imagem tem texto; neste, edite a legenda.', 'texto');
+    if (corpo.texto !== undefined && (p.images.length > 0 || p.video)) throw invalido('Só post sem imagem tem texto; neste, edite a legenda.', 'texto');
     const texto = corpo.texto === undefined ? undefined : lerTexto(corpo.texto);
     await this.prisma.$transaction([
       this.prisma.post.update({ where: { id }, data: { caption: legenda, texto } }),
@@ -217,7 +242,7 @@ export class PostsService {
     const p = await this.buscar(id, user);
     if (!this.podeEditar(p, user)) throw new ApiError(403, 'NAO_E_TECNICO', 'Só o técnico atual do clube apaga este post.');
     await this.prisma.post.delete({ where: { id } }); // imagens, curtidas e comentários vão em cascata
-    await Promise.all(p.images.flatMap((i) => [apagarImagem(i.fullPath), apagarImagem(i.thumbPath)]));
+    await Promise.all([...p.images.flatMap((i) => [i.fullPath, i.thumbPath]), ...(p.video ? [p.video.path, p.video.capaPath] : [])].map(apagarImagem));
   }
 
   /** Ids dos posts cuja legenda ou texto tem `#tag` (sem acento, palavra inteira). Só acha; quem vê o quê é o `ondeVisivel`. */
