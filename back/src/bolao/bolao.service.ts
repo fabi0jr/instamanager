@@ -9,7 +9,7 @@ import { pontosPalpite } from './pontos.js';
 const MAX_LOTE = 50;
 const invalido = (msg: string, campo = 'palpites') => new ApiError(400, 'DADOS_INVALIDOS', msg, [campo]);
 const naoAchou = () => new ApiError(404, 'NAO_ENCONTRADO', 'Jogo não encontrado.');
-const prazoEncerrado = () => new ApiError(409, 'PRAZO_ENCERRADO', 'O prazo de palpite deste jogo acabou (ou ainda não foi aberto).');
+const prazoEncerrado = () => new ApiError(409, 'PRAZO_ENCERRADO', 'O palpite deste jogo está encerrado (prazo acabou, sem prazo, ou o jogo já tem resultado).');
 const aberto = (prazo: Date | null, agora: Date) => prazo !== null && agora < prazo;
 
 type Entrada = { jogoId: string | null; copaJogoId: string | null; golsMandante: number; golsVisitante: number; classificadoId: string | null };
@@ -44,13 +44,14 @@ export class BolaoService {
     const jogoIds = itens.flatMap((i) => (i.jogoId ? [i.jogoId] : []));
     const copaIds = itens.flatMap((i) => (i.copaJogoId ? [i.copaJogoId] : []));
     const [jogos, copas] = await Promise.all([
-      this.prisma.jogo.findMany({ where: { id: { in: jogoIds } }, include: { rodada: { select: { prazoPalpite: true } } } }),
-      this.prisma.copaJogo.findMany({ where: { id: { in: copaIds } }, include: { fase: { select: { prazoPalpite: true } } } }),
+      this.prisma.jogo.findMany({ where: { id: { in: jogoIds } }, include: { rodada: { select: { prazoPalpite: true, fechadaEm: true } } } }),
+      this.prisma.copaJogo.findMany({ where: { id: { in: copaIds } }, include: { fase: { select: { prazoPalpite: true, fechadaEm: true } } } }),
     ]);
     if (jogos.length !== jogoIds.length || copas.length !== copaIds.length) throw naoAchou();
     const copa = new Map(copas.map((c) => [c.id, c]));
-    const prazos = [...jogos.map((j) => j.rodada.prazoPalpite), ...copas.map((c) => c.fase.prazoPalpite)];
-    if (prazos.some((p) => !aberto(p, agora))) throw prazoEncerrado();
+    // prazo reaberto depois do jogo não vale: com placar lançado ou rodada/fase fechada, o palpite está encerrado
+    const travado = [...jogos.map((j) => ({ prazo: j.rodada.prazoPalpite, fechada: j.rodada.fechadaEm !== null, placar: j.golsMandante !== null })), ...copas.map((c) => ({ prazo: c.fase.prazoPalpite, fechada: c.fase.fechadaEm !== null, placar: c.golsMandante !== null }))];
+    if (travado.some((t) => !aberto(t.prazo, agora) || t.fechada || t.placar)) throw prazoEncerrado();
 
     const gravar = itens.map((i) => {
       let classificadoId: string | null = null;

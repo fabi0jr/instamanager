@@ -69,6 +69,20 @@ describe('bolão: palpites, prazo, pontos e ranking (e2e)', () => {
       expect(await prisma.palpite.count({ where: { userId: zeca.id } })).toBe(0);
     });
 
+    it('prazo reaberto depois do resultado ou com a rodada fechada não reabre o palpite', async () => {
+      await lancar(33, [placar(c[0], c[1], 1, 0)]); // já tem placar
+      const [j] = Object.values(await ids(33));
+      await noPrazo(33, futuro());
+      expect((await palpitar(zeca, [p(j, 1, 0)]).expect(409)).body.codigo).toBe('PRAZO_ENCERRADO');
+      await com('post', '/api/admin/rodadas/33/fechar', admin).expect(204);
+      await lancar(34, [placar(c[0], c[2], null, null)]);
+      const [j34] = Object.values(await ids(34));
+      await noPrazo(34, futuro());
+      await prisma.rodada.update({ where: { numero: 34 }, data: { fechadaEm: new Date() } }); // fechada com prazo futuro
+      expect((await palpitar(zeca, [p(j34, 1, 0)]).expect(409)).body.codigo).toBe('PRAZO_ENCERRADO');
+      expect(await prisma.palpite.count({ where: { userId: zeca.id } })).toBe(0);
+    });
+
     it('palpites dos outros: antes do prazo só o meu (lista vazia para quem não palpitou); depois do prazo, todos', async () => {
       await lancar(33, [placar(c[0], c[1], null, null)]);
       const [j] = Object.values(await ids(33));
