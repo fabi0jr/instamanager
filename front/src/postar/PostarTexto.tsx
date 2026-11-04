@@ -4,6 +4,8 @@ import { guardarAviso } from '../aviso';
 import { Aviso, Botao } from '../conta/ui';
 import { esquecerFeed } from '../feed/Feed';
 import { Link, navegar } from '../rotas';
+import { registrarErro } from '../erros';
+import { ComoCbf, MSG_SEM_ADMIN, quemPosta } from './ComoCbf';
 import { enviarPost } from './enviar';
 import { Contador } from './LinhasPrompt';
 
@@ -12,12 +14,14 @@ const LIMITE_TEXTO = 500;
 // Post só de texto: um passo, 0 arquivos + `texto` (1–500 sem espaços nas pontas)
 export function PostarTexto({ me, seletor }: { me: Me; seletor: ReactNode }) {
   const [texto, setTexto] = useState('');
-  const [estado, setEstado] = useState<'livre' | 'enviando' | 'falhou' | 'sem-clube'>('livre');
+  const [estado, setEstado] = useState<'livre' | 'enviando' | 'falhou' | 'sem-clube' | 'sem-admin'>('livre');
+  const [cbf, setCbf] = useState(false);
   const valido = texto.trim().length > 0 && texto.length <= LIMITE_TEXTO;
 
-  function publicar() {
+  function publicar(comoCbf = cbf) {
     setEstado('enviando');
     const f = new FormData();
+    if (comoCbf) f.append('comoCbf', 'true');
     f.append('texto', texto.trim());
     enviarPost(f, () => {}).promessa.then(
       () => {
@@ -25,7 +29,10 @@ export function PostarTexto({ me, seletor }: { me: Me; seletor: ReactNode }) {
         esquecerFeed(); // o feed guardado não tem o post novo
         navegar('/');
       },
-      (e) => setEstado(e.codigo === 'SEM_CLUBE' ? 'sem-clube' : 'falhou'),
+      (e) => {
+        registrarErro(`falha ao publicar post: ${e.codigo ?? e.message}`);
+        setEstado(e.codigo === 'SEM_CLUBE' ? 'sem-clube' : e.codigo === 'NAO_E_ADMIN' ? 'sem-admin' : 'falhou');
+      },
     );
   }
 
@@ -44,8 +51,9 @@ export function PostarTexto({ me, seletor }: { me: Me; seletor: ReactNode }) {
     <div className="tela postar cartao largo">
       <button type="button" className="link" aria-label="Sair" onClick={() => navegar('/')}>✕</button>
       {seletor}
-      <p className="giz2">Vai sair como {me.clube!.nome}, por {me.nome}.</p>
-      <Aviso>{estado === 'falhou' ? 'Não deu para publicar. Seu texto continua aqui.' : ''}</Aviso>
+      <p className={cbf ? 'cbf-frase' : 'giz2'}>{quemPosta(me, cbf)}</p>
+      <ComoCbf me={me} ligado={cbf} aoMudar={setCbf} />
+      <Aviso>{estado === 'falhou' ? 'Não deu para publicar. Seu texto continua aqui.' : estado === 'sem-admin' ? MSG_SEM_ADMIN : ''}</Aviso>
       <textarea
         rows={8}
         className="campo-texto"
@@ -59,8 +67,8 @@ export function PostarTexto({ me, seletor }: { me: Me; seletor: ReactNode }) {
       <Contador texto={texto} limite={LIMITE_TEXTO} />
       <p className="giz2">Dá para usar #tags.</p>
       <div className="acao-fixa">
-        <Botao disabled={!valido || enviando} onClick={publicar}>
-          {enviando ? 'Publicando…' : estado === 'falhou' ? 'Tentar de novo' : 'Publicar'}
+        <Botao disabled={!valido || enviando} onClick={() => (estado === 'sem-admin' ? (setCbf(false), publicar(false)) : publicar())}>
+          {enviando ? 'Publicando…' : estado === 'sem-admin' ? 'Publicar pelo meu clube' : estado === 'falhou' ? 'Tentar de novo' : cbf ? 'Publicar como CBF' : 'Publicar'}
         </Botao>
       </div>
     </div>

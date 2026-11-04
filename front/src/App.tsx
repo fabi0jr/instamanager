@@ -11,6 +11,7 @@ import { TrocarSenha } from './conta/TrocarSenha';
 import { ListaClubes } from './clube/ListaClubes';
 import { EditarClube } from './clube/EditarClube';
 import { PerfilClube } from './clube/PerfilClube';
+import { Liga } from './liga/Liga';
 import { Galeria } from './galeria/Galeria';
 import { Feed } from './feed/Feed';
 import { proximaTela } from './instalar/fluxo';
@@ -67,6 +68,7 @@ export function App() {
         {params.id && /^\/c\/[^/]+\/editar$/.test(caminho) && <EditarClube id={params.id} me={me} />}
         {params.tag && /^\/tag\/[^/]+$/.test(caminho) && <Tag tag={params.tag} />}
         {caminho === '/clubes' && <ListaClubes />}
+        {caminho === '/liga' && <Liga me={me} />}
         {caminho === '/galeria' && <Galeria />}
         {caminho === '/postar' && <Postar me={me} />}
         {caminho === '/perfil/senha' && <TrocarSenha pushEnabled={me.pushEnabled} />}

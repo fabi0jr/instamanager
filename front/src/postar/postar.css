@@ -33,3 +33,9 @@
 .alternancia button { flex: 1; min-height: 0; border: 0; border-radius: var(--im-r-pilula); background: none; color: var(--im-giz-2); font: 500 15px var(--im-fonte-texto); cursor: pointer; }
 .alternancia button[aria-checked='true'] { background: var(--im-superficie-alta); color: var(--im-giz); font-weight: 600; }
 .postar .campo-texto { min-height: 220px; resize: vertical; }
+
+/* onda B: Postar como CBF (docs/design/onda-b.md §8) */
+.como-cbf { display: flex; align-items: center; gap: var(--im-e3); min-height: 64px; padding: 0 var(--im-e3); background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: var(--im-r-midia); }
+.como-cbf.ligado { border: 2px solid var(--im-giz); }
+.como-cbf .interruptor { width: 44px; min-width: 44px; height: 24px; padding: 2px; } .como-cbf .interruptor span { width: 18px; height: 18px; } .como-cbf .interruptor.ligado span { transform: translateX(20px); }
+.cbf-frase { font-weight: 600; }

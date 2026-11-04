@@ -10,6 +10,7 @@ import { Folha } from './Folha';
 import { compartilhar } from './compartilhar';
 import { IcBandeira, IcCompartilhar, IcComentar, IcEditar, IcFixar, IcLixo, IcMais, IcOlhoOff } from './icones';
 import { devolverAoCache, esconderNoCache } from './cacheFeed';
+import { QuemReagiu } from './QuemReagiu';
 import { BotaoReagir, comReacao, LinhaReacoes } from './Reacoes';
 import { haQuanto, type Emoji, type Post } from './tipos';
 
@@ -51,6 +52,7 @@ export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoAp
   const [limite, setLimite] = useState(false); // 4º fixado
   const [copiado, setCopiado] = useState(false);
   const [denunciando, setDenunciando] = useState(false);
+  const [quemReagiu, setQuemReagiu] = useState(false);
   const [enviada, setEnviada] = useState(false);
   const [sumindo, setSumindo] = useState(false); // 'Post oculto para você. Desfazer' por 6 s, depois sai da lista
 
@@ -183,7 +185,8 @@ export function CardPost({ post: inicial, me, prioridade, abrirComentarios, aoAp
         <button type="button" aria-label="Comentar" onClick={() => setComentando(true)}><IcComentar /></button>
         <button type="button" className="compartilhar" aria-label="Compartilhar" onClick={compartilharPost}><IcCompartilhar /></button>
       </div>
-      <LinhaReacoes post={post} />
+      <LinhaReacoes post={post} aoAbrir={() => setQuemReagiu(true)} />
+      {quemReagiu && <QuemReagiu postId={post.id} aoFechar={() => setQuemReagiu(false)} aoIndisponivel={() => { setQuemReagiu(false); setAviso('Este post não está mais disponível'); }} />}
       {copiado && <p role="status" className="toast-card">Link copiado</p>}
       {enviada && <p role="status" className="toast-card">Denúncia enviada. O admin vai olhar.</p>}
       {aviso && <p role="alert" className="erro-txt aviso-card">{aviso}</p>}

@@ -139,7 +139,7 @@ export function BotaoReagir({ minha, aoReagir }: { minha: Emoji | null; aoReagir
 }
 
 // "14 reações" com até 3 emojis; zero some
-export function LinhaReacoes({ post }: { post: Post }) {
+export function LinhaReacoes({ post, aoAbrir }: { post: Post; aoAbrir?: () => void }) {
   if (post.curtidas <= 0) return null;
   const lista = post.reacoes ?? [];
   const rotulo = `${post.curtidas} ${post.curtidas === 1 ? 'reação' : 'reações'}`;
@@ -147,7 +147,7 @@ export function LinhaReacoes({ post }: { post: Post }) {
   return (
     <div className="linha-reacoes" role="group" aria-label={completo} aria-live="polite">
       <span className="emojis" aria-hidden="true">{lista.map((r) => <span key={r.emoji}>{r.emoji}</span>)}</span>
-      <span className="numero">{rotulo}</span>
+      {aoAbrir ? <button type="button" className="numero" onClick={aoAbrir}>{rotulo}</button> : <span className="numero">{rotulo}</span>}
     </div>
   );
 }

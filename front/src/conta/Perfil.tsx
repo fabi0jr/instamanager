@@ -142,6 +142,16 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
         </div>
       </header>
 
+      {me.clube && (
+        <Link para={`/c/${me.clube.id}`} className="linha cartao-meu-clube">
+          <Escudo src={me.clube.escudoUrl} tam={44} />
+          <span className="linha-txt"><span className="linha-titulo">{me.clube.nome}</span><span className="giz2 legenda-s">Meu clube</span></span>
+          <IcSeta />
+        </Link>
+      )}
+      <Linha titulo="Galeria de prompts" para="/galeria" />
+      <Linha titulo="Liga" para="/liga" />
+
       <p className="grupo giz2">Conta</p>
       <Linha titulo="Nome de exibição" sub={me.nome} aoClicar={() => { setNome(me.nome); setErroNome(''); setNomeAberto(true); }} />
       <Linha titulo="Senha" sub="Trocar a senha" para="/perfil/senha" />
@@ -152,7 +162,7 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
       </Linha>
 
       <p className="grupo giz2">Clube</p>
-      {me.clube ? <Linha titulo={me.clube.nome} sub="Seu clube" para={`/c/${me.clube.id}`} /> : <Linha titulo="Sem clube" sub="Você vê, curte e comenta, mas não posta." />}
+      {!me.clube && <Linha titulo="Sem clube" sub="Você vê, curte e comenta, mas não posta." />}
       {pendente ? (
         <Linha titulo="Pedido pendente" tom="aviso" sub={`${pendente.tipo === 'SAIR' ? 'Sair do clube' : `Assumir o ${nomes[pendente.clubeId ?? ''] ?? 'clube pedido'}`}. Aguardando o admin.`} />
       ) : (
