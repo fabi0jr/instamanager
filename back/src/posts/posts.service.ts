@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '../generated/prisma/client.js';
 import { ApiError } from '../http.js';
+import { extrairMencoes, resolverMencoes } from '../mencoes.js';
 import type { UserComClube } from '../auth/auth.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { codificarCursor, decodificarCursor, UUID } from './cursor.js';
@@ -68,13 +69,14 @@ export class PostsService {
     private readonly eventos: PostsEventos,
   ) {}
 
-  private paraJson(p: PostCompleto, user: UserComClube, reacoes: Reacoes) {
+  private paraJson(p: PostCompleto, user: UserComClube, reacoes: Reacoes, mencoes: { id: string; nome: string }[]) {
     return {
       id: p.id,
       clube: clubeMini(p.club),
       autor: { id: p.author.id, nome: p.author.name },
       legenda: p.caption,
       texto: p.texto,
+      mencoes,
       fixado: p.pinnedAt !== null,
       oculto: p.hiddenAt !== null,
       criadoEm: p.createdAt,
@@ -93,13 +95,15 @@ export class PostsService {
     const grupos = posts.length
       ? await this.prisma.like.groupBy({ by: ['postId', 'emoji'], where: { postId: { in: posts.map((p) => p.id) } }, _count: { _all: true } })
       : [];
+    const nomes = await resolverMencoes(this.prisma, [...new Set(posts.flatMap((p) => extrairMencoes(`${p.caption}\n${p.texto ?? ''}`)))]);
     return posts.map((p) => {
+      const mencoes = nomes.filter((m) => extrairMencoes(`${p.caption}\n${p.texto ?? ''}`).includes(m.id));
       const reacoes = grupos
         .filter((g) => g.postId === p.id)
         .map((g) => ({ emoji: g.emoji, total: g._count._all }))
         .sort((a, b) => b.total - a.total || a.emoji.localeCompare(b.emoji))
         .slice(0, 3);
-      return this.paraJson(p, user, reacoes);
+      return this.paraJson(p, user, reacoes, mencoes);
     });
   }
 
@@ -189,6 +193,7 @@ export class PostsService {
       this.prisma.post.update({ where: { id }, data: { caption: legenda, texto } }),
       ...(prompts ?? []).map((prompt, i) => this.prisma.postImage.update({ where: { id: p.images[i].id }, data: { prompt } })),
     ]);
+    if (legenda !== undefined || texto !== undefined) this.eventos.emit('posts.editado', id); // menção nova avisa; a que já avisou não repete
     return this.obter(id, user);
   }
 

@@ -3,6 +3,7 @@ import type { UserComClube } from '../auth/auth.service.js';
 import { Prisma, type Votacao, type VotacaoTipo } from '../generated/prisma/client.js';
 import { ApiError } from '../http.js';
 import { UUID } from '../posts/cursor.js';
+import { AtividadeService } from '../atividade/atividade.service.js';
 import { PostsService } from '../posts/posts.service.js';
 import { PrismaService } from '../prisma.service.js';
 
@@ -20,6 +21,7 @@ export class VotacoesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly posts: PostsService,
+    private readonly atividade: AtividadeService,
   ) {}
 
   async criar(user: UserComClube, corpo: unknown) {
@@ -89,7 +91,10 @@ export class VotacoesService {
     const texto = vencedores.length
       ? `Resultado da votação "${v.titulo}":\n${vencedores.map((w) => w.rotulo).join(' e ')} ${vencedores.length > 1 ? 'empataram' : 'venceu'} com ${vencedores[0].votos} voto${vencedores[0].votos > 1 ? 's' : ''}.`
       : `A votação "${v.titulo}" fechou sem nenhum voto.`;
-    await this.posts.criar(user, { comoCbf: true, texto: curto(texto, MAX_TEXTO) }, [], []);
+    const post = await this.posts.criar(user, { comoCbf: true, texto: curto(texto, MAX_TEXTO) }, [], []);
+    // o resultado vai para todo mundo (menos o admin que encerrou)
+    const todos = await this.prisma.user.findMany({ where: { id: { not: user.id } }, select: { id: true } });
+    await this.atividade.criar(todos.map((u) => u.id), 'VOTACAO_RESULTADO', { votacaoId: id, postId: post.id });
     return this.json({ ...v, encerradaEm: new Date() }, null, true, resultado);
   }
 

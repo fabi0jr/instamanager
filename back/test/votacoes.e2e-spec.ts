@@ -116,6 +116,8 @@ describe('bot da zoeira, votações e selos (e2e)', () => {
       expect(geral[0]).toEqual(expect.arrayContaining([tecnico1.id, torcedor.id]));
       const citou = chamadas.filter(([, m]) => m.titulo === 'A CBF citou você');
       expect(citou.map(([ids]) => ids)).toEqual([[tecnico0.id]]);
+      // a atividade: só o citado ganha CBF_CITOU (sem ator), apontando para o post do resumo
+      expect(await prisma.notificacao.findMany({ where: { tipo: 'CBF_CITOU', postId: p.id }, select: { userId: true, atorId: true } })).toEqual([{ userId: tecnico0.id, atorId: null }]);
       // ninguém recebe o push genérico "<nome> postou" desse post
       expect(chamadas.some(([, m]) => m.corpo.includes('postou') || m.corpo.includes('Admin'))).toBe(false);
       espia.mockRestore();
