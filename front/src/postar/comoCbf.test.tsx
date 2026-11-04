@@ -76,3 +76,16 @@ test('falha de envio de post registra o erro', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Publicar' }));
   await waitFor(() => expect(erros).toEqual(['falha ao publicar post: ERRO_INTERNO']));
 });
+
+test('admin sem clube abre /postar sem pedir clube: só posta como CBF (interruptor travado ligado)', async () => {
+  render(<Postar me={{ ...admin, clube: null }} />);
+  expect(screen.queryByText('Só técnico posta')).toBeNull();
+  const sw = screen.getByRole('switch', { name: 'Postar como CBF' }) as HTMLButtonElement;
+  expect(sw.getAttribute('aria-checked')).toBe('true');
+  expect(sw.disabled).toBe(true);
+  expect(screen.getByText('Vai sair como CBF, perfil oficial.')).toBeTruthy();
+  escrever();
+  fireEvent.click(screen.getByRole('button', { name: 'Publicar como CBF' }));
+  await waitFor(() => expect(envios).toHaveLength(1));
+  expect(envios[0].get('comoCbf')).toBe('true');
+});

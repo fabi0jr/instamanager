@@ -109,7 +109,7 @@ test('grade do clube: post só de texto vira quadrado com as primeiras palavras,
   expect(container.querySelectorAll('.grade-capas img')).toHaveLength(1);
 });
 
-const dadosOndaB = { liga: { posicao: 10, ultimos: ['V', 'D'] }, selos: [{ titulo: 'Técnico do mês', createdAt: '2026-11-15T12:00:00Z' }] };
+const dadosOndaB = { liga: { posicao: 10, ultimos: ['V', 'D'], pontos: 17, jogos: 12 }, selos: [{ titulo: 'Técnico do mês', createdAt: '2026-11-15T12:00:00Z' }] };
 
 test('perfil do clube mostra posição, últimos 5 e selos', async () => {
   fetchFalso({
@@ -120,6 +120,7 @@ test('perfil do clube mostra posição, últimos 5 e selos', async () => {
   render(<PerfilClube id="palmeiras" me={me} />);
   const cartao = await screen.findByRole('link', { name: '10º na Liga, últimos 2: derrota, vitória' });
   expect(cartao.getAttribute('href')).toBe('/liga');
+  expect(screen.getByText('· 17 pontos · 12 jogos')).toBeTruthy();
   expect(screen.getByText('Técnico do mês')).toBeTruthy();
   expect(screen.getByText('Nov/26')).toBeTruthy();
 });

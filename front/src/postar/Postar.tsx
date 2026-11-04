@@ -27,14 +27,14 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
   const [prompts, setPrompts] = useState<Record<number, string>>({});
   const [aviso, setAviso] = useState('');
   const [sair, setSair] = useState(false);
-  const [cbf, setCbf] = useState(false);
+  const [cbf, setCbf] = useState(!me.clube); // admin sem clube só posta como CBF
   const [envio, setEnvio] = useState<Envio | null>(null);
   const cancelar = useRef<(() => void) | null>(null);
   const { bloqueado } = useEnvio();
   const urls = useRef<string[]>([]);
   useEffect(() => () => urls.current.forEach((u) => URL.revokeObjectURL(u)), []); // soltar as prévias ao sair
 
-  if (!me.clube)
+  if (!me.clube && !me.isAdmin)
     return (
       <Folha titulo="Só técnico posta" aoFechar={() => navegar('/')}>
         <h2>Só técnico posta</h2>
@@ -221,7 +221,7 @@ function PostarFoto({ me, seletor }: { me: Me; seletor: ReactNode }) {
         <>
           <h1>Legenda e prompts</h1>
           <p className={cbf ? 'cbf-frase' : 'giz2'}>{quemPosta(me, cbf)}</p>
-          <ComoCbf me={me} ligado={cbf} aoMudar={setCbf} />
+          <ComoCbf me={me} ligado={cbf} aoMudar={setCbf} fixo={!me.clube} />
           <label htmlFor="legenda">Legenda</label>
           <textarea id="legenda" rows={5} value={legenda} aria-invalid={legenda.length > LIMITE_LEGENDA || undefined} onChange={(e) => setLegenda(e.target.value)} />
           <Contador texto={legenda} limite={LIMITE_LEGENDA} />
@@ -260,6 +260,6 @@ export function Postar({ me }: { me: Me }) {
       ))}
     </div>
   );
-  if (!me.clube || modo === 'foto') return <PostarFoto me={me} seletor={seletor} />;
+  if (modo === 'foto' || (!me.clube && !me.isAdmin)) return <PostarFoto me={me} seletor={seletor} />;
   return <PostarTexto me={me} seletor={seletor} />;
 }

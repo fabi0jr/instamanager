@@ -15,7 +15,7 @@ const LIMITE_TEXTO = 500;
 export function PostarTexto({ me, seletor }: { me: Me; seletor: ReactNode }) {
   const [texto, setTexto] = useState('');
   const [estado, setEstado] = useState<'livre' | 'enviando' | 'falhou' | 'sem-clube' | 'sem-admin'>('livre');
-  const [cbf, setCbf] = useState(false);
+  const [cbf, setCbf] = useState(!me.clube);
   const valido = texto.trim().length > 0 && texto.length <= LIMITE_TEXTO;
 
   function publicar(comoCbf = cbf) {
@@ -52,7 +52,7 @@ export function PostarTexto({ me, seletor }: { me: Me; seletor: ReactNode }) {
       <button type="button" className="link" aria-label="Sair" onClick={() => navegar('/')}>✕</button>
       {seletor}
       <p className={cbf ? 'cbf-frase' : 'giz2'}>{quemPosta(me, cbf)}</p>
-      <ComoCbf me={me} ligado={cbf} aoMudar={setCbf} />
+      <ComoCbf me={me} ligado={cbf} aoMudar={setCbf} fixo={!me.clube} />
       <Aviso>{estado === 'falhou' ? 'Não deu para publicar. Seu texto continua aqui.' : estado === 'sem-admin' ? MSG_SEM_ADMIN : ''}</Aviso>
       <textarea
         rows={8}

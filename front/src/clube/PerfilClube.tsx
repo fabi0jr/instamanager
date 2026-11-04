@@ -13,7 +13,7 @@ import { Link } from '../rotas';
 import './clube.css';
 
 type Historico = { usuario: { id: string; nome: string }; inicio: string; fim: string | null };
-export type Clube = { id: string; nome: string; escudoUrl: string; bio?: string | null; capaUrl?: string | null; tecnico: { id: string; nome: string } | null; historico: Historico[]; liga?: { posicao: number; ultimos: Resultado[] } | null; selos?: { titulo: string; createdAt: string }[] };
+export type Clube = { id: string; nome: string; escudoUrl: string; bio?: string | null; capaUrl?: string | null; tecnico: { id: string; nome: string } | null; historico: Historico[]; liga?: { posicao: number; ultimos: Resultado[]; pontos?: number; jogos?: number } | null; selos?: { titulo: string; createdAt: string }[] };
 type Troca = { id: string; tipo: string; status: string; clubeId: string | null };
 
 const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -123,7 +123,7 @@ export function PerfilClube({ id, me }: { id: string; me: Me }) {
 
       {!cbf && clube.liga && clube.liga.ultimos.length > 0 && (
         <Link para="/liga" className="cartao-liga" aria-label={`${clube.liga.posicao}º na Liga, ${textoUltimos(clube.liga.ultimos)}`}>
-          <strong>{clube.liga.posicao}º</strong><span className="giz2">na Liga</span><Ultimos valores={clube.liga.ultimos} /><IcSeta />
+          <strong>{clube.liga.posicao}º</strong><span className="giz2">na Liga{clube.liga.pontos !== undefined && <span className="legenda-s giz3"> · {clube.liga.pontos} pontos · {clube.liga.jogos} jogos</span>}</span><Ultimos valores={clube.liga.ultimos} /><IcSeta />
         </Link>
       )}
       {!cbf && selos.length > 0 && (
