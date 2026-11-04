@@ -3003,7 +3003,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "revisao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T04:18:22.196Z",
@@ -3084,6 +3084,20 @@
           "de": "dev",
           "para": "revisao",
           "nota": "ffd3e9c"
+        },
+        {
+          "quando": "2026-11-04T05:10:00.917Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T05:10:00.969Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar"
         }
       ]
     },
