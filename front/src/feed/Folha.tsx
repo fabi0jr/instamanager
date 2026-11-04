@@ -1,4 +1,4 @@
-import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 // Folha de baixo / janela central. Foco entra ao abrir (campo [data-foco] ou 1º botão) e volta a quem abriu; Esc fecha.
 export function Folha({ titulo, aoFechar, children, alta, centro }: { titulo: string; aoFechar: () => void; children: ReactNode; alta?: boolean; centro?: boolean }) {
@@ -8,15 +8,20 @@ export function Folha({ titulo, aoFechar, children, alta, centro }: { titulo: st
     (ref.current?.querySelector<HTMLElement>('[data-foco]') ?? ref.current?.querySelector<HTMLElement>('button, textarea, input'))?.focus();
     return () => antes?.focus();
   }, []);
-  function tecla(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
-      e.stopPropagation(); // Folha aninhada fecha só ela
-      aoFechar();
-    }
-  }
+  // Esc no documento (o foco pode estar fora da folha); com folhas aninhadas só a de cima (a última do DOM) fecha
+  const fechar = useRef(aoFechar);
+  fechar.current = aoFechar;
+  useEffect(() => {
+    const tecla = (e: globalThis.KeyboardEvent) => {
+      const veus = document.querySelectorAll('.veu');
+      if (e.key === 'Escape' && veus[veus.length - 1] === ref.current?.parentElement) fechar.current();
+    };
+    document.addEventListener('keydown', tecla);
+    return () => document.removeEventListener('keydown', tecla);
+  }, []);
   return (
     <div className={`veu ${centro ? 'veu-centro' : ''}`} onClick={aoFechar}>
-      <div ref={ref} role="dialog" aria-modal="true" aria-label={titulo} className={`folha ${alta ? 'alta' : ''} ${centro ? 'centro' : ''}`} onClick={(e) => e.stopPropagation()} onKeyDown={tecla}>
+      <div ref={ref} role="dialog" aria-modal="true" aria-label={titulo} className={`folha ${alta ? 'alta' : ''} ${centro ? 'centro' : ''}`} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>

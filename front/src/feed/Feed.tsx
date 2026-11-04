@@ -60,7 +60,9 @@ export function Feed({ me }: { me: Me }) {
   useLayoutEffect(() => {
     if (volta) window.scrollTo(0, volta.y);
     return () => {
-      const { itens, proximo } = atual.current;
+      const { itens, proximo, estado } = atual.current;
+      // só lista carregada de verdade: guardar vazio/carregando (ex.: redirect para /instalar no 1º login) faria o feed voltar vazio
+      if (estado !== 'ok' || itens.length === 0) return void (guardado = null);
       guardado = { meId: me.id, itens, proximo, y: y.current, quando: ultima.current };
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
