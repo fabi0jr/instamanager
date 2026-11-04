@@ -152,3 +152,19 @@ test('perfil da CBF sem técnico/histórico', async () => {
   expect(screen.queryByRole('tab', { name: 'Histórico' })).toBeNull();
   expect(screen.getByRole('heading', { name: 'Posts' })).toBeTruthy();
 });
+
+test('perfil do clube: técnico atual vê "Novo story"; torcedor não; admin vê o da CBF', async () => {
+  const dados = (id: string, tecnico: unknown) => ({ ['GET /clubes/' + id]: { id, nome: id, escudoUrl: `/escudos/${id}.svg`, tecnico, historico: [], liga: null, selos: [] }, ['GET /posts?clube=' + id]: { itens: [], proximo: null }, 'GET /trocas/minhas': [] });
+  fetchFalso(dados('palmeiras', { id: 'u9', nome: 'Torcedor' }));
+  render(<PerfilClube id="palmeiras" me={me} />); // me.id u9 = técnico atual
+  expect((await screen.findByRole('link', { name: 'Novo story' })).getAttribute('href')).toBe('/stories/novo');
+  cleanup();
+  fetchFalso(dados('flamengo', { id: 'outro', nome: 'Outro' }));
+  render(<PerfilClube id="flamengo" me={me} />);
+  await screen.findByText('Outro');
+  expect(screen.queryByRole('link', { name: /Novo story/ })).toBeNull();
+  cleanup();
+  fetchFalso(dados('cbf', null));
+  render(<PerfilClube id="cbf" me={{ ...me, isAdmin: true }} />);
+  expect((await screen.findByRole('link', { name: 'Novo story da CBF' })).getAttribute('href')).toBe('/stories/novo?cbf=1');
+});

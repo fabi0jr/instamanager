@@ -6,7 +6,7 @@ import { Icone } from '../feed/icones';
 import { comprimir, ErroImagem } from '../postar/comprimir';
 import { ComoCbf } from '../postar/ComoCbf';
 import { enviarForm } from '../postar/enviar';
-import { Link, navegar } from '../rotas';
+import { Link, navegar, useBusca } from '../rotas';
 import { codigoDeVideo, duracaoDoArquivo, ERROS_VIDEO, MAX_VIDEO_BYTES, MAX_VIDEO_S, mb, mmss, type CodigoVideo } from './tipos';
 import './stories.css';
 
@@ -18,7 +18,8 @@ export function CriarStory({ me }: { me: Me }) {
   const [fase, setFase] = useState<Fase>('escolher');
   const [midia, setMidia] = useState<Midia | null>(null);
   const [erro, setErro] = useState<{ titulo: string; texto: string; acao?: 'clubes' | 'video' | 'entendi' } | null>(null);
-  const [cbf, setCbf] = useState(!me.clube);
+  const doAdmin = useBusca().get('cbf') === '1' && me.isAdmin; // atalho 'Story da CBF'
+  const [cbf, setCbf] = useState(!me.clube || doAdmin);
   const [pct, setPct] = useState({ carregado: 0, total: 0 });
   const cancelar = useRef<(() => void) | null>(null);
   const url = useRef<string | null>(null);

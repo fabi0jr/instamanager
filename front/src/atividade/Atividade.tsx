@@ -13,6 +13,7 @@ export type ItemAtividade = {
   ator: { id: string; nome: string; avatarUrl: string | null } | null;
   post: { id: string; miniUrl: string | null; resumo: string } | null;
   votacao: { id: string; titulo: string } | null;
+  comentario?: { resumo: string } | null; // trecho do comentário (COMENTARIO e MENCAO dentro de comentário)
   troca?: { status: string; clube?: { id: string; nome: string } | null } | null; // TROCA_DECIDIDA (status vem do back)
 };
 const SELO = { REACAO: 'curtir', COMENTARIO: 'comentar', MENCAO: 'perfil', CBF_CITOU: 'liga', TROCA_DECIDIDA: 'ok', VOTACAO_RESULTADO: 'votacao' } as const;
@@ -24,8 +25,9 @@ function texto(i: ItemAtividade) {
   const sem = !i.post || resumo === INDISPONIVEL; // ocultado: sem legenda nem comentário
   switch (i.tipo) {
     case 'REACAO': return <><b>{nome}</b> reagiu {sem ? 'a um post' : 'ao post'}</>;
-    case 'COMENTARIO': return sem ? <><b>{nome}</b> comentou em um post</> : <><b>{nome}</b> comentou: “{resumo}”</>;
-    case 'MENCAO': return sem ? <><b>{nome}</b> mencionou você</> : <><b>{nome}</b> mencionou você: “{resumo}”</>;
+    // o resumo do post NÃO é o comentário: sem `comentario.resumo` (back antigo) não se cita nada
+    case 'COMENTARIO': return i.comentario?.resumo ? <><b>{nome}</b> comentou: “{i.comentario.resumo}”</> : <><b>{nome}</b> comentou {sem ? 'em um post' : 'no post'}</>;
+    case 'MENCAO': return i.comentario?.resumo ? <><b>{nome}</b> mencionou você: “{i.comentario.resumo}”</> : sem ? <><b>{nome}</b> mencionou você</> : <><b>{nome}</b> mencionou você: “{resumo}”</>;
     case 'CBF_CITOU': return <>CBF citou você no comunicado da rodada</>;
     // sem `troca.status` (back antigo) o texto é neutro
     case 'TROCA_DECIDIDA': return /aprov/i.test(i.troca?.status ?? '') ? <>Seu pedido de troca foi aprovado.</> : /recus/i.test(i.troca?.status ?? '') ? <>Seu pedido de troca foi recusado.</> : <>Seu pedido de troca foi decidido.</>;

@@ -1,13 +1,13 @@
 // "Novidades do InstaManager": aparece uma vez por aparelho depois que a pessoa atualiza.
 // Para a próxima versão, troque o `id` e os `itens` (escritos à mão).
 export const NOVIDADES = {
-  id: '2026-11-onda-b',
+  id: '2026-11-onda-c',
   itens: [
-    '🏆 Liga com tabela e rodadas',
-    '📣 CBF posta o resumo da rodada (com zoeira)',
-    '🗳️ Votações e selos para os clubes',
-    '👀 Veja quem reagiu nos posts',
-    '💬 Prévia dos posts no WhatsApp',
+    '🔔 Atividade: o que aconteceu com você',
+    '@ Mencione pessoas com @',
+    '🔍 Busca em posts, prompts, clubes e pessoas',
+    '⭕ Stories de 24 h',
+    '🎬 Vídeo de até 30 s nos posts',
   ],
 };
 

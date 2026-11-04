@@ -1,10 +1,11 @@
 /* Busca (docs/design/onda-c.md §4) */
 .busca { max-width: 576px; margin: 0 auto; }
 .busca-topo { display: flex; align-items: center; gap: var(--im-e3); margin-bottom: var(--im-e3); }
-.busca-campo { flex: 1; display: flex; align-items: center; gap: var(--im-e2); height: 44px; padding: 0 var(--im-e3); background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: 22px; } .busca-campo:focus-within { border: 2px solid var(--im-giz); }
+.busca-campo { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--im-e2); height: 44px; padding: 0 var(--im-e3); background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: 22px; } .busca-campo:focus-within { border: 2px solid var(--im-giz); }
 .busca-campo input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--im-giz); font: 400 16px var(--im-fonte-texto); } .busca-campo button { width: 44px; height: 44px; margin-right: -12px; background: none; border: 0; color: var(--im-giz-2); cursor: pointer; }
 .res-lista { list-style: none; margin: 0; padding: 0; }
 .res-linha { display: flex; align-items: center; gap: var(--im-e3); min-height: 72px; padding: var(--im-e2) 0; border-bottom: 1px solid var(--im-linha); color: var(--im-giz); text-decoration: none; }
 .res-mini { flex: none; width: 64px; height: 64px; border-radius: 8px; object-fit: cover; background: var(--im-superficie-alta); display: grid; place-items: center; }
 .res-corpo { flex: 1; min-width: 0; display: flex; flex-direction: column; } .res-titulo { font: 700 18px var(--im-fonte-display); } .res-texto { color: var(--im-giz-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } .res-texto b, .res-titulo b { color: var(--im-giz); font-weight: 700; }
 .av44 { width: 44px; height: 44px; flex: none; border-radius: 50%; object-fit: cover; background: var(--im-superficie-alta); display: grid; place-items: center; font: 700 18px var(--im-fonte-display); }
+.busca-topo .link { flex: none; white-space: nowrap; min-height: 44px; }

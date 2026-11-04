@@ -12,7 +12,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 test('Atividade lista e marca lidas ao abrir; as novas ficam destacadas nesta visita', async () => {
   const chamadas = fetchFalso({
-    'GET /atividade': { itens: [item('1', 'REACAO', { lida: false }), item('2', 'COMENTARIO'), item('3', 'MENCAO', { lida: false }), item('4', 'CBF_CITOU', { ator: null }), item('5', 'VOTACAO_RESULTADO', { ator: null, votacao: { id: 'v1', titulo: 'Técnico do mês' } })], proximo: null },
+    'GET /atividade': { itens: [item('1', 'REACAO', { lida: false }), item('2', 'COMENTARIO', { comentario: { resumo: 'Boa jogada' } }), item('3', 'MENCAO', { lida: false }), item('4', 'CBF_CITOU', { ator: null }), item('5', 'VOTACAO_RESULTADO', { ator: null, votacao: { id: 'v1', titulo: 'Técnico do mês' } })], proximo: null },
     'POST /atividade/lidas': { status: 204 },
   });
   render(<Atividade />);
@@ -20,7 +20,7 @@ test('Atividade lista e marca lidas ao abrir; as novas ficam destacadas nesta vi
   expect(screen.getByText('Mais antigas')).toBeTruthy();
   await waitFor(() => expect(chamadas.some((c) => c.chave === 'POST /atividade/lidas')).toBe(true));
   expect(document.querySelectorAll('.item-ativ.nova')).toHaveLength(2); // continuam destacadas depois de marcar lidas
-  expect(screen.getByText(/comentou: “Treino de hoje”/)).toBeTruthy();
+  expect(screen.getByText(/comentou: “Boa jogada”/)).toBeTruthy();
   expect(screen.getByText(/mencionou você: “Treino de hoje”/)).toBeTruthy();
   expect(screen.getByText(/CBF citou você no comunicado/)).toBeTruthy();
   expect(screen.getByText(/Resultado de Técnico do mês/)).toBeTruthy();
@@ -78,4 +78,12 @@ test('troca decidida de pedido para sair (clube null) abre o Perfil', async () =
   render(<Atividade />);
   expect(await screen.findByText('Seu pedido de troca foi aprovado.')).toBeTruthy();
   expect(document.querySelector('a[href="/perfil"]')).toBeTruthy();
+});
+
+test('comentário mostra o trecho do comentário (não o do post); sem o campo, só "comentou no post"', async () => {
+  fetchFalso({ 'GET /atividade': { itens: [item('1', 'COMENTARIO', { comentario: { resumo: 'Que golaço!' } }), item('2', 'COMENTARIO')], proximo: null }, 'POST /atividade/lidas': { status: 204 } });
+  render(<Atividade />);
+  expect(await screen.findByText(/comentou: “Que golaço!”/)).toBeTruthy();
+  expect(screen.getByText(/comentou no post$/)).toBeTruthy();
+  expect(screen.queryByText(/Treino de hoje/)).toBeNull(); // o resumo do post não se passa por comentário
 });

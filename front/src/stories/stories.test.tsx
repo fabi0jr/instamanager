@@ -26,8 +26,10 @@ test('faixa mostra clubes com stories e os não vistos primeiro (Seu story, CBF,
   fetchFalso({ 'GET /stories': lista });
   render(<FaixaStories me={me} />);
   const links = await screen.findAllByRole('link');
-  expect(links.map((a) => a.getAttribute('href'))).toEqual(['/stories/santos', '/stories/cbf', '/stories/flamengo', '/stories/palmeiras', '/stories/vasco']);
-  expect(links[0].getAttribute('aria-label')).toBe('Seu story, já visto');
+  // o + do "Seu story" é um link à parte (criar); a bolinha abre o visualizador
+  expect(links.map((a) => a.getAttribute('href'))).toEqual(['/stories/novo', '/stories/santos', '/stories/cbf', '/stories/flamengo', '/stories/palmeiras', '/stories/vasco']);
+  expect(links[0].getAttribute('aria-label')).toBe('Novo story');
+  expect(links[1].getAttribute('aria-label')).toBe('Seu story, já visto');
   expect(document.querySelectorAll('.anel.visto')).toHaveLength(2);
 });
 
@@ -127,4 +129,24 @@ test('tocar no véu da folha "Visto por" ou do diálogo não avança o story (ev
   fireEvent.click(document.body.querySelector<HTMLElement>('body > .veu')!, { clientX: 300 });
   await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
   expect(img()).toContain('/a.jpg');
+});
+
+test('admin sem clube vê "Story da CBF" na faixa (cria como CBF); com story da CBF a bolinha ganha o +', async () => {
+  const adm: Me = { ...me, clube: null, isAdmin: true };
+  fetchFalso({ 'GET /stories': [] });
+  render(<FaixaStories me={adm} />);
+  const criar = await screen.findByRole('link', { name: 'Criar story da CBF' });
+  expect(criar.getAttribute('href')).toBe('/stories/novo?cbf=1');
+  cleanup();
+  fetchFalso({ 'GET /stories': [faixa('cbf', [story('b')])] });
+  render(<FaixaStories me={adm} />);
+  expect((await screen.findByRole('link', { name: 'Novo story da CBF' })).getAttribute('href')).toBe('/stories/novo?cbf=1');
+  expect(screen.getByRole('link', { name: /Story de cbf/ }).getAttribute('href')).toBe('/stories/cbf');
+});
+
+test('torcedor sem story na faixa não vê nenhuma entrada de criar', async () => {
+  fetchFalso({ 'GET /stories': [faixa('vasco', [story('a')])] });
+  render(<FaixaStories me={{ ...me, clube: null }} />);
+  await screen.findByRole('link', { name: /Story de vasco/ });
+  expect(screen.queryByRole('link', { name: /Novo story|Criar story/ })).toBeNull();
 });

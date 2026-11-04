@@ -75,3 +75,10 @@ test('resultado de post troca a marca pelo nome do banco (mencoes) e nunca mostr
   expect(txt).toContain('@pessoa removida');
   expect(txt).not.toMatch(/Presidente|Fantasma|\]\(|99999999/);
 });
+
+test('CSS: o campo encolhe (min-width: 0) e o Cancelar não sai da tela', async () => {
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync('src/busca/busca.css', 'utf8');
+  expect(css).toMatch(/\.busca-campo \{ flex: 1; min-width: 0;/);
+  expect(css).toMatch(/\.busca-topo \.link \{ flex: none;/);
+});
