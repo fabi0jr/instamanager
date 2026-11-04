@@ -196,7 +196,7 @@ Itens com mais de **60 dias** são apagados na limpeza horária. Eventos novos: 
 
 Itens por `tipo`:
 
-- `posts`: `Post` (legenda **e** texto), mais novo primeiro, com a mesma visibilidade do feed (oculto pelo admin só o admin acha; "ocultar para mim" some para quem ocultou).
+- `posts`: `Post` (legenda **e** texto; o markup `@[Nome](uuid)` não conta, e quem foi mencionado é achado pelo nome de hoje), mais novo primeiro, com a mesma visibilidade do feed (oculto pelo admin só o admin acha; "ocultar para mim" some para quem ocultou).
 - `prompts`: item da galeria (`{imagemId, postId, miniUrl, cheiaUrl, prompt, clube, favorito}`), só de post visível.
 - `clubes`: `{id, nome, escudoUrl, tecnico: {id, nome}|null}` por nome; **nunca a CBF**.
 - `pessoas`: `{id, nome, avatarUrl|null, clube: ClubeMini|null}`, quem começa com o texto vem primeiro, depois por nome. Sem e-mail.
