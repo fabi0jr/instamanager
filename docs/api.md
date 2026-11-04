@@ -45,6 +45,7 @@ Me      = { id, nome, email, avatarUrl|null, isAdmin, pushEnabled, clube: ClubeM
 ClubeMini = { id, nome, escudoUrl }
 Post    = { id, clube: ClubeMini, autor: {id, nome}, legenda, texto|null, mencoes: [{id, nome}], fixado, oculto, criadoEm,
             imagens: [{ id, miniUrl, cheiaUrl, largura, altura, prompt|null }],
+            video: { url, capaUrl, duracaoS, largura, altura } | null,   // post de vídeo: imagens = []
             curtidas, curtiu, reacoes: [{emoji, total}], minhaReacao|null, comentarios, podeEditar }
             // oculto: ocultado pelo admin (só o admin vê posts com oculto: true).
             // texto: post só de texto (imagens = [], legenda = ""). curtidas = total de reações (qualquer emoji);
@@ -80,7 +81,7 @@ Pagina<T> = { itens: T[], proximo: string|null }   // proximo = cursor opaco par
 
 | Rota | Corpo | Resposta |
 |---|---|---|
-| `POST /api/posts` | multipart com os campos `comoCbf` (opcional, `true`: **só o admin**, o post sai do clube `cbf`, e o admin não precisa de clube; qualquer outra pessoa recebe `403 NAO_E_ADMIN`), `legenda`, `prompts` (JSON `(string\|null)[]`), `cheia` e `mini`: cada arquivo vai como uma repetição do campo (`cheia` repetido 1–10 vezes, `mini` idem, **na mesma ordem**); o `[]` que aparece em outros pontos é só notação de lista, o nome do campo é `cheia`/`mini` sem colchetes (1–10 pares). **Post só de texto:** 0 arquivos e o campo `texto` (1–500 caracteres, sem espaços nas pontas); com imagens, `texto` não é aceito | `201 Post`. Sem arquivos e sem `texto` válido → `400 DADOS_INVALIDOS`. `SEM_CLUBE`, `IMAGEM_INVALIDA`, `413` se > 3 MB, `400` se > 10 imagens ou `cheia` e `mini` com tamanhos diferentes. Nada é gravado em disco se algum arquivo for inválido. Emite `posts.criado`. |
+| `POST /api/posts` | multipart com os campos `comoCbf` (opcional, `true`: **só o admin**, o post sai do clube `cbf`, e o admin não precisa de clube; qualquer outra pessoa recebe `403 NAO_E_ADMIN`), `legenda`, `prompts` (JSON `(string\|null)[]`), `cheia` e `mini`: cada arquivo vai como uma repetição do campo (`cheia` repetido 1–10 vezes, `mini` idem, **na mesma ordem**); o `[]` que aparece em outros pontos é só notação de lista, o nome do campo é `cheia`/`mini` sem colchetes (1–10 pares). **Post só de texto:** 0 arquivos e o campo `texto` (1–500 caracteres, sem espaços nas pontas); com imagens, `texto` não é aceito. **Post de vídeo:** o campo `video` (1 arquivo, ≤ 60 MB, ≤ 30 s) no lugar de `cheia`/`mini`, com `legenda` opcional; imagens **e** vídeo juntos, ou `texto` com vídeo → `400 DADOS_INVALIDOS`. O back converte para MP4 H.264 + AAC (lado maior 1280, `+faststart`) e gera a capa JPG do 1º segundo; o original é apagado. `400 VIDEO_LONGO` (acima de 30 s, medido pelo `ffprobe`, com 0,5 s de folga), `422 VIDEO_INVALIDO` (não é vídeo, ou a conversão falhou ou passou de 90 s), `413` (> 60 MB). Em qualquer erro nada fica no disco. Imagem acima de 3 MB segue `413` | `201 Post`. Sem arquivos e sem `texto` válido → `400 DADOS_INVALIDOS`. `SEM_CLUBE`, `IMAGEM_INVALIDA`, `413` se > 3 MB, `400` se > 10 imagens ou `cheia` e `mini` com tamanhos diferentes. Nada é gravado em disco se algum arquivo for inválido. Emite `posts.criado`. |
 | `GET /api/posts?antes=&clube=&tag=` | — | `Pagina<Post>`, 12 por página, do mais novo ao mais velho. Sem `antes` e sem `clube` (1ª página do feed geral) vem também `fixados: Post[]` (por `pinnedAt` desc, máx. 3); sem `clube`, fixados nunca entram em `itens`. Com `tag=contratacao`: mesma resposta, só posts com `#contratacao` na legenda ou no texto (sem acento nem maiúsculas, palavra inteira; `#` dentro de URL ou colado em palavra não conta), sem `fixados`. |
 | `GET /api/posts/:id` | — | `Post` |
 | `PATCH /api/posts/:id` | `{legenda?, texto?, prompts?}` (`prompts` na ordem das imagens). `texto` (1–500, sem espaços nas pontas) só vale em post sem imagens; em post com imagens → `400 DADOS_INVALIDOS`. Em post sem imagens, `legenda` e `prompts` também dão `400 DADOS_INVALIDOS` (só o `texto` é editável) | `Post` · `NAO_E_TECNICO` (mesmas permissões: técnico atual ou admin) |
@@ -203,6 +204,20 @@ Itens por `tipo`:
 
 `antes`: em `posts` e `prompts` é o cursor do feed (`400` se malformado); em `clubes` e `pessoas` é a posição (número) devolvida em `proximo`. `proximo` é `null` na última página.
 
+## 4g. Stories e vídeo (Task C3) 🔒
+
+Story: imagem ou vídeo curto do clube, some em **24 h**. Só o técnico atual posta pelo seu clube; o admin posta como CBF (`comoCbf=true`). Vídeo (story ou post): ≤ 60 MB de envio, ≤ 30 s, convertido no back com **ffmpeg** para MP4 H.264 + AAC, lado maior 1280, `+faststart`, com capa JPG; a conversão acontece dentro do pedido (limite de 90 s). Arquivos em `/uploads/stories/` e `/uploads/videos/`.
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `POST /api/stories` | multipart: **ou** `imagem` (JPEG ≤ 3 MB) **ou** `video`, mais `comoCbf` (opcional, `true`: só o admin) | `201 {id, tipo: 'IMAGEM'\|'VIDEO', url, capaUrl\|null, criadoEm, visto: false, expiraEm, clube: ClubeMini}`. `403 SEM_CLUBE` (quem não tem clube, inclusive o admin sem `comoCbf`), `403 NAO_E_ADMIN`, `400 DADOS_INVALIDOS` (nenhum arquivo ou os dois), `400 IMAGEM_INVALIDA`, `400 VIDEO_LONGO`, `422 VIDEO_INVALIDO`, `413` (> 3 MB a imagem, > 60 MB o vídeo). Nada fica no disco em caso de erro. |
+| `GET /api/stories` | — | `[{clube: ClubeMini, stories: [{id, tipo, url, capaUrl\|null, criadoEm, visto}], todosVistos}]`: só os não expirados, **uma bolinha por clube** (a CBF inclusive). Ordem: as com story não visto primeiro, e dentro de cada grupo a do story mais novo primeiro. Dentro do clube, `stories` vai do mais velho ao mais novo. `visto` é de quem pede. |
+| `PUT /api/stories/:id/visto` | — | `204` (repetir não muda nada). `404` se não existe ou expirou. |
+| `GET /api/stories/:id/vistos` | — | `[{id, nome}]` de quem viu (sem o autor), do mais recente ao mais antigo. Só o autor do story ou o admin (`403 NAO_E_AUTOR`); `404` se expirou. |
+| `DELETE /api/stories/:id` | — | `204`: apaga a linha e os arquivos. O autor, o técnico atual do clube ou o admin (`403 NAO_E_AUTOR`); `404` se expirou. |
+
+Story expirado não aparece em lista nenhuma e responde `404` em tudo; a limpeza horária apaga a linha e os arquivos (mp4, capa, imagem). O post de vídeo não entra na galeria (ela só lista imagens com prompt). **nginx:** `client_max_body_size 64m` e `proxy_read_timeout 120s` só em `/api/stories` e `POST /api/posts`; nas demais rotas o limite continua o de antes.
+
 ## 5. Push (Task 7) 🔒
 
 | Rota | Corpo | Resposta |
@@ -215,7 +230,7 @@ Ligar/desligar: `PATCH /api/me {pushEnabled}`. Mensagens (`titulo` / `corpo` →
 
 ## 6. Modelo de dados
 
-Ver `back/prisma/schema.prisma`: `User`, `Session`, `PasswordReset`, `Club` (`coachId @unique`, `oficial`: a CBF), `Rodada`, `Jogo`, `Votacao`, `Voto` (`@@id([votacaoId, userId])`), `Selo`, `CoachTenure`, `Post`, `PostImage`, `Like`, `Comment`, `Notificacao`, `TransferRequest`, `PushSubscription`, `Setting`. Apagar `Post` apaga `PostImage`, `Like` e `Comment`. `/health` fica fora do contrato (`GET /api/health`).
+Ver `back/prisma/schema.prisma`: `User`, `Session`, `PasswordReset`, `Club` (`coachId @unique`, `oficial`: a CBF), `Rodada`, `Jogo`, `Votacao`, `Voto` (`@@id([votacaoId, userId])`), `Selo`, `CoachTenure`, `Post`, `PostImage`, `Like`, `Comment`, `Notificacao`, `Story`, `StoryVisto`, `PostVideo`, `TransferRequest`, `PushSubscription`, `Setting`. Apagar `Post` apaga `PostImage`, `Like` e `Comment`. `/health` fica fora do contrato (`GET /api/health`).
 
 ## 7. Variáveis de ambiente
 

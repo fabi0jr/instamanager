@@ -46,6 +46,8 @@ model User {
   reports       Report[]
   votacoes      Votacao[]
   votos         Voto[]
+  stories       Story[]
+  storiesVistos StoryVisto[]
   recebidas     Notificacao[] @relation("NotificacaoDestino")
   geradas       Notificacao[] @relation("NotificacaoAtor")
 }
@@ -81,6 +83,7 @@ model Club {
 
   tenures   CoachTenure[]
   posts     Post[]
+  stories   Story[]
   transfers TransferRequest[]
   mandante  Jogo[]            @relation("mandante")
   visitante Jogo[]            @relation("visitante")
@@ -140,6 +143,7 @@ model Post {
   author    User      @relation(fields: [authorId], references: [id])
 
   images   PostImage[]
+  video    PostVideo?
   likes    Like[]
   comments Comment[]
   hiddenBy HiddenPost[]
@@ -324,4 +328,50 @@ model Notificacao {
   troca        TransferRequest? @relation(fields: [trocaId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+enum StoryTipo {
+  IMAGEM
+  VIDEO
+}
+
+// Story: some em 24 h; a limpeza apaga a linha e os arquivos. Do clube (ou da CBF, pelo admin); autorId = quem postou.
+model Story {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clubId    String
+  autorId   String      @db.Uuid
+  tipo      StoryTipo
+  path      String
+  capaPath  String?
+  duracaoS  Float?
+  largura   Int
+  altura    Int
+  createdAt DateTime    @default(now())
+  expiraEm  DateTime
+  club      Club        @relation(fields: [clubId], references: [id])
+  autor     User        @relation(fields: [autorId], references: [id], onDelete: Cascade)
+  vistos    StoryVisto[]
+
+  @@index([expiraEm])
+}
+
+model StoryVisto {
+  storyId String   @db.Uuid
+  userId  String   @db.Uuid
+  vistoEm DateTime @default(now())
+  story   Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([storyId, userId])
+}
+
+// Vídeo do post (no lugar das imagens): MP4 H.264 convertido no servidor, com capa JPG.
+model PostVideo {
+  postId   String @id @db.Uuid
+  path     String
+  capaPath String
+  duracaoS Float
+  largura  Int
+  altura   Int
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 }

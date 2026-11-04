@@ -13,6 +13,8 @@ COPY back back
 RUN pnpm --filter back build
 
 FROM node:24-alpine
+# ffmpeg/ffprobe: conversão de vídeo de story e de post (execFile, sem shell)
+RUN apk add --no-cache ffmpeg
 WORKDIR /app/back
 ENV NODE_ENV=production \
     UPLOADS_DIR=/var/uploads

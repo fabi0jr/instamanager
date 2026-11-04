@@ -33,6 +33,7 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg # os testes de vídeo usam o ffmpeg/ffprobe do sistema
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter back db:deploy
       - run: pnpm --filter back db:seed # os e2e precisam dos 20 clubes e do convite

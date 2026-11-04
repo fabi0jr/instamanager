@@ -13,7 +13,7 @@ export class ApiError extends HttpException {
 const PADRAO: Record<number, [string, string]> = {
   400: ['DADOS_INVALIDOS', 'Confira os dados enviados.'],
   404: ['NAO_ENCONTRADO', 'Não encontramos o que você procurou.'],
-  413: ['ARQUIVO_GRANDE', 'O arquivo passou de 3 MB.'],
+  413: ['ARQUIVO_GRANDE', 'O arquivo é grande demais.'],
 };
 const logger = new Logger('API');
 // o roteamento do Express não diferencia maiúsculas: /API/auth também cai nas rotas de /api
