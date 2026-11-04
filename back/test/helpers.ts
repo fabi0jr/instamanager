@@ -38,3 +38,23 @@ export async function cadastrarUsuario(post: Awaited<ReturnType<typeof criarApp>
   const res = await post('/api/auth/cadastro', { convite: await convite(prisma), email, senha: 'senha-boa-123', nome, clubeId }, `10.6.${Math.floor(++ipSeq / 250)}.${(ipSeq % 250) + 1}`).expect(201);
   return { id: res.body.id as string, email, cookie: res.headers['set-cookie'] as unknown as string[] };
 }
+
+/**
+ * Clubes próprios do arquivo de teste (ids `teste-<arquivo>-N`), para não disputar os 20 clubes reais entre
+ * arquivos que rodam em paralelo. Apaga sobras de uma execução interrompida antes de criar.
+ */
+export async function criarClubesDeTeste(prisma: PrismaService, arquivo: string, n: number) {
+  const ids = Array.from({ length: n }, (_, i) => `teste-${arquivo}-${i + 1}`);
+  await apagarClubesDeTeste(prisma, ids);
+  await prisma.club.createMany({ data: ids.map((id, i) => ({ id, name: `Teste ${arquivo} ${i + 1}`, crestPath: '/escudos/generico.svg' })) });
+  return ids;
+}
+
+/** Apaga os clubes de teste e o que aponta para eles (chame no afterAll, antes ou depois de apagar os usuários). */
+export async function apagarClubesDeTeste(prisma: PrismaService, ids: string[]) {
+  const clubId = { in: ids };
+  await prisma.post.deleteMany({ where: { clubId } });
+  await prisma.transferRequest.deleteMany({ where: { clubId } });
+  await prisma.coachTenure.deleteMany({ where: { clubId } });
+  await prisma.club.deleteMany({ where: { id: clubId } });
+}

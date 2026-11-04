@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { UserComClube } from '../auth/auth.service.js';
 import { ApiError } from '../http.js';
 import { UUID } from '../posts/cursor.js';
+import { comentariosVisiveis, ondeVisivel } from '../posts/visibilidade.js';
 import { PrismaService } from '../prisma.service.js';
 import { InteracoesEventos } from './interacoes.eventos.js';
 
@@ -14,6 +15,7 @@ type ComentarioCompleto = {
   id: string;
   text: string;
   createdAt: Date;
+  hiddenAt: Date | null;
   user: { id: string; name: string; avatarPath: string | null; club: { id: string; name: string } | null };
 };
 const comUsuario = { user: { select: { id: true, name: true, avatarPath: true, club: { select: { id: true, name: true } } } } } as const;
@@ -22,6 +24,7 @@ const comentarioJson = (c: ComentarioCompleto) => ({
   id: c.id,
   texto: c.text,
   criadoEm: c.createdAt,
+  oculto: c.hiddenAt !== null,
   // a tag é o clube de hoje de quem comentou, não o de quando comentou
   usuario: { id: c.user.id, nome: c.user.name, avatarUrl: c.user.avatarPath, clube: c.user.club && { id: c.user.club.id, nome: c.user.club.name } },
 });
@@ -33,15 +36,16 @@ export class InteracoesService {
     private readonly eventos: InteracoesEventos,
   ) {}
 
-  private async garantirPost(id: string) {
-    if (!UUID.test(id) || !(await this.prisma.post.findUnique({ where: { id }, select: { id: true } }))) throw naoEncontrado();
+  /** Post oculto pelo admin é 404 para quem não é admin, em reação e comentário também. */
+  private async garantirPost(id: string, user: UserComClube) {
+    if (!UUID.test(id) || !(await this.prisma.post.findFirst({ where: { id, ...ondeVisivel(user.id, user.isAdmin, { lista: false }) }, select: { id: true } }))) throw naoEncontrado();
   }
 
   /** Uma reação por pessoa por post: reagir de novo troca o emoji. */
   async reagir(postId: string, user: UserComClube, emoji: unknown) {
     const e = emoji === '\u2764' ? CORACAO : emoji; // ❤ sem o seletor de variação também vale
     if (typeof e !== 'string' || !EMOJIS.includes(e)) throw new ApiError(400, 'EMOJI_INVALIDO', `Use um destes emojis: ${EMOJIS.join(' ')}`, ['emoji']);
-    await this.garantirPost(postId);
+    await this.garantirPost(postId, user);
     await this.prisma.like.upsert({ where: { postId_userId: { postId, userId: user.id } }, update: { emoji: e }, create: { postId, userId: user.id, emoji: e } });
   }
 
@@ -51,13 +55,13 @@ export class InteracoesService {
   }
 
   async descurtir(postId: string, user: UserComClube) {
-    await this.garantirPost(postId);
+    await this.garantirPost(postId, user);
     await this.prisma.like.deleteMany({ where: { postId, userId: user.id } });
   }
 
-  async listar(postId: string) {
-    await this.garantirPost(postId);
-    const lista = await this.prisma.comment.findMany({ where: { postId }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: comUsuario });
+  async listar(postId: string, user: UserComClube) {
+    await this.garantirPost(postId, user);
+    const lista = await this.prisma.comment.findMany({ where: { postId, ...comentariosVisiveis(user.isAdmin) }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], include: comUsuario });
     return lista.map(comentarioJson);
   }
 
@@ -65,7 +69,7 @@ export class InteracoesService {
     const bruto = typeof corpo === 'object' && corpo ? (corpo as { texto?: unknown }).texto : undefined;
     const texto = typeof bruto === 'string' ? bruto.trim() : '';
     if (!texto || texto.length > TEXTO_MAX) throw new ApiError(400, 'DADOS_INVALIDOS', `O comentário precisa ter de 1 a ${TEXTO_MAX} caracteres.`, ['texto']);
-    await this.garantirPost(postId);
+    await this.garantirPost(postId, user);
     const c = await this.prisma.comment.create({ data: { postId, userId: user.id, text: texto }, include: comUsuario });
     this.eventos.emit('comentarios.criado', c.id);
     return comentarioJson(c);
@@ -76,5 +80,11 @@ export class InteracoesService {
     if (!c) throw naoEncontrado();
     if (c.userId !== user.id && !user.isAdmin) throw new ApiError(403, 'NAO_E_AUTOR', 'Só quem comentou (ou o admin) apaga o comentário.');
     await this.prisma.comment.deleteMany({ where: { id } }); // deleteMany: apagar duas vezes ao mesmo tempo não explode
+  }
+
+  /** Admin: oculta/mostra o comentário (reversível). */
+  async ocultar(id: string, oculto: boolean) {
+    if (!UUID.test(id) || !(await this.prisma.comment.findUnique({ where: { id }, select: { id: true } }))) throw naoEncontrado();
+    await this.prisma.comment.updateMany({ where: { id }, data: { hiddenAt: oculto ? new Date() : null } });
   }
 }

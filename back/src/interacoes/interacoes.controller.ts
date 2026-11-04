@@ -32,8 +32,8 @@ export class InteracoesController {
   }
 
   @Get('posts/:id/comentarios')
-  listar(@Param('id') id: string) {
-    return this.interacoes.listar(id);
+  listar(@Req() req: AuthedRequest, @Param('id') id: string) {
+    return this.interacoes.listar(id, req.user);
   }
 
   @Post('posts/:id/comentarios')

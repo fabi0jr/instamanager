@@ -37,9 +37,10 @@ Contrato das Tasks 3–7. Tudo sob `/api`, JSON, UTF-8. Qualquer rota fora desta
 ```
 Me      = { id, nome, email, avatarUrl|null, isAdmin, pushEnabled, clube: ClubeMini|null }
 ClubeMini = { id, nome, escudoUrl }
-Post    = { id, clube: ClubeMini, autor: {id, nome}, legenda, texto|null, fixado, criadoEm,
+Post    = { id, clube: ClubeMini, autor: {id, nome}, legenda, texto|null, fixado, oculto, criadoEm,
             imagens: [{ id, miniUrl, cheiaUrl, largura, altura, prompt|null }],
             curtidas, curtiu, reacoes: [{emoji, total}], minhaReacao|null, comentarios, podeEditar }
+            // oculto: ocultado pelo admin (só o admin vê posts com oculto: true).
             // texto: post só de texto (imagens = [], legenda = ""). curtidas = total de reações (qualquer emoji);
             // curtiu = tem reação; reacoes = até 3 emojis, o mais usado primeiro.
 Pagina<T> = { itens: T[], proximo: string|null }   // proximo = cursor opaco para ?antes=
@@ -65,18 +66,24 @@ Pagina<T> = { itens: T[], proximo: string|null }   // proximo = cursor opaco par
 | Rota | Resposta |
 |---|---|
 | `GET /api/clubes?livres=1` (pública) | `[{id, nome, escudoUrl, tecnico: {id,nome}\|null}]`, por nome. Com `livres=1`, só os sem técnico. |
-| `GET /api/clubes/:id` 🔒 | `{id, nome, escudoUrl, tecnico, historico: [{usuario:{id,nome}, inicio, fim\|null}]}`, do mais novo ao mais velho. `fim null` = técnico atual. |
+| `GET /api/clubes/:id` 🔒 | `{id, nome, escudoUrl, bio\|null, capaUrl\|null, tecnico, historico: [{usuario:{id,nome}, inicio, fim\|null}]}`, do mais novo ao mais velho. `fim null` = técnico atual. |
+| `PATCH /api/clubes/:id` 🔒 | `{bio}` (≤ 300; vazio apaga) | o mesmo objeto do `GET`. Só o técnico atual ou o admin (`403 NAO_E_TECNICO`, ex-técnico inclusive); `400` se > 300. |
+| `PUT /api/clubes/:id/capa` 🔒 | multipart `capa` (JPEG ≤ 3 MB; o app manda 1500×500 comprimido) | o mesmo objeto do `GET`; apaga a capa antiga do disco. `IMAGEM_INVALIDA`, `413`, `403` como na bio. |
 
 ## 3. Posts, feed e galeria (Task 5) 🔒
 
 | Rota | Corpo | Resposta |
 |---|---|---|
 | `POST /api/posts` | multipart com os campos `legenda`, `prompts` (JSON `(string\|null)[]`), `cheia` e `mini`: cada arquivo vai como uma repetição do campo (`cheia` repetido 1–10 vezes, `mini` idem, **na mesma ordem**); o `[]` que aparece em outros pontos é só notação de lista, o nome do campo é `cheia`/`mini` sem colchetes (1–10 pares). **Post só de texto:** 0 arquivos e o campo `texto` (1–500 caracteres, sem espaços nas pontas); com imagens, `texto` não é aceito | `201 Post`. Sem arquivos e sem `texto` válido → `400 DADOS_INVALIDOS`. `SEM_CLUBE`, `IMAGEM_INVALIDA`, `413` se > 3 MB, `400` se > 10 imagens ou `cheia` e `mini` com tamanhos diferentes. Nada é gravado em disco se algum arquivo for inválido. Emite `posts.criado`. |
-| `GET /api/posts?antes=&clube=` | — | `Pagina<Post>`, 12 por página, do mais novo ao mais velho. Sem `antes` e sem `clube` (1ª página do feed geral) vem também `fixados: Post[]` (por `pinnedAt` desc, máx. 3); sem `clube`, fixados nunca entram em `itens`. |
+| `GET /api/posts?antes=&clube=&tag=` | — | `Pagina<Post>`, 12 por página, do mais novo ao mais velho. Sem `antes` e sem `clube` (1ª página do feed geral) vem também `fixados: Post[]` (por `pinnedAt` desc, máx. 3); sem `clube`, fixados nunca entram em `itens`. Com `tag=contratacao`: mesma resposta, só posts com `#contratacao` na legenda ou no texto (sem acento nem maiúsculas, palavra inteira; `#` dentro de URL ou colado em palavra não conta), sem `fixados`. |
 | `GET /api/posts/:id` | — | `Post` |
 | `PATCH /api/posts/:id` | `{legenda?, prompts?}` (`prompts` na ordem das imagens) | `Post` · `NAO_E_TECNICO` |
 | `DELETE /api/posts/:id` | — | `204`, apaga curtidas, comentários e arquivos · `NAO_E_TECNICO` (admin pode qualquer um) |
-| `GET /api/galeria?antes=&clube=` | — | `Pagina<{imagemId, postId, miniUrl, cheiaUrl, prompt, clube: ClubeMini}>`, só imagens com prompt. |
+| `GET /api/galeria?antes=&clube=&favoritos=1` | — | `Pagina<{imagemId, postId, miniUrl, cheiaUrl, prompt, clube: ClubeMini, favorito}>`, só imagens com prompt. Com `favoritos=1`, só as que eu favoritei. |
+| `PUT /api/galeria/:imagemId/favorito` | — | `204` (idempotente) · `404` |
+| `DELETE /api/galeria/:imagemId/favorito` | — | `204` (idempotente) |
+| `PUT /api/posts/:id/ocultar-para-mim` | — | `204` (idempotente). O post some das listas só de quem pediu. |
+| `DELETE /api/posts/:id/ocultar-para-mim` | — | `204` (idempotente) |
 
 Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver malformado). A galeria pagina de 24 em 24 (o feed, de 12 em 12). Largura e altura de cada imagem são lidas do JPEG da `cheia` no servidor.
 
@@ -98,6 +105,12 @@ Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver 
 | `POST /api/admin/trocas/:id/recusar` 👑 | — | `204`. Emite `trocas.decidida`. |
 | `PUT /api/admin/posts/:id/fixar` 👑 | — | `204` (idempotente). Máx. 3 fixados: o 4º → `409 LIMITE_FIXADOS`. |
 | `DELETE /api/admin/posts/:id/fixar` 👑 | — | `204` (idempotente). |
+| `PUT /api/admin/posts/:id/ocultar` 👑 | — | `204` (idempotente). Para quem não é admin o post some do feed, clube, galeria, tag e fixados, e `/api/posts/:id` (e reação/comentário nele) dá `404`. Post oculto não conta nos 3 fixados. |
+| `DELETE /api/admin/posts/:id/ocultar` 👑 | — | `204`: volta a aparecer. |
+| `PUT\|DELETE /api/admin/comentarios/:id/ocultar` 👑 | — | `204`. Comentário oculto some da lista e da contagem para quem não é admin; o admin vê com `oculto: true`. |
+| `POST /api/denuncias` | `{postId}` ou `{commentId}` (um só), `motivo?` (≤ 300) | `201 {id}` · `400` · `404` se não existe ou a pessoa não enxerga |
+| `GET /api/admin/denuncias?abertas=1` 👑 | — | `[{id, criadoEm, motivo\|null, resolvidaEm\|null, denunciante:{id,nome}, post:{id,legenda,texto,clubeId}\|null, comentario:{id,texto,postId}\|null}]`, mais novas primeiro. Com `abertas=1`, só as não resolvidas. |
+| `POST /api/admin/denuncias/:id/resolver` 👑 | — | `204` (idempotente) · `404` |
 | `GET /api/admin/convite` 👑 | — | `{codigo}` |
 | `PUT /api/admin/convite` 👑 | `{codigo}` (4 a 64 caracteres) | `{codigo}`, já sem espaços nas pontas e em maiúsculas. O código antigo para de valer. O cadastro não diferencia maiúsculas de minúsculas (nem espaços nas pontas). |
 | `POST /api/admin/clubes/:id/remover-tecnico` 👑 | — | `204`: fecha a tenure e deixa a pessoa como torcedora. |

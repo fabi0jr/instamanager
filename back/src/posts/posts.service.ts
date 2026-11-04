@@ -6,6 +6,8 @@ import { PrismaService } from '../prisma.service.js';
 import { codificarCursor, decodificarCursor, UUID } from './cursor.js';
 import { apagarImagem, dimensoesJpeg, ehJpeg, salvarImagem } from './imagens.js';
 import { PostsEventos } from './posts.eventos.js';
+import { normalizarTag } from './tags.js';
+import { comentariosVisiveis, ondeVisivel } from './visibilidade.js';
 
 const POR_PAGINA = 12;
 const POR_PAGINA_GALERIA = 24;
@@ -17,12 +19,12 @@ const MAX_FIXADOS = 3;
 
 type Arquivo = { buffer: Buffer };
 
-const incluir = (userId: string) =>
+const incluir = ({ id: userId, isAdmin }: { id: string; isAdmin: boolean }) =>
   ({
     club: true,
     author: { select: { id: true, name: true } },
     images: { orderBy: { position: 'asc' } },
-    _count: { select: { likes: true, comments: true } },
+    _count: { select: { likes: true, comments: { where: comentariosVisiveis(isAdmin) } } },
     likes: { where: { userId }, select: { emoji: true } },
   }) satisfies Prisma.PostInclude;
 type PostCompleto = Prisma.PostGetPayload<{ include: ReturnType<typeof incluir> }>;
@@ -67,6 +69,7 @@ export class PostsService {
       legenda: p.caption,
       texto: p.texto,
       fixado: p.pinnedAt !== null,
+      oculto: p.hiddenAt !== null,
       criadoEm: p.createdAt,
       imagens: p.images.map((i) => ({ id: i.id, miniUrl: i.thumbPath, cheiaUrl: i.fullPath, largura: i.width, altura: i.height, prompt: i.prompt })),
       curtidas: p._count.likes,
@@ -98,7 +101,7 @@ export class PostsService {
   }
 
   private async buscar(id: string, user: UserComClube) {
-    const p = UUID.test(id) ? await this.prisma.post.findUnique({ where: { id }, include: incluir(user.id) }) : null;
+    const p = UUID.test(id) ? await this.prisma.post.findFirst({ where: { id, ...ondeVisivel(user.id, user.isAdmin, { lista: false }) }, include: incluir(user) }) : null;
     if (!p) throw naoEncontrado();
     return p;
   }
@@ -129,7 +132,7 @@ export class PostsService {
       }
       const criado = await this.prisma.post.create({
         data: { clubId: user.club.id, authorId: user.id, caption: legenda, images: { create: imagens } },
-        include: incluir(user.id),
+        include: incluir(user),
       });
       this.eventos.emit('posts.criado', criado.id);
       return (await this.jsonDe([criado], user))[0];
@@ -143,7 +146,7 @@ export class PostsService {
   private async criarTexto(user: UserComClube, clubId: string, bruto: unknown) {
     const texto = typeof bruto === 'string' ? bruto.trim() : '';
     if (!texto || texto.length > TEXTO_MAX) throw invalido(`Sem imagem, o post precisa de um texto de 1 a ${TEXTO_MAX} caracteres.`, 'texto');
-    const criado = await this.prisma.post.create({ data: { clubId, authorId: user.id, caption: '', texto }, include: incluir(user.id) });
+    const criado = await this.prisma.post.create({ data: { clubId, authorId: user.id, caption: '', texto }, include: incluir(user) });
     this.eventos.emit('posts.criado', criado.id);
     return (await this.jsonDe([criado], user))[0];
   }
@@ -159,7 +162,7 @@ export class PostsService {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(31001)`;
       if (!fixado) return void (await tx.post.updateMany({ where: { id }, data: { pinnedAt: null } }));
       if ((await tx.post.count({ where: { id, pinnedAt: { not: null } } })) > 0) return; // já fixado
-      if ((await tx.post.count({ where: { pinnedAt: { not: null } } })) >= MAX_FIXADOS)
+      if ((await tx.post.count({ where: { pinnedAt: { not: null }, hiddenAt: null } })) >= MAX_FIXADOS)
         throw new ApiError(409, 'LIMITE_FIXADOS', `Já existem ${MAX_FIXADOS} posts fixados. Desafixe um antes.`);
       await tx.post.updateMany({ where: { id }, data: { pinnedAt: new Date() } });
     });
@@ -184,46 +187,87 @@ export class PostsService {
     await Promise.all(p.images.flatMap((i) => [apagarImagem(i.fullPath), apagarImagem(i.thumbPath)]));
   }
 
-  /** Sem `clube`, os fixados vêm à parte (`fixados`, só na 1ª página) e nunca entram em `itens`, em página nenhuma. */
-  async feed(user: UserComClube, antes?: string, clube?: string) {
+  /** Ids dos posts cuja legenda ou texto tem `#tag` (sem acento, palavra inteira). Só acha; quem vê o quê é o `ondeVisivel`. */
+  private async idsComTag(tag: string): Promise<string[]> {
+    const t = normalizarTag(tag);
+    if (!t) return [];
+    // t só tem [a-z0-9_]: seguro dentro da regex. shortcut: varre todos os posts, ok para uma liga de amigos; indexar se passar de ~10 mil posts.
+    const rx = `(^|[^[:alnum:]_/#&])#${t}($|[^a-z0-9_])`;
+    const rows = await this.prisma.$queryRaw<{ id: string }[]>`SELECT id FROM "Post" WHERE lower(unaccent(caption || ' ' || coalesce(texto, ''))) ~ ${rx}`;
+    return rows.map((r) => r.id);
+  }
+
+  /**
+   * Sem `clube` e sem `tag`, os fixados vêm à parte (`fixados`, só na 1ª página) e nunca entram em `itens`, em página nenhuma.
+   * Com `tag`: mesma resposta do feed, só com os posts que têm a hashtag.
+   */
+  async feed(user: UserComClube, antes?: string, clube?: string, tag?: string) {
     const c = decodificarCursor(antes);
+    const visivel = ondeVisivel(user.id, user.isAdmin);
+    const geral = !clube && tag === undefined;
     const posts = await this.prisma.post.findMany({
       where: {
-        ...(clube ? { clubId: clube } : { pinnedAt: null }),
+        ...visivel,
+        ...(clube && { clubId: clube }),
+        ...(tag !== undefined && { id: { in: await this.idsComTag(tag) } }),
+        ...(geral && { pinnedAt: null }),
         ...(c && { OR: [{ createdAt: { lt: c.criadoEm } }, { createdAt: c.criadoEm, id: { lt: c.id } }] }),
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: POR_PAGINA + 1,
-      include: incluir(user.id),
+      include: incluir(user),
     });
-    const fixados = clube || c ? [] : await this.prisma.post.findMany({ where: { pinnedAt: { not: null } }, orderBy: { pinnedAt: 'desc' }, include: incluir(user.id) });
+    const primeira = geral && !c;
+    const fixados = primeira ? await this.prisma.post.findMany({ where: { ...visivel, pinnedAt: { not: null } }, orderBy: { pinnedAt: 'desc' }, include: incluir(user) }) : [];
     const pagina = posts.slice(0, POR_PAGINA);
     const ultimo = pagina.at(-1);
     const json = await this.jsonDe([...pagina, ...fixados], user);
     return {
-      ...(!clube && !c && { fixados: json.slice(pagina.length) }),
+      ...(primeira && { fixados: json.slice(pagina.length) }),
       itens: json.slice(0, pagina.length),
       proximo: posts.length > POR_PAGINA && ultimo ? codificarCursor(ultimo.createdAt, ultimo.id) : null,
     };
   }
 
-  /** Só imagens com prompt; cursor = criadoEm do post | id da imagem. */
-  async galeria(antes?: string, clube?: string) {
+  /** Admin: oculta/mostra o post para todo mundo (reversível). */
+  async ocultar(id: string, oculto: boolean) {
+    if (!UUID.test(id) || !(await this.prisma.post.findUnique({ where: { id }, select: { id: true } }))) throw naoEncontrado();
+    await this.prisma.post.updateMany({ where: { id }, data: { hiddenAt: oculto ? new Date() : null } });
+  }
+
+  /** "Ocultar para mim": só some das listas de quem pediu. */
+  async ocultarParaMim(id: string, user: UserComClube, oculto: boolean) {
+    await this.buscar(id, user);
+    if (oculto) await this.prisma.hiddenPost.createMany({ data: [{ userId: user.id, postId: id }], skipDuplicates: true });
+    else await this.prisma.hiddenPost.deleteMany({ where: { userId: user.id, postId: id } });
+  }
+
+  /** Favorito do prompt (a imagem tem que existir e estar visível para quem pede). */
+  async favoritar(imagemId: string, user: UserComClube, favorito: boolean) {
+    const img = UUID.test(imagemId) ? await this.prisma.postImage.findFirst({ where: { id: imagemId, post: ondeVisivel(user.id, user.isAdmin, { lista: false }) }, select: { id: true } }) : null;
+    if (!img) throw naoEncontrado();
+    if (favorito) await this.prisma.promptFavorite.createMany({ data: [{ userId: user.id, imageId: imagemId }], skipDuplicates: true });
+    else await this.prisma.promptFavorite.deleteMany({ where: { userId: user.id, imageId: imagemId } });
+  }
+
+  /** Só imagens com prompt (de posts com imagem); cursor = criadoEm do post | id da imagem. `favoritos`: só as que eu favoritei. */
+  async galeria(user: UserComClube, antes?: string, clube?: string, favoritos = false) {
     const c = decodificarCursor(antes);
     const imagens = await this.prisma.postImage.findMany({
       where: {
         prompt: { not: null },
-        ...(clube && { post: { clubId: clube } }),
+        post: { ...ondeVisivel(user.id, user.isAdmin), ...(clube && { clubId: clube }) },
+        ...(favoritos && { favorites: { some: { userId: user.id } } }),
         ...(c && { OR: [{ post: { createdAt: { lt: c.criadoEm } } }, { post: { createdAt: c.criadoEm }, id: { lt: c.id } }] }),
       },
       orderBy: [{ post: { createdAt: 'desc' } }, { id: 'desc' }],
       take: POR_PAGINA_GALERIA + 1,
-      include: { post: { select: { createdAt: true, club: true } } },
+      include: { post: { select: { createdAt: true, club: true } }, favorites: { where: { userId: user.id }, select: { userId: true } } },
     });
     const pagina = imagens.slice(0, POR_PAGINA_GALERIA);
     const ultima = pagina.at(-1);
     return {
-      itens: pagina.map((i) => ({ imagemId: i.id, postId: i.postId, miniUrl: i.thumbPath, cheiaUrl: i.fullPath, prompt: i.prompt, clube: clubeMini(i.post.club) })),
+      itens: pagina.map((i) => ({ imagemId: i.id, postId: i.postId, miniUrl: i.thumbPath, cheiaUrl: i.fullPath, prompt: i.prompt, clube: clubeMini(i.post.club), favorito: i.favorites.length > 0 })),
       proximo: imagens.length > POR_PAGINA_GALERIA && ultima ? codificarCursor(ultima.post.createdAt, ultima.id) : null,
     };
   }
