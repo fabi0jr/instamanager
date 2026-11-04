@@ -35,6 +35,7 @@ Contrato das Tasks 3–7. Tudo sob `/api`, JSON, UTF-8. Qualquer rota fora desta
 | `RODADA_ABERTA` | 409 | reabrir uma rodada que já está aberta |
 | `VOTACAO_ENCERRADA` | 409 | votar depois do prazo ou da votação encerrada; encerrar de novo |
 | `JA_VOTOU` | 409 | segundo voto da mesma pessoa na votação |
+| `CORPO_GRANDE` | 413 | `POST /api/erros-front` com corpo > 4 KB |
 | `NAO_ENCONTRADO` | 404 | id inexistente |
 
 ## Tipos
@@ -98,6 +99,7 @@ Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver 
 |---|---|---|
 | `PUT /api/posts/:id/reacao` | `{emoji}` (`❤️ 🔥 😂 😮 😢 👏`) | `204`. Uma reação por pessoa: reagir de novo troca o emoji. `400 EMOJI_INVALIDO` fora da lista. |
 | `DELETE /api/posts/:id/reacao` | — | `204` (idempotente) |
+| `GET /api/posts/:id/reacoes` | — | `[{emoji, usuarios: [{id, nome, avatarUrl\|null, clube: {id,nome,escudoUrl}\|null}]}]`: quem reagiu, por emoji, o mais usado primeiro (empate por emoji). Mesma visibilidade do post: oculto → `404` (menos para o admin), id inexistente ou inválido → `404`. Nunca traz e-mail. |
 | `PUT /api/posts/:id/curtida` | — | `204`. Apelido de `PUT .../reacao {emoji:'❤️'}` (compatibilidade com o app antigo). |
 | `DELETE /api/posts/:id/curtida` | — | `204` (idempotente). Apelido de `DELETE .../reacao`. |
 | `GET /api/posts/:id/comentarios` | — | `[{id, texto, criadoEm, usuario: {id, nome, avatarUrl\|null, clube: {id,nome}\|null}}]`, do mais velho ao mais novo. `clube` é o atual de quem comentou. |
@@ -141,7 +143,7 @@ Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
 | Rota | Corpo | Resposta |
 |---|---|---|
 | `POST /api/admin/rodadas/:n/previa` 👑 | — | `201 {texto, citados}`. `texto`: 3 a 6 frases, uma por linha, até 500 caracteres; `citados`: ids dos técnicos que aparecem pelo nome. Não grava nada; chamar de novo sorteia de novo. `409 RODADA_ABERTA` se a rodada não está fechada, `404` para `n` fora de 1–38. |
-| `POST /api/admin/rodadas/:n/publicar` 👑 | `{texto}` (1–500, o admin pode ter editado) | `201 Post`: post de texto do clube `cbf`, autor = o admin. Manda push ("A CBF citou você") aos técnicos de clubes que jogaram a rodada e cujo nome aparece no texto. `400` se o texto for inválido, `409 RODADA_ABERTA`. Emite `posts.criado` como qualquer post. |
+| `POST /api/admin/rodadas/:n/publicar` 👑 | `{texto, citados?}`: `texto` 1–500 (o admin pode ter editado); `citados`: os ids que a prévia devolveu | `201 Post`: post de texto do clube `cbf`, autor = o admin. **Push:** todos (menos o admin e os citados) recebem `CBF` / `Saiu o resumo da rodada N`, sem o nome do admin; os citados recebem só `A CBF citou você`. Vale como citado o id que é técnico de clube que jogou a rodada **e** cujo nome ainda aparece, como palavra inteira, no texto final; sem `citados`, ninguém é citado. `400` se o texto for inválido ou `citados` não for lista, `409 RODADA_ABERTA`. Não emite `posts.criado` (o push é este). |
 
 ## 4c. Votações e selos (Task B2) 🔒
 
@@ -155,6 +157,15 @@ Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
 | `GET /api/votacoes/:id` | — | `Votacao`; `resultado` só se encerrada. `404` se não existe. |
 | `POST /api/votacoes/:id/voto` | `{opcao}` | `204`. `409 JA_VOTOU` (1 voto por pessoa, garantido por chave no banco), `409 VOTACAO_ENCERRADA` (prazo vencido ou encerrada), `400 DADOS_INVALIDOS` se `opcao` não é uma das opções. |
 
+## 4d. Prévia do WhatsApp e erros do app (Task B3)
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `GET /api/og/p/:id` (pública) | — | `200 text/html` com `og:title` (`"<Clube> no InstaManager"`), `og:description` (legenda ou texto, espaços normalizados, até 150 caracteres), `og:image` (URL **absoluta**, `APP_URL` + a **mini** da 1ª imagem; post de texto usa `/icones/icon-512.png`), `og:url`, `twitter:card summary_large_image` e `<meta http-equiv="refresh" content="0;url=/p/:id">`. Tudo escapado (`& < > " '`). Post oculto, inexistente, id inválido ou qualquer erro → **200 com a prévia genérica** (título `InstaManager`), nunca 404/500 e sem dado do post. Quem chama é o nginx. |
+| `POST /api/erros-front` (pública) | `{mensagem, url, versao, pilha?}` (texto) | `204`. Grava **uma linha** no log do back (`erro-front {json}`, com `userId` se houver sessão, nunca e-mail ou nome; `mensagem` corta em 500, `pilha` 2000, `url` 300, `versao` 40). Corpo **≤ 4 KB** (`413 CORPO_GRANDE`, decidido pelo `Content-Length`; sem ele, também 413). Limite de **30 por minuto por IP** (`429 MUITAS_TENTATIVAS` + `Retry-After`). `400 DADOS_INVALIDOS` se faltar `mensagem`/`url`/`versao` ou o tipo estiver errado. Exige `Origin` como as outras rotas que mudam estado. |
+
+**nginx (`front/nginx.conf`):** `map $http_user_agent $robo_previa` marca `WhatsApp`, `facebookexternalhit`, `Twitterbot`, `TelegramBot`, `Slackbot`, `Discordbot` e `LinkedInBot`. Em `/p/<uuid>`, robô é reescrito para `/api/og/p/<uuid>`; qualquer outro cliente recebe o `index.html` do app. Só o caminho exato `/p/<uuid>` (36 caracteres) entra nessa regra.
+
 ## 5. Push (Task 7) 🔒
 
 | Rota | Corpo | Resposta |
@@ -163,7 +174,7 @@ Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
 | `POST /api/push/inscricao` | `{endpoint, keys: {p256dh, auth}}` | `204` (upsert por endpoint; se outra pessoa entrar no mesmo aparelho, a inscrição passa para ela). `400` se o endpoint não for `https` de um serviço de push conhecido (`fcm.googleapis.com`, `*.push.services.mozilla.com`, `web.push.apple.com`, `*.notify.windows.com`, sem porta nem usuário), porque o servidor faz POST nele. **O front chama `DELETE /api/push/inscricao` antes de `POST /auth/sair`** (senão o aparelho segue recebendo push de quem saiu); redefinir a senha apaga todas as inscrições da conta. |
 | `DELETE /api/push/inscricao` | `{endpoint}` | `204` (só apaga a inscrição da própria pessoa) |
 
-Ligar/desligar: `PATCH /api/me {pushEnabled}`. Mensagens (`titulo` / `corpo` → `url`): post novo `"<Clube>"` / `"<técnico> postou"` → `/p/<id>`; comentário `"Novo comentário"` / `"<nome>: <80 chars>"` → `/p/<id>`; pedido de troca (só para admins, menos quem pediu) `"Pedido de troca"` → `/admin`; decisão `"Troca aprovada"` ou `"Troca recusada"` → `/perfil`. Inscrição que responde 404/410 é apagada.
+Ligar/desligar: `PATCH /api/me {pushEnabled}`. Mensagens (`titulo` / `corpo` → `url`): post novo `"<Clube>"` / `"<técnico> postou"` → `/p/<id>` (post da CBF: `"CBF"` / `"Novo comunicado da CBF"`, sem o nome do admin); comentário `"Novo comentário"` / `"<nome>: <80 chars>"` → `/p/<id>`; pedido de troca (só para admins, menos quem pediu) `"Pedido de troca"` → `/admin`; decisão `"Troca aprovada"` ou `"Troca recusada"` → `/perfil`. Inscrição que responde 404/410 é apagada.
 
 ## 6. Modelo de dados
 

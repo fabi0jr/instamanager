@@ -1,6 +1,8 @@
 import type { INestApplication } from '@nestjs/common';
+import { vi } from 'vitest';
 import request from 'supertest';
 import type { PrismaService } from '../src/prisma.service.js';
+import { PushService } from '../src/push/push.service.js';
 import { apagarClubesDeTeste, cadastrarUsuario, criarApp, criarClubesDeTeste, ORIGIN } from './helpers.js';
 
 // Rodadas 35 e 36 e clubes teste-votacoes-N são só deste arquivo (os e2e rodam em paralelo no mesmo banco).
@@ -76,6 +78,52 @@ describe('bot da zoeira, votações e selos (e2e)', () => {
       const p = (await com('post', '/api/admin/rodadas/35/publicar', admin).send({ texto: `Fim da rodada 35\nTécnico Zero apanhou` }).expect(201)).body;
       expect(p).toMatchObject({ clube: { id: 'cbf' }, texto: 'Fim da rodada 35\nTécnico Zero apanhou', imagens: [] });
       expect((await com('get', `/api/posts/${p.id}`, torcedor).expect(200)).body.clube.id).toBe('cbf');
+    });
+  });
+
+  describe('push da publicação da rodada', () => {
+    const esperar = () => new Promise((r) => setTimeout(r, 300)); // os listeners de push rodam soltos
+    const espiar = () => vi.spyOn(app.get(PushService), 'enviar').mockResolvedValue();
+    const publicar = (n: number, corpo: object) => com('post', `/api/admin/rodadas/${n}/publicar`, admin).send(corpo);
+
+    it('push geral sai como CBF, sem o nome do admin e sem os citados; citado recebe só "A CBF citou você"', async () => {
+      await fechar(35, [jogo(c[1], c[0], 5, 0), jogo(c[2], c[3], 1, 1)]);
+      const espia = espiar();
+      const p = (await publicar(35, { texto: 'Fim da rodada\nTécnico Zero tomou 5 a 0', citados: [tecnico0.id] }).expect(201)).body;
+      await esperar();
+      const chamadas = espia.mock.calls.filter(([, m]) => m.url === `/p/${p.id}`);
+      const geral = chamadas.find(([, m]) => m.titulo === 'CBF')!;
+      expect(geral[1]).toEqual({ titulo: 'CBF', corpo: 'Saiu o resumo da rodada 35', url: `/p/${p.id}` });
+      expect(geral[0]).not.toContain(tecnico0.id);
+      expect(geral[0]).not.toContain(admin.id);
+      expect(geral[0]).toEqual(expect.arrayContaining([tecnico1.id, torcedor.id]));
+      const citou = chamadas.filter(([, m]) => m.titulo === 'A CBF citou você');
+      expect(citou.map(([ids]) => ids)).toEqual([[tecnico0.id]]);
+      // ninguém recebe o push genérico "<nome> postou" desse post
+      expect(chamadas.some(([, m]) => m.corpo.includes('postou') || m.corpo.includes('Admin'))).toBe(false);
+      espia.mockRestore();
+    });
+
+    it('citado que o admin tirou do texto não é avisado (palavra inteira); id fora da rodada é ignorado', async () => {
+      await fechar(35, [jogo(c[1], c[0], 5, 0)]);
+      const espia = espiar();
+      // "Técnico Zeroni" não conta como "Técnico Zero"; tecnico1 é de clube que jogou mas não está no texto; torcedor não é técnico da rodada
+      const p = (await publicar(35, { texto: 'Rodada boa para o Técnico Zeroni', citados: [tecnico0.id, tecnico1.id, torcedor.id, 'lixo', 7] }).expect(201)).body;
+      await esperar();
+      const chamadas = espia.mock.calls.filter(([, m]) => m.url === `/p/${p.id}`);
+      expect(chamadas.filter(([, m]) => m.titulo === 'A CBF citou você')).toEqual([]);
+      expect(chamadas.find(([, m]) => m.titulo === 'CBF')![0]).toEqual(expect.arrayContaining([tecnico0.id, tecnico1.id, torcedor.id]));
+      espia.mockRestore();
+    });
+
+    it('sem o campo citados ninguém é citado; citados que não é lista → 400', async () => {
+      await fechar(35, [jogo(c[1], c[0], 5, 0)]);
+      const espia = espiar();
+      const p = (await publicar(35, { texto: 'Técnico Zero apareceu' }).expect(201)).body;
+      await esperar();
+      expect(espia.mock.calls.some(([, m]) => m.url === `/p/${p.id}` && m.titulo === 'A CBF citou você')).toBe(false);
+      await publicar(35, { texto: 'x', citados: 'u1' }).expect(400);
+      espia.mockRestore();
     });
   });
 

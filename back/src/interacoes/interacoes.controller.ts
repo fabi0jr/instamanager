@@ -31,6 +31,11 @@ export class InteracoesController {
     await this.interacoes.descurtir(id, req.user);
   }
 
+  @Get('posts/:id/reacoes')
+  reacoes(@Req() req: AuthedRequest, @Param('id') id: string) {
+    return this.interacoes.reacoes(id, req.user);
+  }
+
   @Get('posts/:id/comentarios')
   listar(@Req() req: AuthedRequest, @Param('id') id: string) {
     return this.interacoes.listar(id, req.user);
