@@ -34,6 +34,13 @@ const clubeMini = (c: { id: string; name: string; crestPath: string }) => ({ id:
 const naoEncontrado = () => new ApiError(404, 'NAO_ENCONTRADO', 'Não encontramos o que você procurou.');
 const invalido = (mensagem: string, campo: string) => new ApiError(400, 'DADOS_INVALIDOS', mensagem, [campo]);
 
+/** Texto de post sem imagem: 1 a 500 caracteres, sem espaços nas pontas. */
+function lerTexto(v: unknown) {
+  const texto = typeof v === 'string' ? v.trim() : '';
+  if (!texto || texto.length > TEXTO_MAX) throw invalido(`Sem imagem, o post precisa de um texto de 1 a ${TEXTO_MAX} caracteres.`, 'texto');
+  return texto;
+}
+
 function lerLegenda(v: unknown) {
   if (typeof v !== 'string' || v.length > LEGENDA_MAX) throw invalido(`A legenda tem no máximo ${LEGENDA_MAX} caracteres.`, 'legenda');
   return v;
@@ -144,9 +151,7 @@ export class PostsService {
 
   /** Post sem imagem: `texto` de 1 a 500 caracteres (legenda fica vazia). */
   private async criarTexto(user: UserComClube, clubId: string, bruto: unknown) {
-    const texto = typeof bruto === 'string' ? bruto.trim() : '';
-    if (!texto || texto.length > TEXTO_MAX) throw invalido(`Sem imagem, o post precisa de um texto de 1 a ${TEXTO_MAX} caracteres.`, 'texto');
-    const criado = await this.prisma.post.create({ data: { clubId, authorId: user.id, caption: '', texto }, include: incluir(user) });
+    const criado = await this.prisma.post.create({ data: { clubId, authorId: user.id, caption: '', texto: lerTexto(bruto) }, include: incluir(user) });
     this.eventos.emit('posts.criado', criado.id);
     return (await this.jsonDe([criado], user))[0];
   }
@@ -168,13 +173,15 @@ export class PostsService {
     });
   }
 
-  async editar(id: string, user: UserComClube, corpo: { legenda?: unknown; prompts?: unknown }) {
+  async editar(id: string, user: UserComClube, corpo: { legenda?: unknown; texto?: unknown; prompts?: unknown }) {
     const p = await this.buscar(id, user);
     if (!this.podeEditar(p, user)) throw new ApiError(403, 'NAO_E_TECNICO', 'Só o técnico atual do clube edita este post.');
     const legenda = corpo.legenda === undefined ? undefined : lerLegenda(corpo.legenda);
     const prompts = corpo.prompts === undefined ? undefined : lerPrompts(corpo.prompts, p.images.length);
+    if (corpo.texto !== undefined && p.images.length > 0) throw invalido('Só post sem imagem tem texto; neste, edite a legenda.', 'texto');
+    const texto = corpo.texto === undefined ? undefined : lerTexto(corpo.texto);
     await this.prisma.$transaction([
-      this.prisma.post.update({ where: { id }, data: { caption: legenda } }),
+      this.prisma.post.update({ where: { id }, data: { caption: legenda, texto } }),
       ...(prompts ?? []).map((prompt, i) => this.prisma.postImage.update({ where: { id: p.images[i].id }, data: { prompt } })),
     ]);
     return this.obter(id, user);

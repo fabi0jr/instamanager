@@ -193,6 +193,33 @@ describe('onda A · hashtags, favoritos, bio/capa, denúncias e ocultar (e2e)', 
     });
   });
 
+  describe('editar texto do post de texto', () => {
+    const editar = (id: string, u: U, corpo: object) => com('patch', `/api/posts/${id}`, u).send(corpo);
+
+    it('técnico e admin editam o texto (trim); legenda/prompts continuam como antes', async () => {
+      const id = await novoPost({ caption: '', texto: 'antes' });
+      expect((await editar(id, tecnico, { texto: '  depois  ' }).expect(200)).body).toMatchObject({ id, texto: 'depois', imagens: [] });
+      expect((await editar(id, admin, { texto: 'x'.repeat(500) }).expect(200)).body.texto).toHaveLength(500);
+      expect((await com('get', `/api/posts/${id}`, torcedor).expect(200)).body.texto).toHaveLength(500);
+    });
+
+    it('vazio, só espaços, 501 ou tipo errado → 400 DADOS_INVALIDOS; post não muda', async () => {
+      const id = await novoPost({ caption: '', texto: 'fica' });
+      for (const texto of ['', '   ', 'x'.repeat(501), 7, null])
+        expect((await editar(id, tecnico, { texto }).expect(400)).body.codigo).toBe('DADOS_INVALIDOS');
+      expect((await com('get', `/api/posts/${id}`, torcedor).expect(200)).body.texto).toBe('fica');
+    });
+
+    it('post com imagens → 400; sem permissão → 403; inexistente → 404', async () => {
+      const { postId } = await novoComPrompt();
+      expect((await editar(postId, tecnico, { texto: 'oi' }).expect(400)).body.codigo).toBe('DADOS_INVALIDOS');
+      const id = await novoPost({ caption: '', texto: 'meu' });
+      await editar(id, torcedor, { texto: 'invadi' }).expect(403);
+      await editar(id, tecnico2, { texto: 'invadi' }).expect(403);
+      await editar('00000000-0000-4000-8000-000000000000', tecnico, { texto: 'x' }).expect(404);
+    });
+  });
+
   describe('denúncias', () => {
     it('denúncia aparece em /admin/denuncias e some ao resolver (?abertas=1)', async () => {
       const id = await novoPost({ caption: 'denunciado' });
