@@ -98,7 +98,7 @@ export class LigaService {
   /** Posição e últimos resultados de um clube (null para a CBF e outros oficiais). */
   async doClube(id: string) {
     const l = (await this.tabela()).find((x) => x.clubeId === id);
-    return l ? { posicao: l.posicao, ultimos: l.ultimos } : null;
+    return l ? { posicao: l.posicao, ultimos: l.ultimos, pontos: l.P, jogos: l.J } : null;
   }
 
   /** Substitui todos os jogos da rodada (só aberta). Valida tudo antes de gravar: ou entra tudo ou nada. */

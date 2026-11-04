@@ -141,7 +141,7 @@ describe('liga: CBF, rodadas, jogos e tabela (e2e)', () => {
       await com('post', '/api/admin/rodadas/37/fechar', admin).expect(204);
       const t = await tabela();
       const perfil = (await com('get', `/api/clubes/${c[0]}`, torcedor).expect(200)).body;
-      expect(perfil.liga).toEqual({ posicao: t.find((l) => l.clubeId === c[0])!.posicao, ultimos: ['V'] });
+      expect(perfil.liga).toEqual({ posicao: t.find((l) => l.clubeId === c[0])!.posicao, ultimos: ['V'], pontos: 3, jogos: 1 });
       expect((await com('get', '/api/clubes/cbf', torcedor).expect(200)).body).toMatchObject({ id: 'cbf', nome: 'CBF', liga: null, tecnico: null });
     });
   });

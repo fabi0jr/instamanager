@@ -72,7 +72,7 @@ Pagina<T> = { itens: T[], proximo: string|null }   // proximo = cursor opaco par
 | Rota | Resposta |
 |---|---|
 | `GET /api/clubes?livres=1` (pública) | `[{id, nome, escudoUrl, tecnico: {id,nome}\|null}]`, por nome. Com `livres=1`, só os sem técnico, e a **CBF** (`id 'cbf'`, clube oficial) nunca entra na lista. Nem com nem sem o filtro: a CBF só aparece em `GET /api/clubes/cbf` e como `clube` de posts. |
-| `GET /api/clubes/:id` 🔒 | `{id, nome, escudoUrl, bio\|null, capaUrl\|null, tecnico, liga: {posicao, ultimos}\|null, selos: [{titulo, createdAt}], historico: [{usuario:{id,nome}, inicio, fim\|null}]}`, do mais novo ao mais velho. `fim null` = técnico atual. `liga` é a posição na tabela e os últimos resultados (`('V'\|'E'\|'D')[]`, até 5); **`null` para a CBF**. `selos`: os selos ganhos em votações, do mais novo ao mais velho. |
+| `GET /api/clubes/:id` 🔒 | `{id, nome, escudoUrl, bio\|null, capaUrl\|null, tecnico, liga: {posicao, ultimos, pontos, jogos}\|null, selos: [{titulo, createdAt}], historico: [{usuario:{id,nome}, inicio, fim\|null}]}`, do mais novo ao mais velho. `fim null` = técnico atual. `liga` é a posição na tabela, os pontos (P), os jogos (J) e os últimos resultados (`('V'\|'E'\|'D')[]`, até 5); **`null` para a CBF**. `selos`: os selos ganhos em votações, do mais novo ao mais velho. |
 | `PATCH /api/clubes/:id` 🔒 | `{bio}` (≤ 300; vazio apaga) | o mesmo objeto do `GET`. Só o técnico atual ou o admin (`403 NAO_E_TECNICO`, ex-técnico inclusive); `400` se > 300. |
 | `PUT /api/clubes/:id/capa` 🔒 | multipart `capa` (JPEG ≤ 3 MB; o app manda 1500×500 comprimido) | o mesmo objeto do `GET`; apaga a capa antiga do disco. `IMAGEM_INVALIDA`, `413`, `403` como na bio. |
 
