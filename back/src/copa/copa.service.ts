@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '../generated/prisma/client.js';
 import type { UserComClube } from '../auth/auth.service.js';
 import { AtividadeService } from '../atividade/atividade.service.js';
 import { montarResumoCopa } from '../bot/zoeira.js';
@@ -55,9 +56,14 @@ export class CopaService {
     const { nome, ordem } = (typeof corpo === 'object' && corpo ? corpo : {}) as { nome?: unknown; ordem?: unknown };
     if (typeof nome !== 'string' || !nome.trim() || nome.trim().length > 60) throw invalido('nome: 1 a 60 caracteres.', 'nome');
     if (typeof ordem !== 'number' || !Number.isInteger(ordem) || ordem < 1 || ordem > 99) throw invalido('ordem: inteiro de 1 a 99.', 'ordem');
-    if (await this.prisma.copaFase.findUnique({ where: { ordem } })) throw new ApiError(409, 'ORDEM_REPETIDA', 'Já existe uma fase com essa ordem.');
-    const f = await this.prisma.copaFase.create({ data: { nome: nome.trim(), ordem } });
-    return { id: f.id, nome: f.nome, ordem: f.ordem };
+    // sem checar antes: duas criações ao mesmo tempo passariam do findUnique e a segunda estouraria no índice único
+    try {
+      const f = await this.prisma.copaFase.create({ data: { nome: nome.trim(), ordem } });
+      return { id: f.id, nome: f.nome, ordem: f.ordem };
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') throw new ApiError(409, 'ORDEM_REPETIDA', 'Já existe uma fase com essa ordem.');
+      throw e;
+    }
   }
 
   /** Substitui todos os jogos da fase (só aberta). Valida tudo antes de gravar. */

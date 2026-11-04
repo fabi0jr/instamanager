@@ -48,6 +48,12 @@ describe('Copa do Brasil: fases, mata-mata e resumo (e2e)', () => {
     await com('post', '/api/admin/copa/fases', admin).send({ nome: 'X', ordem: 0 }).expect(400);
   });
 
+  it('duas criações simultâneas com a mesma ordem → um 201 e um 409 ORDEM_REPETIDA (nunca 500)', async () => {
+    const r = await Promise.all([1, 2].map((i) => com('post', '/api/admin/copa/fases', admin).send({ nome: 'Corrida ' + i, ordem: 93 })));
+    expect(r.map((x) => x.status).sort()).toEqual([201, 409]);
+    expect(r.find((x) => x.status === 409)!.body.codigo).toBe('ORDEM_REPETIDA');
+  });
+
   it('GET /copa: fases por ordem com jogos e vencedor (placar, ou pênaltis no empate); agendado sem vencedor', async () => {
     const f2 = await fase(92), f1 = await fase(91);
     await jogos(f1, [jogo(c[0], c[1], 2, 1), jogo(c[2], c[3], 1, 1, { penaltisMandante: 3, penaltisVisitante: 4 })]).expect(204);
