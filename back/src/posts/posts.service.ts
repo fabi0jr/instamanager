@@ -162,7 +162,7 @@ export class PostsService {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(31001)`;
       if (!fixado) return void (await tx.post.updateMany({ where: { id }, data: { pinnedAt: null } }));
       if ((await tx.post.count({ where: { id, pinnedAt: { not: null } } })) > 0) return; // já fixado
-      if ((await tx.post.count({ where: { pinnedAt: { not: null }, hiddenAt: null } })) >= MAX_FIXADOS)
+      if ((await tx.post.count({ where: { pinnedAt: { not: null } } })) >= MAX_FIXADOS)
         throw new ApiError(409, 'LIMITE_FIXADOS', `Já existem ${MAX_FIXADOS} posts fixados. Desafixe um antes.`);
       await tx.post.updateMany({ where: { id }, data: { pinnedAt: new Date() } });
     });
@@ -232,7 +232,8 @@ export class PostsService {
   /** Admin: oculta/mostra o post para todo mundo (reversível). */
   async ocultar(id: string, oculto: boolean) {
     if (!UUID.test(id) || !(await this.prisma.post.findUnique({ where: { id }, select: { id: true } }))) throw naoEncontrado();
-    await this.prisma.post.updateMany({ where: { id }, data: { hiddenAt: oculto ? new Date() : null } });
+    // ocultar também desafixa (libera a vaga); mostrar de novo não volta a fixar
+    await this.prisma.post.updateMany({ where: { id }, data: oculto ? { hiddenAt: new Date(), pinnedAt: null } : { hiddenAt: null } });
   }
 
   /** "Ocultar para mim": só some das listas de quem pediu. */

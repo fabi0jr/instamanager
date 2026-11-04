@@ -105,11 +105,11 @@ Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver 
 | `POST /api/admin/trocas/:id/recusar` 👑 | — | `204`. Emite `trocas.decidida`. |
 | `PUT /api/admin/posts/:id/fixar` 👑 | — | `204` (idempotente). Máx. 3 fixados: o 4º → `409 LIMITE_FIXADOS`. |
 | `DELETE /api/admin/posts/:id/fixar` 👑 | — | `204` (idempotente). |
-| `PUT /api/admin/posts/:id/ocultar` 👑 | — | `204` (idempotente). Para quem não é admin o post some do feed, clube, galeria, tag e fixados, e `/api/posts/:id` (e reação/comentário nele) dá `404`. Post oculto não conta nos 3 fixados. |
+| `PUT /api/admin/posts/:id/ocultar` 👑 | — | `204` (idempotente). Para quem não é admin o post some do feed, clube, galeria, tag e fixados, e `/api/posts/:id` (e reação/comentário nele) dá `404`. Ocultar também desafixa o post (libera a vaga dos 3); mostrar de novo não volta a fixar. |
 | `DELETE /api/admin/posts/:id/ocultar` 👑 | — | `204`: volta a aparecer. |
 | `PUT\|DELETE /api/admin/comentarios/:id/ocultar` 👑 | — | `204`. Comentário oculto some da lista e da contagem para quem não é admin; o admin vê com `oculto: true`. |
-| `POST /api/denuncias` | `{postId}` ou `{commentId}` (um só), `motivo?` (≤ 300) | `201 {id}` · `400` · `404` se não existe ou a pessoa não enxerga |
-| `GET /api/admin/denuncias?abertas=1` 👑 | — | `[{id, criadoEm, motivo\|null, resolvidaEm\|null, denunciante:{id,nome}, post:{id,legenda,texto,clubeId}\|null, comentario:{id,texto,postId}\|null}]`, mais novas primeiro. Com `abertas=1`, só as não resolvidas. |
+| `POST /api/denuncias` | `{postId}` ou `{commentId}` (um só), `motivo?` (≤ 300) | `201 {id}` · `400` · `404` se não existe ou a pessoa não enxerga. Denúncia aberta repetida da mesma pessoa no mesmo alvo é ignorada: `201` com o `id` da que já existe. |
+| `GET /api/admin/denuncias?abertas=1&antes=` 👑 | — | `Pagina<{id, criadoEm, motivo\|null, resolvidaEm\|null, denunciante:{id,nome}, post:{id,legenda,texto,clubeId}\|null, comentario:{id,texto,postId}\|null}>`, 20 por página (cursor `antes`), mais novas primeiro. Com `abertas=1`, só as não resolvidas. |
 | `POST /api/admin/denuncias/:id/resolver` 👑 | — | `204` (idempotente) · `404` |
 | `GET /api/admin/convite` 👑 | — | `{codigo}` |
 | `PUT /api/admin/convite` 👑 | `{codigo}` (4 a 64 caracteres) | `{codigo}`, já sem espaços nas pontas e em maiúsculas. O código antigo para de valer. O cadastro não diferencia maiúsculas de minúsculas (nem espaços nas pontas). |
