@@ -3167,7 +3167,7 @@
       ],
       "depende": [],
       "responsavel": "Prancheta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T12:28:19.479Z",
@@ -3192,6 +3192,27 @@
           "quando": "2026-11-04T12:28:29.816Z",
           "quem": "PO",
           "nota": "atribuída a Prancheta"
+        },
+        {
+          "quando": "2026-11-04T12:45:16.059Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "design aprovado pelo Maestro"
+        },
+        {
+          "quando": "2026-11-04T12:45:16.084Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "design aprovado pelo Maestro"
+        },
+        {
+          "quando": "2026-11-04T12:45:16.111Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "design aprovado pelo Maestro"
         }
       ]
     },
