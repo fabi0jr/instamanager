@@ -188,6 +188,21 @@ Só frases prontas (`back/src/bot/frases.ts`, listadas em `docs/bot-frases.md`).
 
 Itens com mais de **60 dias** são apagados na limpeza horária. Eventos novos: `reacoes.reagida(postId, userId)` e `posts.editado(postId)`.
 
+## 4f. Busca (Task C2) 🔒
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `GET /api/busca?q=&tipo=&antes=` | — | `{itens, proximo}`, **20 por página**. `q`: 2 a 60 caracteres depois do `trim` (`400 DADOS_INVALIDOS` fora disso); `tipo`: `posts`, `prompts`, `clubes` ou `pessoas` (`400` se faltar ou for outro). Sem acento e sem diferenciar maiúsculas; `%`, `_` e `\` valem como texto; sempre parametrizada (aspas e `'; drop` não dão erro, só não acham nada). |
+
+Itens por `tipo`:
+
+- `posts`: `Post` (legenda **e** texto), mais novo primeiro, com a mesma visibilidade do feed (oculto pelo admin só o admin acha; "ocultar para mim" some para quem ocultou).
+- `prompts`: item da galeria (`{imagemId, postId, miniUrl, cheiaUrl, prompt, clube, favorito}`), só de post visível.
+- `clubes`: `{id, nome, escudoUrl, tecnico: {id, nome}|null}` por nome; **nunca a CBF**.
+- `pessoas`: `{id, nome, avatarUrl|null, clube: ClubeMini|null}`, quem começa com o texto vem primeiro, depois por nome. Sem e-mail.
+
+`antes`: em `posts` e `prompts` é o cursor do feed (`400` se malformado); em `clubes` e `pessoas` é a posição (número) devolvida em `proximo`. `proximo` é `null` na última página.
+
 ## 5. Push (Task 7) 🔒
 
 | Rota | Corpo | Resposta |
