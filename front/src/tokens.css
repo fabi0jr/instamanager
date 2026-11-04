@@ -56,6 +56,7 @@ input, textarea, select { font-size: 16px !important; }
 /* toque duplo (curtir) não vira zoom; a pinça segue livre */
 html, body, a, button, input, textarea, select, [role='button'] { touch-action: manipulation; }
 :focus-visible { outline: 2px solid var(--im-giz); outline-offset: 2px; }
+body { padding-top: env(safe-area-inset-top); } /* com viewport-fit=cover o app vai até a borda: afasta do entalhe/barra de status */
 main { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 
 .barra-inferior { position: fixed; inset: auto 0 0 0; display: grid; grid-template-columns: repeat(5, 1fr);
