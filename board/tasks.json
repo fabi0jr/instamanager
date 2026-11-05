@@ -5335,13 +5335,32 @@
         "ver plano docs/superpowers/plans/2026-11-05-assessoria-botafogo.md"
       ],
       "depende": [],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Maestro",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-05T15:18:12.502Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T16:03:17.494Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T16:03:17.521Z",
+          "quem": "PO",
+          "nota": "atribuída a Maestro"
+        },
+        {
+          "quando": "2026-11-05T16:03:17.548Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "backup pre-assessoria; sem migração nova"
         }
       ]
     }
