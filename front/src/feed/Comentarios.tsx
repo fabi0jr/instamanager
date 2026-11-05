@@ -12,9 +12,9 @@ import { sigla } from './siglas';
 import { haQuanto, type Comentario } from './tipos';
 import { Link } from '../rotas';
 
-type Item = Comentario & { estado?: 'enviando' | 'falhou' };
+type Item = Comentario & { estado?: 'enviando' | 'falhou'; alvoId?: string }; // alvoId: o comentário clicado em Responder (o back avisa o autor dele)
 const MUITAS = 3; // acima disso só as 2 últimas respostas ficam à vista (docs/design/pack3-onda-b.md §4)
-type Respondendo = { raiz: string; alvo: string; nome: string; uid: string; erro?: boolean }; // `raiz` é o parentId enviado; `alvo` é o comentário clicado
+type Respondendo = { raiz: string; alvo: string; nome: string; uid: string; erro?: boolean }; // `alvo` é o comentário clicado e vai como parentId (o back sobe para o raiz); `raiz` só agrupa a resposta na tela
 
 function Avatar({ nome, url, pequeno }: { nome: string; url: string | null; pequeno?: boolean }) {
   const cl = pequeno ? 'av32 av28' : 'av32';
@@ -32,6 +32,7 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
   const campo = useRef<HTMLTextAreaElement>(null);
   const mencoes = useMencoes();
   const seq = useRef(0);
+  const voltarFoco = useRef<string | null>(null);
   const [respondendo, setRespondendo] = useState<Respondendo | null>(null);
   const [abertas, setAbertas] = useState<Set<string>>(new Set());
 
@@ -49,14 +50,15 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
 
   const mudar = (f: (l: Item[]) => Item[]) => setLista((l) => (Array.isArray(l) ? f(l) : l));
 
-  async function enviar(t: string, tmp?: string, parentId?: string | null, devolver?: { texto: string; mapa: Mencao[] }) {
+  async function enviar(t: string, tmp?: string, resp?: { alvo: string; raiz: string }, devolver?: { texto: string; mapa: Mencao[] }) {
+    const parentId = resp?.alvo;
     const id = tmp ?? `tmp-${++seq.current}`;
-    const novo: Item = { id, texto: t, parentId: parentId ?? null, criadoEm: new Date().toISOString(), usuario: { id: me.id, nome: me.nome, avatarUrl: me.avatarUrl, clube: me.clube }, estado: 'enviando' };
+    const novo: Item = { id, texto: t, parentId: resp?.raiz ?? null, alvoId: parentId, criadoEm: new Date().toISOString(), usuario: { id: me.id, nome: me.nome, avatarUrl: me.avatarUrl, clube: me.clube }, estado: 'enviando' };
     mudar((l) => (tmp ? l.map((c) => (c.id === tmp ? novo : c)) : [...l, novo]));
     try {
       const salvo = await api<Comentario>(`/posts/${postId}/comentarios`, { method: 'POST', body: JSON.stringify(parentId ? { texto: t, parentId } : { texto: t }) });
       mudar((l) => l.map((c) => (c.id === id ? salvo : c)));
-      if (parentId) setRespondendo((r) => (r?.raiz === parentId ? null : r));
+      if (parentId) setRespondendo((r) => (r?.alvo === parentId ? null : r));
     } catch (e) {
       if (parentId && e instanceof ErroApi && e.status === 400 && e.campos.includes('parentId')) { // o comentário respondido sumiu: a faixa vira erro e a resposta não fica pendurada
         mudar((l) => l.filter((c) => c.id !== id));
@@ -73,24 +75,37 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
     const guardado = mencoes.serializar(t);
     setTexto('');
     mencoes.limpar();
-    enviar(guardado, undefined, respondendo?.raiz, { texto, mapa: mencoes.mapa });
+    enviar(guardado, undefined, respondendo ? { alvo: respondendo.alvo, raiz: respondendo.raiz } : undefined, { texto, mapa: mencoes.mapa });
   }
   function responder(c: Item) {
+    // o rascunho fica: '@Nome ' entra na frente (troca o '@Fulano ' de uma resposta anterior, se estiver lá)
+    let resto = texto;
+    if (respondendo) {
+      const antes = `@${respondendo.nome} `;
+      if (resto.startsWith(antes)) { resto = resto.slice(antes.length); if (respondendo.uid !== c.usuario.id) mencoes.remover(respondendo.uid); } // mesma pessoa: a menção registrada fica (remover+ler o mapa no mesmo tick pularia o registrar)
+    }
     setRespondendo({ raiz: c.parentId ?? c.id, alvo: c.id, nome: c.usuario.nome, uid: c.usuario.id });
-    mencoes.limpar();
-    if (c.usuario.id === me.id) setTexto('');
-    else { mencoes.registrar({ id: c.usuario.id, nome: c.usuario.nome }); setTexto(`@${c.usuario.nome} `); }
+    if (c.usuario.id !== me.id) {
+      const marca = `@${c.usuario.nome} `;
+      if (!mencoes.mapa.some((m) => m.id === c.usuario.id)) mencoes.registrar({ id: c.usuario.id, nome: c.usuario.nome });
+      if (!resto.startsWith(marca)) resto = marca + resto;
+    }
+    setTexto(resto);
     requestAnimationFrame(() => { const el = campo.current; if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } });
   }
   function cancelarResposta() {
-    const alvo = respondendo?.alvo;
     if (respondendo) { // tira só o '@Nome ' do início (e a menção dele); o resto do que a pessoa escreveu fica
       const marca = `@${respondendo.nome} `;
       if (texto.startsWith(marca) || texto === marca.trimEnd()) { setTexto(texto.slice(marca.length)); mencoes.remover(respondendo.uid); }
+      voltarFoco.current = respondendo.alvo; // depois que a faixa sair, o foco volta ao Responder do comentário
     }
     setRespondendo(null);
-    requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-resp="${alvo}"]`)?.focus());
   }
+  useEffect(() => {
+    if (respondendo || !voltarFoco.current) return;
+    document.querySelector<HTMLElement>(`[data-resp="${voltarFoco.current}"]`)?.focus();
+    voltarFoco.current = null;
+  }, [respondendo]);
   async function apagar(c: Item) {
     setMenu(null);
     mudar((l) => l.filter((x) => x.id !== c.id));
@@ -126,7 +141,7 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
         </div>
         <p><Texto mencoes={c.mencoes}>{c.texto}</Texto></p>
         {c.estado === 'falhou' ? (
-          <button type="button" className="link erro-txt sem-sublinhado" onClick={() => enviar(c.texto, c.id, c.parentId)}>Não enviou. Toque para tentar de novo.</button>
+          <button type="button" className="link erro-txt sem-sublinhado" onClick={() => enviar(c.texto, c.id, c.alvoId && c.parentId ? { alvo: c.alvoId, raiz: c.parentId } : undefined)}>Não enviou. Toque para tentar de novo.</button>
         ) : c.estado === 'enviando' ? (
           <span className="giz2 mini">Enviando…</span>
         ) : (

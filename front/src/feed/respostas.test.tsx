@@ -73,7 +73,7 @@ test('Responder mostra "Respondendo a Fulano", preenche @Fulano, dá foco ao cam
   await waitFor(() => expect(document.activeElement).toBe(botao));
 });
 
-test('responder uma resposta envia o parentId do raiz, com o texto começando por @[Fulano](id) ', async () => {
+test('responder uma resposta envia como parentId a resposta CLICADA (o back sobe para o raiz), com o texto começando por @[Fulano](id) ', async () => {
   const chamadas = fetchFalso({
     'GET /posts/a/comentarios': [com('c1', 'Marcos', 'Raiz'), com('c2', 'Rafa', 'Resp do Rafa', { parentId: 'c1' })],
     'POST /posts/a/comentarios': { status: 201, corpo: com('c9', 'Lincoln', 'x', { parentId: 'c1' }) },
@@ -84,9 +84,34 @@ test('responder uma resposta envia o parentId do raiz, com o texto começando po
   fireEvent.change(campo(), { target: { value: '@Rafa concordo' } });
   fireEvent.click(screen.getByRole('button', { name: 'Publicar' }));
   await waitFor(() => expect(chamadas.some((c) => c.chave === 'POST /posts/a/comentarios')).toBe(true));
-  expect(JSON.parse(chamadas.find((c) => c.chave === 'POST /posts/a/comentarios')!.body as string)).toEqual({ texto: '@[Rafa](u-Rafa) concordo', parentId: 'c1' });
+  expect(JSON.parse(chamadas.find((c) => c.chave === 'POST /posts/a/comentarios')!.body as string)).toEqual({ texto: '@[Rafa](u-Rafa) concordo', parentId: 'c2' });
   await waitFor(() => expect(screen.queryByText(/Respondendo a/)).toBeNull());
   expect(document.querySelectorAll('.threads > li')).toHaveLength(1); // cai sob o mesmo raiz
+  expect(document.querySelectorAll('.threads > li ul.respostas > li')).toHaveLength(2);
+});
+
+test('responder o raiz envia o id do raiz', async () => {
+  const chamadas = fetchFalso({ 'GET /posts/a/comentarios': [com('c1', 'Marcos', 'Raiz')], 'POST /posts/a/comentarios': { status: 201, corpo: com('c9', 'Lincoln', 'x', { parentId: 'c1' }) } });
+  abrir();
+  fireEvent.click(await screen.findByRole('button', { name: 'Responder a Marcos' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Publicar' }));
+  await waitFor(() => expect(chamadas.some((c) => c.chave === 'POST /posts/a/comentarios')).toBe(true));
+  expect(JSON.parse(chamadas.find((c) => c.chave === 'POST /posts/a/comentarios')!.body as string).parentId).toBe('c1');
+});
+
+test('tocar Responder não apaga o rascunho: "@Nome " entra na frente; trocar de alvo troca só o prefixo', async () => {
+  fetchFalso({ 'GET /posts/a/comentarios': [com('c1', 'Marcos', 'Raiz'), com('c2', 'Rafa', 'Resp', { parentId: 'c1' })] });
+  abrir();
+  const marcos = await screen.findByRole('button', { name: 'Responder a Marcos' });
+  fireEvent.change(campo(), { target: { value: 'já tinha escrito isto' } });
+  fireEvent.click(marcos);
+  expect(campo().value).toBe('@Marcos já tinha escrito isto');
+  fireEvent.click(screen.getByRole('button', { name: 'Responder a Rafa' }));
+  expect(campo().value).toBe('@Rafa já tinha escrito isto');
+  expect(screen.getByRole('status').textContent).toContain('Respondendo a Rafa');
+  fireEvent.click(screen.getByRole('button', { name: 'Cancelar resposta' }));
+  expect(campo().value).toBe('já tinha escrito isto');
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Responder a Rafa' })));
 });
 
 test('comentário comum não manda parentId', async () => {
@@ -179,4 +204,20 @@ test('/p/:id?comentarios=1 abre a folha de comentários; sem o parâmetro, fecha
   render(<PostPagina id="p1" me={me} />);
   expect(await screen.findByRole('dialog', { name: 'Comentários' })).toBeTruthy();
   history.pushState(null, '', '/');
+});
+
+test('Responder de novo na MESMA pessoa (outro comentário dela) mantém a menção registrada: sai @[Marcos](id) e parentId do último clicado', async () => {
+  const chamadas = fetchFalso({
+    'GET /posts/a/comentarios': [com('c1', 'Marcos', 'Raiz'), com('c2', 'Marcos', 'Outra do Marcos', { parentId: 'c1' })],
+    'POST /posts/a/comentarios': { status: 201, corpo: com('c9', 'Lincoln', 'x', { parentId: 'c1' }) },
+  });
+  abrir();
+  const botoes = await screen.findAllByRole('button', { name: 'Responder a Marcos' });
+  fireEvent.click(botoes[0]);
+  fireEvent.click(botoes[1]);
+  expect(campo().value).toBe('@Marcos ');
+  fireEvent.change(campo(), { target: { value: '@Marcos oi' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Publicar' }));
+  await waitFor(() => expect(chamadas.some((c) => c.chave === 'POST /posts/a/comentarios')).toBe(true));
+  expect(JSON.parse(chamadas.find((c) => c.chave === 'POST /posts/a/comentarios')!.body as string)).toEqual({ texto: '@[Marcos](u-Marcos) oi', parentId: 'c2' });
 });
