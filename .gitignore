@@ -11,3 +11,6 @@ dist/
 # prints do WhatsApp (têm telefones dos amigos)
 Image*.jpeg
 uploads*/
+
+# prints do calendário enviados pelo Fabio (dados para cadastrar, não vão para o repo)
+rodadas/
