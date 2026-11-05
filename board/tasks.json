@@ -5070,7 +5070,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "revisao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T15:18:12.273Z",
@@ -5102,6 +5102,20 @@
           "de": "dev",
           "para": "revisao",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T15:42:37.010Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou b0bfa3f; menores em 35be7ab (teste 401/413 e docs); sem tela"
+        },
+        {
+          "quando": "2026-11-05T15:42:37.031Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "VAR aprovou b0bfa3f; menores em 35be7ab (teste 401/413 e docs); sem tela"
         }
       ]
     },
