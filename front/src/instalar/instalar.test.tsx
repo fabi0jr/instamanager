@@ -349,7 +349,7 @@ test('Sair: DELETE da inscrição ANTES do POST /auth/sair', async () => {
   const chamadas = fetchFalso({ 'GET /trocas/minhas': [], 'DELETE /push/inscricao': { status: 204 }, 'POST /auth/sair': { status: 204 } });
   render(<Perfil me={{ ...me, pushEnabled: true }} recarregar={() => {}} />);
   clica('Sair da conta');
-  await waitFor(() => expect(chamadas.map((c) => c.chave).filter((k) => k !== 'GET /trocas/minhas')).toEqual(['DELETE /push/inscricao', 'POST /auth/sair']));
+  await waitFor(() => expect(chamadas.map((c) => c.chave).filter((k) => !k.startsWith('GET '))).toEqual(['DELETE /push/inscricao', 'POST /auth/sair']));
   expect(JSON.parse(chamadas.find((c) => c.chave === 'DELETE /push/inscricao')!.body as string)).toEqual({ endpoint: assinatura.endpoint });
   expect(assinatura.unsubscribe).toHaveBeenCalled();
 });
@@ -457,7 +457,7 @@ test('Sair com push pendurado: o POST /auth/sair sai depois do limite, sem trava
     render(<Perfil me={{ ...me, pushEnabled: true }} recarregar={() => {}} />);
     fireEvent.click(screen.getByRole('button', { name: 'Sair da conta' }));
     await vi.advanceTimersByTimeAsync(3100);
-    expect(chamadas.filter((k) => k !== 'GET /trocas/minhas')).toEqual(['DELETE /push/inscricao', 'POST /auth/sair']);
+    expect(chamadas.filter((k) => !k.startsWith('GET '))).toEqual(['DELETE /push/inscricao', 'POST /auth/sair']);
   } finally {
     vi.useRealTimers();
   }

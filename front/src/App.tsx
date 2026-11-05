@@ -87,7 +87,7 @@ export function App() {
         {caminho === '/clubes' && <ListaClubes />}
         {params.id && /^\/votacoes\/[^/]+$/.test(caminho) && <Votar id={params.id} />}
         {caminho === '/liga' && <Liga me={me} />}
-        {caminho === '/atividade' && <Atividade />}
+        {caminho === '/atividade' && <Atividade meuId={me.id} />}
         {caminho === '/stories/novo' && <CriarStory me={me} />}
         {params.clubeId && /^\/stories\/[^/]+$/.test(caminho) && caminho !== '/stories/novo' && <Visualizador clubeId={params.clubeId} me={me} />}
         {caminho === '/busca' && <Busca />}
