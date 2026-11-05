@@ -205,3 +205,19 @@ test('/p/:id?comentarios=1 abre a folha de comentários; sem o parâmetro, fecha
   expect(await screen.findByRole('dialog', { name: 'Comentários' })).toBeTruthy();
   history.pushState(null, '', '/');
 });
+
+test('Responder de novo na MESMA pessoa (outro comentário dela) mantém a menção registrada: sai @[Marcos](id) e parentId do último clicado', async () => {
+  const chamadas = fetchFalso({
+    'GET /posts/a/comentarios': [com('c1', 'Marcos', 'Raiz'), com('c2', 'Marcos', 'Outra do Marcos', { parentId: 'c1' })],
+    'POST /posts/a/comentarios': { status: 201, corpo: com('c9', 'Lincoln', 'x', { parentId: 'c1' }) },
+  });
+  abrir();
+  const botoes = await screen.findAllByRole('button', { name: 'Responder a Marcos' });
+  fireEvent.click(botoes[0]);
+  fireEvent.click(botoes[1]);
+  expect(campo().value).toBe('@Marcos ');
+  fireEvent.change(campo(), { target: { value: '@Marcos oi' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Publicar' }));
+  await waitFor(() => expect(chamadas.some((c) => c.chave === 'POST /posts/a/comentarios')).toBe(true));
+  expect(JSON.parse(chamadas.find((c) => c.chave === 'POST /posts/a/comentarios')!.body as string)).toEqual({ texto: '@[Marcos](u-Marcos) oi', parentId: 'c2' });
+});

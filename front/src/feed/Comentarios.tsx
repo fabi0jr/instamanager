@@ -82,7 +82,7 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
     let resto = texto;
     if (respondendo) {
       const antes = `@${respondendo.nome} `;
-      if (resto.startsWith(antes)) { resto = resto.slice(antes.length); mencoes.remover(respondendo.uid); }
+      if (resto.startsWith(antes)) { resto = resto.slice(antes.length); if (respondendo.uid !== c.usuario.id) mencoes.remover(respondendo.uid); } // mesma pessoa: a menção registrada fica (remover+ler o mapa no mesmo tick pularia o registrar)
     }
     setRespondendo({ raiz: c.parentId ?? c.id, alvo: c.id, nome: c.usuario.nome, uid: c.usuario.id });
     if (c.usuario.id !== me.id) {
