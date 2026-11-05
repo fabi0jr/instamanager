@@ -426,6 +426,7 @@ model Notificacao {
 enum StoryTipo {
   IMAGEM
   VIDEO
+  TEXTO
 }
 
 // Story: some em 24 h; a limpeza apaga a linha e os arquivos. Do clube (ou da CBF, pelo admin); autorId = quem postou.
@@ -434,11 +435,13 @@ model Story {
   clubId    String
   autorId   String      @db.Uuid
   tipo      StoryTipo
-  path      String
+  path      String? // nulo no TEXTO
   capaPath  String?
   duracaoS  Float?
-  largura   Int
-  altura    Int
+  largura   Int?
+  altura    Int?
+  texto     String? // só no TEXTO (1–200)
+  fundo     String? // só no TEXTO: gramado|carvao|vermelho|azul
   createdAt DateTime    @default(now())
   expiraEm  DateTime
   club      Club        @relation(fields: [clubId], references: [id])
