@@ -166,7 +166,7 @@ describe('mcp: CBF via MCP (e2e)', () => {
     });
   });
 
-  it('initialize e tools/list trazem as 12 ferramentas', async () => {
+  it('initialize e tools/list trazem as 10 ferramentas', async () => {
     const init = await rpc({
       jsonrpc: '2.0',
       id: 1,
@@ -568,7 +568,7 @@ describe('mcp: CBF via MCP (e2e)', () => {
   });
 
   describe('leitura', () => {
-    it('as 6 ferramentas de leitura respondem sem gravar McpAcao; comentários sem e-mail', async () => {
+    it('as 5 ferramentas de leitura respondem sem gravar McpAcao; comentários sem e-mail', async () => {
       const antes = await prisma.mcpAcao.count();
       const p = await prisma.post.findFirst({
         where: { texto: 'mcp-oi galera' },
