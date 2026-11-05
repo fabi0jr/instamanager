@@ -1,9 +1,9 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { tamanhoTexto } from './tipos';
 
-const TAMANHOS = ['t56', 't40', 't30', 't24'];
+const TAMANHOS = ['t56', 't40', 't30', 't24', 't20', 't18'];
 
-// <p> que começa no tamanho de tamanhoTexto e desce (t56 → t40 → t30 → t24) enquanto transborda; refaz ao mudar o texto e no resize
+// <p> que começa no tamanho de tamanhoTexto e desce (t56 → … → t18) enquanto transborda; refaz ao mudar o texto e no resize
 export function TextoAjustado({ texto, classe }: { texto: string; classe: string }) {
   const ref = useRef<HTMLParagraphElement>(null);
   const inicio = TAMANHOS.indexOf(tamanhoTexto(texto));

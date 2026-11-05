@@ -99,7 +99,7 @@ test('o campo não aceita a 9ª linha; seta para baixo troca o fundo; enviando t
 
 // jsdom não faz layout: simula o transbordo por tamanho (scrollHeight > clientHeight enquanto a classe for maior que `cabeEm`)
 function simularLayout(cabeEm: string) {
-  const ordem = ['t56', 't40', 't30', 't24'];
+  const ordem = ['t56', 't40', 't30', 't24', 't20', 't18'];
   vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(500);
   vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(function (this: HTMLElement) {
     const t = ordem.find((o) => this.classList.contains(o));
@@ -114,10 +114,13 @@ test('texto que transborda desce t56 → t40 → t30 e para onde cabe', async ()
   expect(p.classList.contains('t24')).toBe(false);
 });
 
-test('se nem t30 cabe, para em t24 (o último) sem laço infinito', async () => {
-  simularLayout('t24');
-  const p = await abrirVis('a'.repeat(200), 'azul');
-  expect(p.classList.contains('t24')).toBe(true);
+test('desce até t18 (o último) e para ali, sem laço infinito', async () => {
+  simularLayout('t18');
+  const p = await abrirVis('Ä'.repeat(199), 'azul');
+  expect(p.classList.contains('t18')).toBe(true);
+  cleanup();
+  simularLayout('t20'); // cabe em t20: para sem ir a t18
+  expect((await abrirVis('Ä'.repeat(199), 'azul')).classList.contains('t20')).toBe(true);
 });
 
 test('no resize volta a medir a partir do tamanho calculado', async () => {
@@ -134,6 +137,15 @@ test('a prévia também desce o tamanho', () => {
   abrirTexto();
   digitar('oi');
   expect(document.querySelector('.previa-texto p')!.classList.contains('t30')).toBe(true);
+});
+
+test('cartão Texto tem a altura de 120 px do design e o interruptor CBF trava ao publicar', async () => {
+  render(<CriarStory me={{ ...tecnico, isAdmin: true }} />);
+  expect(document.querySelector('.cartoes-escolha .cartao-texto')).toBeTruthy(); // CSS: mesma regra dos cartões Foto/Vídeo (min-height 120)
+  fireEvent.click(screen.getByRole('button', { name: /Texto/ }));
+  digitar('oi');
+  fireEvent.click(screen.getByRole('button', { name: 'Publicar story' }));
+  expect((await screen.findByRole('switch', { name: 'Postar como CBF' }) as HTMLButtonElement).disabled).toBe(true);
 });
 
 test('aviso falado só ao cruzar 180 e 200, e some na tecla seguinte', () => {

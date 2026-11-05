@@ -146,7 +146,7 @@ export function CriarStory({ me }: { me: Me }) {
               </button>
             ))}
           </div>
-          <ComoCbf me={me} ligado={cbf} aoMudar={setCbf} fixo={!me.clube} />
+          <ComoCbf me={me} ligado={cbf} aoMudar={setCbf} fixo={!me.clube || ocupado} />
           <div className="acao-fixa"><Botao disabled={!texto.trim()} carregando={ocupado ? 'Publicando…' : undefined} onClick={publicar}>Publicar story</Botao></div>
         </>
       )}
