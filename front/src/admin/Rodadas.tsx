@@ -261,13 +261,13 @@ function Previa({ n, inicial }: { n: number; inicial: { texto: string; citados: 
         )}
       </div>
       {sorteado.citados.length > 0 && <p className="giz2 legenda-s">{sorteado.citados.length} {sorteado.citados.length === 1 ? 'técnico recebe' : 'técnicos recebem'} aviso por ser citado.</p>}
-      <div className="duas-acoes">
-        <button type="button" className="botao secundario" onClick={() => (editado ? setDescartar(true) : sortear())}><IcSortear /> Sortear de novo</button>
-        {editando
-          ? <button type="button" className="botao secundario" onClick={() => { setTexto(sorteado.texto); setEditando(false); }}>Voltar à frase sorteada</button>
-          : <button type="button" className="botao secundario" onClick={() => setEditando(true)}><IcEditar /> Editar texto</button>}
-      </div>
       <div className="acao-fixa">
+        <div className="duas-acoes">
+          <button type="button" className="botao secundario" onClick={() => (editado ? setDescartar(true) : sortear())}><IcSortear /> Sortear de novo</button>
+          {editando
+            ? <button type="button" className="botao secundario" onClick={() => { setTexto(sorteado.texto); setEditando(false); }}>Voltar à frase sorteada</button>
+            : <button type="button" className="botao secundario" onClick={() => setEditando(true)}><IcEditar /> Editar texto</button>}
+        </div>
         <Botao disabled={!texto.trim()} carregando={ocupado ? 'Publicando…' : undefined} onClick={publicar}>Publicar resumo</Botao>
         <button type="button" className="link giz2" disabled={ocupado} onClick={() => navegar('/admin/rodadas')}>Agora não, publico depois</button>
       </div>

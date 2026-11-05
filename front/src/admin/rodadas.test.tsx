@@ -96,6 +96,8 @@ test('prévia do bot com Sortear de novo, Editar (até 500) e Publicar', async (
   await screen.findByText('Frase 1');
   fireEvent.click(screen.getByRole('button', { name: /Sortear de novo/ }));
   await screen.findByText('Frase 2'); // sem edição: troca sem perguntar
+  const barra = document.querySelector('.acao-fixa')!; // as 3 ações ficam sempre à vista, na barra fixa
+  for (const n of [/Sortear de novo/, /Editar texto/, /^Publicar resumo$/]) expect(within(barra as HTMLElement).getByRole('button', { name: n })).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: /Editar texto/ }));
   const campo = screen.getByLabelText('Texto do post') as HTMLTextAreaElement;
   expect(campo.maxLength).toBe(500);
