@@ -112,6 +112,14 @@ export class CopaService {
     return this.previaDe(jogos.fase.nome, jogos.js, await this.bolao.reiDaFase(id));
   }
 
+  /** Prévia de novo (sorteia outra) para fase já fechada, publicada ou não. Não grava nada. */
+  async previa(id: string) {
+    const fase = UUID.test(id) ? await this.prisma.copaFase.findUnique({ where: { id }, include: { jogos: { include: { mandante: true, visitante: true } } } }) : null;
+    if (!fase) throw naoAchou();
+    if (!fase.fechadaEm) throw new ApiError(409, 'FASE_ABERTA', 'Feche a fase antes de gerar o resumo.');
+    return this.previaDe(fase.nome, fase.jogos, await this.bolao.reiDaFase(id));
+  }
+
   async reabrir(id: string) {
     if (!UUID.test(id)) throw naoAchou();
     const { count } = await this.prisma.copaFase.updateMany({ where: { id, fechadaEm: { not: null } }, data: { fechadaEm: null } });

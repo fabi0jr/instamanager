@@ -145,6 +145,25 @@ describe('Copa do Brasil: fases, mata-mata e resumo (e2e)', () => {
     await com('post', `/api/admin/copa/fases/${f}/publicar`, torcedor).send({ texto: 'x' }).expect(403);
   });
 
+  it('POST /previa gera a prévia de novo (fase fechada, publicada ou não); fase aberta → 409; inexistente → 404; não-admin → 403', async () => {
+    const f = await fase(91);
+    await jogos(f, [jogo(c[0], c[1], 2, 0), jogo(c[2], c[3], 1, 1, { penaltisMandante: 4, penaltisVisitante: 2 })]).expect(204);
+    expect((await com('post', `/api/admin/copa/fases/${f}/previa`, admin).expect(409)).body.codigo).toBe('FASE_ABERTA');
+    await com('post', `/api/admin/copa/fases/${f}/fechar`, admin).expect(201);
+    const textos = new Set<string>();
+    for (let i = 0; i < 15; i++) {
+      const r = (await com('post', `/api/admin/copa/fases/${f}/previa`, admin).expect(201)).body;
+      expect(r).toMatchObject({ texto: expect.stringContaining('Fase 91'), citados: expect.any(Array) });
+      textos.add(r.texto);
+    }
+    expect(textos.size).toBeGreaterThan(1); // sorteia de novo
+    expect((await chave()).find((x) => x.fase.id === f)!.fase).toMatchObject({ fechada: true, resumoPublicado: false });
+    await com('post', `/api/admin/copa/fases/${f}/publicar`, admin).send({ texto: 'resumo' }).expect(201);
+    await com('post', `/api/admin/copa/fases/${f}/previa`, admin).expect(201); // ainda gera depois de publicado
+    await com('post', `/api/admin/copa/fases/00000000-0000-4000-8000-000000000000/previa`, admin).expect(404);
+    await com('post', `/api/admin/copa/fases/${f}/previa`, torcedor).expect(403);
+  });
+
   it('prazo da fase: grava, aparece em /copa, null tira, inválido → 400, fase inexistente → 404', async () => {
     const f = await fase(91);
     const prazo = '2026-12-10T22:00:00.000Z';

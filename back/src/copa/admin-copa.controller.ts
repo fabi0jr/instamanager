@@ -29,6 +29,11 @@ export class AdminCopaController {
     return this.copa.fechar(id);
   }
 
+  @Post(':id/previa')
+  previa(@Param('id') id: string) {
+    return this.copa.previa(id);
+  }
+
   @Post(':id/reabrir')
   @HttpCode(204)
   async reabrir(@Param('id') id: string) {
