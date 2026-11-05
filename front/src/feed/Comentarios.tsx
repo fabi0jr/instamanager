@@ -9,6 +9,7 @@ import { useMencoes } from '../mencoes/mencoes';
 import { IcBandeira, IcFechar, IcLixo, IcMais, IcOlhoOff } from './icones';
 import { sigla } from './siglas';
 import { haQuanto, type Comentario } from './tipos';
+import { Link } from '../rotas';
 
 type Item = Comentario & { estado?: 'enviando' | 'falhou' };
 
@@ -105,10 +106,10 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
         )}
         {Array.isArray(lista) && lista.map((c) => (
           <div key={c.id} className="comentario" style={{ opacity: c.estado === 'enviando' ? 0.55 : c.oculto ? 0.6 : 1 }}>
-            <Avatar nome={c.usuario.nome} url={c.usuario.avatarUrl} />
+            <Link para={`/u/${c.usuario.id}`} className="avatar-link" aria-label={`Perfil de ${c.usuario.nome}`}><Avatar nome={c.usuario.nome} url={c.usuario.avatarUrl} /></Link>
             <div className="corpo">
               <div>
-                <strong>{c.usuario.nome}</strong>{' '}
+                <Link para={`/u/${c.usuario.id}`} className="nome-link"><strong>{c.usuario.nome}</strong></Link>{' '}
                 {c.oculto && <span className="pilula oculto-selo"><IcOlhoOff />Oculto</span>}
                 {c.usuario.clube && <span className="pilula" aria-label={`Clube ${c.usuario.clube.nome}`}><Escudo src={`/escudos/${c.usuario.clube.id}.svg`} tam={12} />{sigla(c.usuario.clube.id)}</span>}
               </div>

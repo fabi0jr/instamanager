@@ -28,6 +28,11 @@ import video from '../icones/video.svg?raw';
 import volume from '../icones/volume.svg?raw';
 import volumeOff from '../icones/volume-off.svg?raw';
 import olho from '../icones/olho.svg?raw';
+import calendario from '../icones/calendario.svg?raw';
+import chave from '../icones/chave.svg?raw';
+import bola from '../icones/bola.svg?raw';
+import relogio from '../icones/relogio.svg?raw';
+import cadeado from '../icones/cadeado.svg?raw';
 import olhoOff from '../icones/olho-off.svg?raw';
 import bandeira from '../icones/bandeira.svg?raw';
 import estrela from '../icones/estrela.svg?raw';
@@ -35,7 +40,7 @@ import fixar from '../icones/fixar.svg?raw';
 import compartilhar from '../icones/compartilhar.svg?raw';
 
 // Ícones oficiais do board Icones (docs/design/icones, copiados para src/icones): herdam a cor por currentColor.
-const OFICIAIS = { camera, comentar, copiar, curtido, curtir, escudo, galeria, inicio, mais, 'novo-post': novoPost, perfil, 'seta-voltar': setaVoltar, seta, editar, fechar, filtro, lixo, ok, compartilhar, fixar, estrela, bandeira, 'olho-off': olhoOff, texto, liga, selo, votacao, sortear, atividade, busca, play, video, volume, 'volume-off': volumeOff, olho };
+const OFICIAIS = { camera, comentar, copiar, curtido, curtir, escudo, galeria, inicio, mais, 'novo-post': novoPost, perfil, 'seta-voltar': setaVoltar, seta, editar, fechar, filtro, lixo, ok, compartilhar, fixar, estrela, bandeira, 'olho-off': olhoOff, texto, liga, selo, votacao, sortear, atividade, busca, play, video, volume, 'volume-off': volumeOff, olho, calendario, chave, bola, relogio, cadeado };
 export function Icone({ nome, cheio }: { nome: keyof typeof OFICIAIS; cheio?: boolean }) {
   return <span className={cheio ? 'icone cheio' : 'icone'} aria-hidden="true" dangerouslySetInnerHTML={{ __html: OFICIAIS[nome] }} />;
 }

@@ -5,7 +5,7 @@
 .mencao-lista button.ativa { background: var(--im-superficie); } .mencao-nome { flex: 1; } .mencao-nome b { font-weight: 700; }
 .mencao-dica, .mencao-aviso { margin: 0; padding: var(--im-e3); font-size: 14px; color: var(--im-giz-2); }
 .mencao-aviso { color: var(--im-amarelo); }
-.chip-mencao { display: inline-block; padding: 0 7px; margin: 0 1px; height: 22px; line-height: 22px; border-radius: 6px; background: var(--im-superficie-alta); font-weight: 600; color: var(--im-giz); }
+.chip-mencao { text-decoration: none; min-height: 0; min-width: 0; display: inline-block; padding: 0 7px; margin: 0 1px; height: 22px; line-height: 22px; border-radius: 6px; background: var(--im-superficie-alta); font-weight: 600; color: var(--im-giz); }
 .chip-mencao.removida { background: none; color: var(--im-giz-3); font-weight: 400; padding: 0; }
 .texto-g .chip-mencao, .texto-m .chip-mencao { font-family: var(--im-fonte-display); font-weight: 700; height: auto; line-height: inherit; }
 .comentar { position: relative; }

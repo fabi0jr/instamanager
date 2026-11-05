@@ -54,13 +54,13 @@ test('destaque ignora acento e maiúscula e marca a palavra inteira', () => {
   expect(document.querySelector('b')).toBeNull();
 });
 
-test('pessoa com clube leva a /c/:clubeId e o torcedor fica sem link', async () => {
+test('toda pessoa (com clube ou torcedor) leva a /u/:id', async () => {
   fetchFalso({ 'GET /busca?q=fa&tipo=pessoas': { itens: [{ id: 'u1', nome: 'Fabio', avatarUrl: null, clube }, { id: 'u2', nome: 'Fabiana', avatarUrl: null, clube: null }], proximo: null } });
   render(<Busca />);
   fireEvent.click(screen.getByRole('tab', { name: 'Pessoas' }));
   digitar('fa');
   await screen.findByText('torcedor');
-  expect(screen.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/c/palmeiras']);
+  expect(screen.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/u/u1', '/u/u2']);
 });
 
 test('resultado de post troca a marca pelo nome do banco (mencoes) e nunca mostra o markup nem o nome forjado', async () => {

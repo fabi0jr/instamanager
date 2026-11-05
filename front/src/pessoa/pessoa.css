@@ -1,0 +1,12 @@
+/* Perfil do técnico (docs/design/pack3-onda-a.md §1) */
+.pessoa { max-width: 640px; margin: 0 auto; padding-bottom: var(--im-e6); display: flex; flex-direction: column; gap: var(--im-e3); }
+.voltar-pessoa { align-self: flex-start; width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; color: var(--im-giz); cursor: pointer; }
+.pessoa-topo { display: flex; flex-direction: column; align-items: center; gap: var(--im-e2); padding: 0 var(--im-e4); text-align: center; }
+.pessoa-topo h1 { font: 700 32px/36px var(--im-fonte-display); overflow-wrap: anywhere; }
+.secao-pessoa { font: 600 20px var(--im-fonte-display); padding: 0 var(--im-e4); margin-top: var(--im-e3); }
+.padrao-pessoa { padding: 0 var(--im-e4); }
+.passagens { list-style: none; margin: 0; padding: 0 var(--im-e4); display: flex; flex-direction: column; }
+.passagens li { display: flex; align-items: center; gap: var(--im-e3); min-height: 56px; } .passagens li > span { display: flex; flex-direction: column; }
+.passagens strong { font: 700 18px var(--im-fonte-display); }
+.pessoa .caixa-info { margin: 0 var(--im-e4); } .pessoa .mais-posts { width: auto; margin: 0 var(--im-e4); }
+@media (min-width: 768px) { .pessoa .grade-capas { grid-template-columns: repeat(3, 1fr); } }

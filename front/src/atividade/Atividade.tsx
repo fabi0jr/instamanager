@@ -60,7 +60,14 @@ function Linha({ i, nova }: { i: ItemAtividade; nova: boolean }) {
       {i.post && (i.post.miniUrl ? <img className="mini-ativ" src={i.post.miniUrl} alt="" width="44" height="44" /> : <span className="mini-ativ vazia" aria-hidden="true"><Icone nome="galeria" /></span>)}
     </>
   );
-  return <li>{para ? <Link para={para} className={`item-ativ ${nova ? 'nova' : ''}`}>{corpo}</Link> : <div className={`item-ativ ${nova ? 'nova' : ''}`}>{corpo}</div>}</li>;
+  const ator = i.tipo !== 'CBF_CITOU' && i.ator ? i.ator : null;
+  return (
+    <li className="li-ativ">
+      {para ? <Link para={para} className={`item-ativ ${nova ? 'nova' : ''}`}>{corpo}</Link> : <div className={`item-ativ ${nova ? 'nova' : ''}`}>{corpo}</div>}
+      {/* o avatar leva ao perfil do técnico; fica ao lado (não dentro) do link da linha */}
+      {ator && <Link para={`/u/${ator.id}`} className={`ativ-perfil ${nova ? 'nova' : ''}`} aria-label={`Perfil de ${ator.nome}`} />}
+    </li>
+  );
 }
 
 // /atividade: abrir marca tudo como lido, mas nesta visita os itens que chegaram novos continuam destacados
