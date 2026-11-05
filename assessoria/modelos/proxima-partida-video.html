@@ -1,0 +1,14 @@
+<style>
+  .comp { top: 80px; font-size: 30px; } .titulo { top: 140px; height: 160px; font-size: 160px; }
+  .vs { position: absolute; left: 0; right: 0; top: 820px; display: flex; align-items: center; justify-content: center; gap: 56px; font: 400 150px/1 Titulo; } .vs .escudo { height: 260px; }
+  .jogo { top: 1110px; font: 800 70px/1.1 Barlow; letter-spacing: .02em; } .estadio { top: 1200px; font: 400 40px Titulo; letter-spacing: .25em; } .quando { top: 1260px; font-size: 28px; }
+</style>
+<div class="fundo escuro"><img class="foto" src="{{foto}}"><div class="degrade-topo"></div><div class="degrade-base"></div></div>
+<div class="texto">
+  <div class="peq comp">{{competicao}} | {{rodadaOuFase}}</div>
+  <div class="t titulo" data-fit>PRÓXIMA PARTIDA</div>
+  <div class="vs"><img class="escudo" src="{{escudoMandante}}"><span>VS</span><img class="escudo" src="{{escudoVisitante}}"></div>
+  <div class="peq jogo" style="letter-spacing:.02em;color:#f2efe6" data-fit>{{nomeMandante}} VS {{nomeVisitante}}</div>
+  <div class="peq estadio" data-fit>{{estadio}}</div>
+  <div class="peq quando">{{quando}}</div>
+</div>

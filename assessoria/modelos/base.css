@@ -1,0 +1,19 @@
+@font-face { font-family: Titulo; src: url(__FONTES__/InstrumentSerif-Regular.ttf); }
+@font-face { font-family: Barlow; font-weight: 600; src: url(__BARLOW__/barlow-condensed-latin-600-normal.woff2); }
+@font-face { font-family: Barlow; font-weight: 700; src: url(__BARLOW__/barlow-condensed-latin-700-normal.woff2); }
+@font-face { font-family: Barlow; font-weight: 800; src: url(__BARLOW__/barlow-condensed-latin-800-normal.woff2); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1350px; overflow: hidden; background: #000; color: #f2efe6; font-family: Barlow, sans-serif; }
+.fundo, .texto { position: absolute; inset: 0; }
+.fundo img.foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.escuro img.foto { filter: grayscale(1) brightness(.62) contrast(1.1); }
+.degrade-topo { position: absolute; inset: 0; background: linear-gradient(#000 0, rgb(0 0 0 / .75) 18%, transparent 42%); }
+.degrade-base { position: absolute; inset: 0; background: linear-gradient(transparent 40%, rgb(0 0 0 / .85) 72%, #000 100%); }
+.t { position: absolute; left: 60px; width: 960px; text-align: center; white-space: nowrap; font-family: Titulo, serif; text-transform: uppercase; line-height: 1; -webkit-text-stroke: 2px currentColor; }
+.t.grande { font-size: 200px; }
+.peq { position: absolute; left: 60px; width: 960px; text-align: center; font: 600 30px Barlow; letter-spacing: .32em; text-transform: uppercase; color: #cfcbbf; white-space: nowrap; }
+.escudo { height: 150px; width: auto; }
+/* camadas do vídeo: o fundo e os textos saem em PNGs separados */
+body.camada-fundo .texto { display: none; }
+html:has(body.camada-texto), body.camada-texto { background: transparent; }
+body.camada-texto .fundo { display: none; }

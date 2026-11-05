@@ -1,0 +1,19 @@
+<style>
+  .fundo img.foto { left: 300px; width: 780px; filter: brightness(.85); object-position: 60% top; }
+  .lado { position: absolute; inset: 0; background: linear-gradient(90deg, #000 0, #000 30%, rgb(0 0 0 / .6) 52%, transparent 78%); }
+  .titulo { left: 60px; top: 60px; width: 960px; text-align: left; font-size: 190px; height: 200px; }
+  .lista { position: absolute; left: 60px; top: 300px; width: 560px; }
+  .lista div { width: 560px; margin-bottom: 4px; font: 800 52px/1.1 Barlow; text-transform: uppercase; white-space: nowrap; } .lista b { font-weight: 600; color: #cfcbbf; margin-right: .3em; }
+  .tecnico { position: absolute; left: 60px; top: 960px; font: 700 42px Barlow; letter-spacing: .08em; text-transform: uppercase; }
+  .reservas { position: absolute; left: 60px; top: 1030px; width: 560px; height: 150px; font: 600 24px/1.5 Barlow; text-transform: uppercase; color: #cfcbbf; }
+  .reservas span { white-space: nowrap; }
+  .escudos { position: absolute; left: 60px; top: 1200px; display: flex; gap: 22px; } .escudos img { height: 96px; }
+</style>
+<div class="fundo"><img class="foto" src="{{foto}}"><div class="lado"></div><div class="degrade-base" style="opacity:.6"></div></div>
+<div class="texto">
+  <div class="t titulo" data-fit>NOSSOS ONZE</div>
+  <div class="lista">{{{titulares}}}</div>
+  <div class="tecnico">{{tecnico}}</div>
+  <div class="reservas" data-fit>{{{reservas}}}</div>
+  <div class="escudos"><img src="{{escudoMandante}}"><img src="{{escudoVisitante}}"></div>
+</div>
