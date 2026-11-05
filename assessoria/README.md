@@ -28,9 +28,9 @@ Faltou campo ou clube desconhecido: erro dizendo qual campo, saída 1.
 
 ## Postar
 ```
-node assessoria/postar.mjs assessoria/saidas/<pasta> legenda.txt
+node assessoria/postar.mjs assessoria/saidas/<pasta>
 ```
-A pasta precisa estar dentro de `assessoria/saidas/`. Lê `arte.jpg` + `mini.jpg` (ou `video.mp4`) da pasta, monta o base64 e chama `postar_no_clube` no MCP por HTTP (initialize e tools/call). A legenda vai em arquivo para fugir das aspas do shell. Imprime o id do post; erro da ferramenta (`isError`) sai com código 1. Config no `.env` da raiz ou no ambiente: `ASSESSORIA_MCP_CHAVE` (a mesma do `MCP_CHAVE` do servidor; nunca é impressa) e `ASSESSORIA_MCP_URL` (padrão `https://instamanager.fj-dev.tech/mcp`).
+A pasta precisa estar dentro de `assessoria/saidas/` e ter `legenda.txt` (a legenda vem **sempre** daí: o comando não aceita outro arquivo nem segundo argumento) mais `arte.jpg` + `mini.jpg` ou `video.mp4`. Todo arquivo lido, inclusive pelo caminho real (link simbólico), tem de ficar em `saidas/`. O comando monta o base64 e chama `postar_no_clube` no MCP por HTTP (initialize e tools/call). Imprime o id do post; erro da ferramenta (`isError`) sai com código 1. Config no `.env` da raiz ou no ambiente: `ASSESSORIA_MCP_CHAVE` (a mesma do `MCP_CHAVE` do servidor; ASCII visível, sem espaços; nunca é impressa) e `ASSESSORIA_MCP_URL` (padrão `https://instamanager.fj-dev.tech/mcp`).
 
 ## Como funciona
 - `modelos/<formato>.html` + `modelos/base.css`: o modelo; `{{x}}` escapa, `{{{x}}}` é HTML montado no `gerar.mjs`.
