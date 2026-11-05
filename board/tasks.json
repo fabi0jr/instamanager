@@ -4349,7 +4349,7 @@
         "IM-62"
       ],
       "responsavel": "Ponta",
-      "coluna": "qa",
+      "coluna": "correcao",
       "historico": [
         {
           "quando": "2026-11-05T04:35:27.020Z",
@@ -4409,6 +4409,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 2dc9ee3; menor: remover(uid) tira todas as menções da pessoa (raro)"
+        },
+        {
+          "quando": "2026-11-05T05:38:36.627Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "correcao",
+          "nota": "QA: responder uma resposta manda parentId do raiz; deve mandar o id do comentário clicado (erro do plano, Task B4)"
         }
       ]
     },
