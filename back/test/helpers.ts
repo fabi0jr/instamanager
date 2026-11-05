@@ -14,7 +14,7 @@ export async function criarApp() {
   const modulo = await Test.createTestingModule({ imports: [AppModule] }).compile();
   const app = modulo.createNestApplication<NestExpressApplication>({ bodyParser: false });
   configureApp(app);
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', { exclude: ['mcp'] });
   await app.init();
   const prisma = app.get(PrismaService);
   const http = () => app.getHttpServer();

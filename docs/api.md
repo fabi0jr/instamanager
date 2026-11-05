@@ -125,6 +125,7 @@ Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver 
 | `POST /api/denuncias` | `{postId}` ou `{commentId}` (um só), `motivo?` (≤ 300) | `201 {id}` · `400` · `404` se não existe ou a pessoa não enxerga. Denúncia aberta repetida da mesma pessoa no mesmo alvo é ignorada: `201` com o `id` da que já existe. |
 | `GET /api/admin/denuncias?abertas=1&antes=` 👑 | — | `Pagina<{id, criadoEm, motivo\|null, resolvidaEm\|null, denunciante:{id,nome}, post:{id,legenda,texto,clubeId}\|null, comentario:{id,texto,postId}\|null}>`, 20 por página (cursor `antes`), mais novas primeiro. Com `abertas=1`, só as não resolvidas. |
 | `POST /api/admin/denuncias/:id/resolver` 👑 | — | `204` (idempotente) · `404` |
+| `GET /api/admin/mcp` 👑 | — | As 100 ações de escrita mais novas da CBF via MCP: `[{id, ferramenta, resumo, ok, erro\|null, criadaEm}]`. `resumo` é um texto curto montado no back por ferramenta (ex.: `rodada 12 · 10 placares`, `post: 'Começa a rodada…'`); a entrada em JSON fica só no banco (`McpAcao`, apagada após 60 dias). Ver `docs/mcp.md`. |
 | `GET /api/admin/convite` 👑 | — | `{codigo}` |
 | `PUT /api/admin/convite` 👑 | `{codigo}` (4 a 64 caracteres) | `{codigo}`, já sem espaços nas pontas e em maiúsculas. O código antigo para de valer. O cadastro não diferencia maiúsculas de minúsculas (nem espaços nas pontas). |
 | `POST /api/admin/clubes/:id/remover-tecnico` 👑 | — | `204`: fecha a tenure e deixa a pessoa como torcedora. |
@@ -274,6 +275,10 @@ Story: imagem, vídeo curto ou **texto** (1–200 caracteres, sem espaços nas p
 
 Story expirado não aparece em lista nenhuma e responde `404` em tudo; a limpeza horária apaga a linha e os arquivos (mp4, capa, imagem). O post de vídeo não entra na galeria (ela só lista imagens com prompt). **nginx:** `client_max_body_size 64m` e `proxy_read_timeout 120s` só em `/api/stories` e `POST /api/posts`; nas demais rotas o limite continua o de antes.
 
+## 4h. CBF via MCP (Task C2)
+
+`POST /mcp` (fora do `/api`, sem filtro de Origin): servidor MCP em JSON-RPC, sem sessão (`GET`/`DELETE` → `405`). Chave `Authorization: Bearer <MCP_CHAVE>`; sem `MCP_CHAVE` no ambiente o endpoint não existe (`404`); chave ausente ou errada → `401` com erro JSON-RPC; 30 tentativas por IP em 15 min (`429`). 11 ferramentas (6 de leitura, 5 de escrita como CBF); erro de negócio volta como resultado com `isError: true` e `"<codigo>: <mensagem>"`. Cada escrita deixa uma linha em `McpAcao`. Como conectar: `docs/mcp.md`.
+
 ## 5. Push (Task 7) 🔒
 
 | Rota | Corpo | Resposta |
@@ -290,6 +295,6 @@ Ver `back/prisma/schema.prisma`: `User`, `Session`, `PasswordReset`, `Club` (`co
 
 ## 7. Variáveis de ambiente
 
-`DATABASE_URL`, `APP_URL`, `INVITE_CODE` (valor inicial do convite, só no seed), `ADMIN_EMAIL`, `UPLOADS_DIR`, `RESEND_API_KEY`, `MAIL_FROM`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT` (Task 7).
+`DATABASE_URL`, `APP_URL`, `INVITE_CODE` (valor inicial do convite, só no seed), `ADMIN_EMAIL`, `UPLOADS_DIR`, `RESEND_API_KEY`, `MAIL_FROM`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT` (Task 7), `MCP_CHAVE` (vazio = MCP desligado).
 
 Em produção, atrás do Traefik/nginx: `TRUST_PROXY=1` (sem isso o rate limit enxerga o IP do proxy e conta todo mundo junto).
