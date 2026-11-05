@@ -102,3 +102,11 @@ test('postar vídeo: convertendo não tem Cancelar; 403 SEM_CLUBE mostra a mensa
   expect(await screen.findByText('Você não pode publicar agora')).toBeTruthy();
   expect(screen.queryByText('Não deu para publicar')).toBeNull();
 });
+
+// jsdom não aplica CSS: confere a regra no próprio arquivo (4:5 + cover para todo vídeo, antigo ou novo)
+test('o cartão de vídeo é 4:5 e a mídia usa object-fit: cover', async () => {
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync('src/stories/stories.css', 'utf8');
+  expect(css).toMatch(/\.video-card \{[^}]*aspect-ratio: 4 \/ 5/);
+  expect(css).toMatch(/\.video-card video, \.video-card > img \{[^}]*object-fit: cover/);
+});
