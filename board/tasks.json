@@ -4539,7 +4539,7 @@
       ],
       "depende": [],
       "responsavel": "Maestro",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T04:35:27.077Z",
@@ -4564,6 +4564,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": "ensaio no dump ok (2 migrações, 22 conquistas em silêncio, 0 post/atividade nova); backup pre-ondaB na VPS"
+        },
+        {
+          "quando": "2026-11-05T13:06:32.676Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "deploy c72e879 ok: CI verde (verificar, safari, implantar); versão c3a6e66d4a19; 22 conquistas semeadas em silêncio (0 post/atividade nova); sem erro no log do back"
+        },
+        {
+          "quando": "2026-11-05T13:06:32.698Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "deploy c72e879 ok: CI verde (verificar, safari, implantar); versão c3a6e66d4a19; 22 conquistas semeadas em silêncio (0 post/atividade nova); sem erro no log do back"
+        },
+        {
+          "quando": "2026-11-05T13:06:32.720Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "deploy c72e879 ok: CI verde (verificar, safari, implantar); versão c3a6e66d4a19; 22 conquistas semeadas em silêncio (0 post/atividade nova); sem erro no log do back"
         }
       ]
     }
