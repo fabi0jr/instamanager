@@ -26,6 +26,12 @@ Clubes por id do app (`botafogo`, `atletico-mg`…, veja `estadios.json`). `foto
 
 Faltou campo ou clube desconhecido: erro dizendo qual campo, saída 1.
 
+## Postar
+```
+node assessoria/postar.mjs assessoria/saidas/<pasta> legenda.txt
+```
+Lê `arte.jpg` + `mini.jpg` (ou `video.mp4`) da pasta, monta o base64 e chama `postar_no_clube` no MCP por HTTP (initialize e tools/call). A legenda vai em arquivo para fugir das aspas do shell. Imprime o id do post; erro da ferramenta (`isError`) sai com código 1. Config no `.env` da raiz ou no ambiente: `ASSESSORIA_MCP_CHAVE` (a mesma do `MCP_CHAVE` do servidor; nunca é impressa) e `ASSESSORIA_MCP_URL` (padrão `https://instamanager.fj-dev.tech/mcp`).
+
 ## Como funciona
 - `modelos/<formato>.html` + `modelos/base.css`: o modelo; `{{x}}` escapa, `{{{x}}}` é HTML montado no `gerar.mjs`.
 - `modelos/fit.js` roda no Chrome antes da captura e reduz a letra dos `[data-fit]` até caber (grava `data-fonte`/`data-cabe`; o teste lê isso).
