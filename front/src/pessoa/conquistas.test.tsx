@@ -114,3 +114,9 @@ test('ícones novos (nivel, trofeu, responder) seguem a regra 24/24 e aria-hidde
     expect(raiz).toMatch(/aria-hidden="true"/);
   }
 });
+
+test('CSS: no /perfil o card de nível não soma margem ao padding do .tela; a conquista ganha tem borda de 1,5px (1px + 0,5px de sombra)', () => {
+  const css = readFileSync('src/pessoa/pessoa.css', 'utf8');
+  expect(css).toMatch(/\.perfil \.nivel-selo \{ margin: 0; \}/);
+  expect(css).toMatch(/\.conq\.ganha \{ border: 1px solid var\(--im-gramado\); box-shadow: inset 0 0 0 \.5px var\(--im-gramado\)/);
+});

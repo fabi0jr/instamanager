@@ -113,3 +113,19 @@
 
 /* links de pessoa (/u/:id): o toque do avatar é o de 44 px do Avatar; o nome fica inline */
 .comentario .avatar-link { flex: none; display: block; } .comentario .nome-link { min-height: 0; min-width: 0; color: var(--im-giz); text-decoration: none; }
+
+/* Respostas na folha de comentários (docs/design/pack3-onda-b.md §4) */
+.threads, .respostas { list-style: none; margin: 0; padding: 0; }
+.threads { display: flex; flex-direction: column; gap: var(--im-e4); }
+.thread { padding-bottom: var(--im-e3); border-bottom: 1px solid var(--im-linha); } .thread:last-child { border-bottom: 0; }
+.thread > .comentario { padding-bottom: 0; border-bottom: 0; }
+.respostas { position: relative; margin-left: 40px; padding-top: var(--im-e3); display: flex; flex-direction: column; gap: var(--im-e3); }
+.respostas::before { content: ''; position: absolute; left: -24px; top: 0; bottom: var(--im-e2); width: 2px; background: var(--im-linha); }
+.comentario.resposta { padding-bottom: 0; border-bottom: 0; } .av28 { width: 28px; height: 28px; font-size: 12px; }
+.responder { min-height: 44px; min-width: 0; display: inline-flex; align-items: center; gap: var(--im-e1); margin: -14px 0; padding: 0 var(--im-e1); background: none; border: 0; color: var(--im-giz-2); font: 600 13px var(--im-fonte-texto); cursor: pointer; }
+.responder .icone svg { width: 16px; height: 16px; }
+.ver-mais { min-height: 44px; min-width: 0; padding: 0; background: none; border: 0; color: var(--im-giz-2); font: 600 13px var(--im-fonte-texto); cursor: pointer; }
+.respondendo { display: flex; align-items: center; gap: var(--im-e2); min-height: 40px; margin: 0 calc(-1 * var(--im-e4)); padding: 0 var(--im-e4); background: var(--im-superficie-alta); border-top: 1px solid var(--im-linha); font: 400 13px var(--im-fonte-texto); color: var(--im-giz-2); }
+.respondendo b { color: var(--im-giz); font-weight: 600; } .respondendo span { flex: 1; }
+.respondendo button { background: none; border: 0; color: var(--im-giz); display: grid; place-items: center; cursor: pointer; } .respondendo .icone svg { width: 16px; height: 16px; }
+.respondendo.erro { color: var(--im-vermelho-texto); } .respondendo.erro svg { color: var(--im-vermelho-texto); }
