@@ -16,7 +16,7 @@ async function entrar(api: APIRequestContext, email: string, nome: string, clube
 // Cria o técnico (palmeiras) e o admin, deixa a rodada 1 com um jogo agendado e prazo de palpite, e guarda a sessão do técnico.
 export default async function globalSetup(config: FullConfig) {
   const baseURL = config.projects[0].use.baseURL!;
-  const admin = await request.newContext({ baseURL });
+  const admin = await request.newContext({ baseURL, extraHTTPHeaders: { Origin: new URL(baseURL).origin } });
   await entrar(admin, ADMIN_EMAIL, 'Admin E2E', null);
   const jogos = await admin.put('/api/admin/rodadas/1/jogos', { data: { jogos: [{ mandanteId: 'palmeiras', visitanteId: 'flamengo', golsMandante: null, golsVisitante: null }] } });
   if (!jogos.ok()) throw new Error(`jogos: ${jogos.status()} ${await jogos.text()}`);
@@ -24,7 +24,7 @@ export default async function globalSetup(config: FullConfig) {
   if (!prazo.ok()) throw new Error(`prazo: ${prazo.status()} ${await prazo.text()}`);
   await admin.dispose();
 
-  const tecnico = await request.newContext({ baseURL });
+  const tecnico = await request.newContext({ baseURL, extraHTTPHeaders: { Origin: new URL(baseURL).origin } });
   await entrar(tecnico, TECNICO_EMAIL, 'Tecnico E2E', 'palmeiras');
   await tecnico.storageState({ path: '.auth/tecnico.json' });
   await tecnico.dispose();
