@@ -5,7 +5,7 @@ import { Escudo } from './Escudo';
 import { Folha } from './Folha';
 import { Texto } from './Texto';
 import { Autocompletar } from '../mencoes/Autocompletar';
-import { useMencoes } from '../mencoes/mencoes';
+import { useMencoes, type Mencao } from '../mencoes/mencoes';
 import { Alerta } from '../conta/ui';
 import { IcBandeira, IcFechar, IcLixo, IcMais, IcOlhoOff, IcResponder } from './icones';
 import { sigla } from './siglas';
@@ -14,7 +14,7 @@ import { Link } from '../rotas';
 
 type Item = Comentario & { estado?: 'enviando' | 'falhou' };
 const MUITAS = 3; // acima disso só as 2 últimas respostas ficam à vista (docs/design/pack3-onda-b.md §4)
-type Respondendo = { raiz: string; alvo: string; nome: string; erro?: boolean }; // `raiz` é o parentId enviado; `alvo` é o comentário clicado
+type Respondendo = { raiz: string; alvo: string; nome: string; uid: string; erro?: boolean }; // `raiz` é o parentId enviado; `alvo` é o comentário clicado
 
 function Avatar({ nome, url, pequeno }: { nome: string; url: string | null; pequeno?: boolean }) {
   const cl = pequeno ? 'av32 av28' : 'av32';
@@ -49,7 +49,7 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
 
   const mudar = (f: (l: Item[]) => Item[]) => setLista((l) => (Array.isArray(l) ? f(l) : l));
 
-  async function enviar(t: string, tmp?: string, parentId?: string | null, devolver?: string) {
+  async function enviar(t: string, tmp?: string, parentId?: string | null, devolver?: { texto: string; mapa: Mencao[] }) {
     const id = tmp ?? `tmp-${++seq.current}`;
     const novo: Item = { id, texto: t, parentId: parentId ?? null, criadoEm: new Date().toISOString(), usuario: { id: me.id, nome: me.nome, avatarUrl: me.avatarUrl, clube: me.clube }, estado: 'enviando' };
     mudar((l) => (tmp ? l.map((c) => (c.id === tmp ? novo : c)) : [...l, novo]));
@@ -61,7 +61,7 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
       if (parentId && e instanceof ErroApi && e.status === 400 && e.campos.includes('parentId')) { // o comentário respondido sumiu: a faixa vira erro e a resposta não fica pendurada
         mudar((l) => l.filter((c) => c.id !== id));
         setRespondendo((r) => (r ? { ...r, erro: true } : r));
-        if (devolver) setTexto(devolver); // o texto não se perde
+        if (devolver) { setTexto(devolver.texto); devolver.mapa.forEach(mencoes.registrar); } // o texto e as menções não se perdem
         return;
       }
       mudar((l) => l.map((c) => (c.id === id ? { ...c, estado: 'falhou' } : c)));
@@ -73,10 +73,10 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
     const guardado = mencoes.serializar(t);
     setTexto('');
     mencoes.limpar();
-    enviar(guardado, undefined, respondendo?.raiz, texto);
+    enviar(guardado, undefined, respondendo?.raiz, { texto, mapa: mencoes.mapa });
   }
   function responder(c: Item) {
-    setRespondendo({ raiz: c.parentId ?? c.id, alvo: c.id, nome: c.usuario.nome });
+    setRespondendo({ raiz: c.parentId ?? c.id, alvo: c.id, nome: c.usuario.nome, uid: c.usuario.id });
     mencoes.limpar();
     if (c.usuario.id === me.id) setTexto('');
     else { mencoes.registrar({ id: c.usuario.id, nome: c.usuario.nome }); setTexto(`@${c.usuario.nome} `); }
@@ -84,9 +84,11 @@ export function Comentarios({ postId, me, aoFechar, aoContar }: { postId: string
   }
   function cancelarResposta() {
     const alvo = respondendo?.alvo;
+    if (respondendo) { // tira só o '@Nome ' do início (e a menção dele); o resto do que a pessoa escreveu fica
+      const marca = `@${respondendo.nome} `;
+      if (texto.startsWith(marca) || texto === marca.trimEnd()) { setTexto(texto.slice(marca.length)); mencoes.remover(respondendo.uid); }
+    }
     setRespondendo(null);
-    setTexto('');
-    mencoes.limpar();
     requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-resp="${alvo}"]`)?.focus());
   }
   async function apagar(c: Item) {

@@ -114,6 +114,30 @@ test('raiz sumiu (400 em parentId): a faixa vira "Esse comentário não existe m
   expect(document.querySelectorAll('.comentario.resposta')).toHaveLength(0);
   fireEvent.click(within(alerta).getByRole('button', { name: 'Cancelar resposta' }));
   expect(screen.queryByRole('alert')).toBeNull();
+  expect(campo().value).toBe('oi'); // o ✕ tirou só o '@Marcos ' do início; o texto fica
+  expect(campo().placeholder).toBe('Comente como Lincoln');
+});
+
+test('✕ da resposta tira só o "@Nome " do início e a menção dele; o resto do texto fica e segue como comentário comum', async () => {
+  const chamadas = fetchFalso({ 'GET /posts/a/comentarios': [com('c1', 'Marcos', 'Raiz')], 'POST /posts/a/comentarios': { status: 201, corpo: com('c9', 'Lincoln', 'x') } });
+  abrir();
+  fireEvent.click(await screen.findByRole('button', { name: 'Responder a Marcos' }));
+  fireEvent.change(campo(), { target: { value: '@Marcos concordo totalmente' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Cancelar resposta' }));
+  expect(screen.queryByText(/Respondendo a/)).toBeNull();
+  expect(campo().value).toBe('concordo totalmente');
+  fireEvent.click(screen.getByRole('button', { name: 'Publicar' }));
+  await waitFor(() => expect(chamadas.some((c) => c.chave === 'POST /posts/a/comentarios')).toBe(true));
+  expect(JSON.parse(chamadas.find((c) => c.chave === 'POST /posts/a/comentarios')!.body as string)).toEqual({ texto: 'concordo totalmente' }); // sem menção nem parentId
+});
+
+test('✕ com o texto já sem o "@Nome " (a pessoa apagou) não corta nada', async () => {
+  fetchFalso({ 'GET /posts/a/comentarios': [com('c1', 'Marcos', 'Raiz')] });
+  abrir();
+  fireEvent.click(await screen.findByRole('button', { name: 'Responder a Marcos' }));
+  fireEvent.change(campo(), { target: { value: 'Marcos disse tudo' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Cancelar resposta' }));
+  expect(campo().value).toBe('Marcos disse tudo');
 });
 
 test('a folha continua um dialog no portal (<body>) com o campo dentro dela', async () => {
