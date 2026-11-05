@@ -1,5 +1,5 @@
 {
-  "proximoId": 59,
+  "proximoId": 67,
   "tarefas": [
     {
       "id": "IM-1",
@@ -4044,6 +4044,222 @@
           "de": "qa",
           "para": "concluido",
           "nota": "deploy feito"
+        }
+      ]
+    },
+    {
+      "id": "IM-59",
+      "titulo": "Hotfix · abas da Liga só rolam na horizontal",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "commit 6dcce1c"
+      ],
+      "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "concluido",
+      "historico": [
+        {
+          "quando": "2026-11-05T04:35:39.150Z",
+          "quem": "Maestro",
+          "nota": "registrada depois (hotfix já em produção)"
+        }
+      ]
+    },
+    {
+      "id": "IM-60",
+      "titulo": "Pack 3 B · design: nível, conquistas, respostas",
+      "tipo": "design",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-b.md"
+      ],
+      "depende": [],
+      "responsavel": "Prancheta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-05T04:35:26.902Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T04:35:48.163Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T04:35:48.249Z",
+          "quem": "PO",
+          "nota": "atribuída a Prancheta"
+        },
+        {
+          "quando": "2026-11-05T04:35:48.336Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-61",
+      "titulo": "Pack 3 B · back: XP, níveis e conquistas",
+      "tipo": "back",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-b.md"
+      ],
+      "depende": [],
+      "responsavel": "Volante",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-05T04:35:26.931Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T04:35:48.190Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T04:35:48.278Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-05T04:35:48.367Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-62",
+      "titulo": "Pack 3 B · back: responder comentário",
+      "tipo": "back",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-b.md"
+      ],
+      "depende": [],
+      "responsavel": "Volante",
+      "coluna": "pronto",
+      "historico": [
+        {
+          "quando": "2026-11-05T04:35:26.962Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T04:35:48.220Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T04:35:48.306Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        }
+      ]
+    },
+    {
+      "id": "IM-63",
+      "titulo": "Pack 3 B · front: nível e conquistas",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-b.md"
+      ],
+      "depende": [
+        "IM-60",
+        "IM-61"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-05T04:35:26.991Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-64",
+      "titulo": "Pack 3 B · front: responder comentário",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-b.md"
+      ],
+      "depende": [
+        "IM-60",
+        "IM-62"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-05T04:35:27.020Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-65",
+      "titulo": "Pack 3 B · Playwright WebKit no CI",
+      "tipo": "infra",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-b.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-05T04:35:27.048Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-66",
+      "titulo": "Pack 3 B · QA, ensaio e deploy",
+      "tipo": "qa",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-b.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-05T04:35:27.077Z",
+          "quem": "PO",
+          "nota": "criada"
         }
       ]
     }
