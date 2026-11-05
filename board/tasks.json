@@ -5477,7 +5477,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "revisao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T22:17:36.421Z",
@@ -5509,6 +5509,20 @@
           "de": "dev",
           "para": "revisao",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T22:35:33.906Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 8fe5dbd; IcSelo removido em 9e7c544; QA pelo teste e pela VAR"
+        },
+        {
+          "quando": "2026-11-05T22:35:33.931Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "VAR aprovou 8fe5dbd; IcSelo removido em 9e7c544; QA pelo teste e pela VAR"
         }
       ]
     },
