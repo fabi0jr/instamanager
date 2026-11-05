@@ -3697,7 +3697,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T22:28:27.092Z",
@@ -3736,6 +3736,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 53c928e"
+        },
+        {
+          "quando": "2026-11-05T04:01:23.728Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (005ed826af97)"
         }
       ]
     },
@@ -3750,7 +3757,7 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T22:28:27.116Z",
@@ -3784,6 +3791,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 987bf96+1507762+d39954d"
+        },
+        {
+          "quando": "2026-11-05T04:01:23.761Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (005ed826af97)"
         }
       ]
     },
@@ -3798,7 +3812,7 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T22:28:27.139Z",
@@ -3832,6 +3846,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 1e133af"
+        },
+        {
+          "quando": "2026-11-05T04:01:23.786Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (005ed826af97)"
         }
       ]
     },
@@ -3846,7 +3867,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T22:28:27.162Z",
@@ -3885,6 +3906,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 319af5c"
+        },
+        {
+          "quando": "2026-11-05T04:01:23.807Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (005ed826af97)"
         }
       ]
     },
@@ -3899,7 +3927,7 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T22:28:27.186Z",
@@ -3954,6 +3982,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 0bdc574"
+        },
+        {
+          "quando": "2026-11-05T04:01:23.831Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "no ar (005ed826af97)"
         }
       ]
     },
