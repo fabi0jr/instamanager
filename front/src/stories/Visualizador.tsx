@@ -7,7 +7,7 @@ import { IcFechar, IcLixo, IcOlho, IcVolume } from '../feed/icones';
 import { haQuanto } from '../feed/tipos';
 import { voltar } from '../rotas';
 import { ordenar } from './Faixa';
-import type { FaixaClube } from './tipos';
+import { tamanhoTexto, type FaixaClube } from './tipos';
 import './stories.css';
 
 const IMAGEM_MS = 5000;
@@ -86,12 +86,12 @@ export function Visualizador({ clubeId, me }: { clubeId: string; me: Me }) {
 
   // imagem: 5 s no relógio; vídeo: quem manda é o próprio vídeo (timeupdate/ended)
   useEffect(() => {
-    if (!story || story.tipo !== 'IMAGEM' || pausado || falhou) return;
+    if (!story || story.tipo === 'VIDEO' || pausado || falhou) return;
     const t = setInterval(() => setProg((p) => p + 50 / IMAGEM_MS), 50);
     return () => clearInterval(t);
   }, [story?.id, pausado, falhou]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (story?.tipo === 'IMAGEM' && prog >= 1) proximo();
+    if (story && story.tipo !== 'VIDEO' && prog >= 1) proximo();
   }, [prog]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const v = video.current;
@@ -168,7 +168,7 @@ export function Visualizador({ clubeId, me }: { clubeId: string; me: Me }) {
 
   return (
     <div
-      className={`visualizador ${segurando ? 'pausado' : ''} ${arrasto > 10 ? 'fechando' : ''}`}
+      className={`visualizador ${story.tipo === 'TEXTO' ? `fundo-${story.fundo ?? 'gramado'}` : ''} ${segurando ? 'pausado' : ''} ${arrasto > 10 ? 'fechando' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-label={`Story de ${faixa.clube.nome}`}
@@ -180,11 +180,13 @@ export function Visualizador({ clubeId, me }: { clubeId: string; me: Me }) {
       onClick={clicou}
     >
       {story.tipo === 'VIDEO' ? (
-        <video key={story.id} ref={video} className="midia" src={story.url} poster={story.capaUrl ?? undefined} playsInline muted autoPlay
+        <video key={story.id} ref={video} className="midia" src={story.url ?? undefined} poster={story.capaUrl ?? undefined} playsInline muted autoPlay
           onTimeUpdate={(e) => setProg(e.currentTarget.duration ? e.currentTarget.currentTime / e.currentTarget.duration : 0)}
           onEnded={proximo} onError={() => setFalhou(true)} />
+      ) : story.tipo === 'TEXTO' ? (
+        <p key={story.id} className={`vis-texto ${tamanhoTexto(story.texto?.length ?? 0)}`}>{story.texto}</p>
       ) : (
-        <img key={story.id} className="midia" src={story.url} alt={`Story de ${faixa.clube.nome}`} onError={() => setFalhou(true)} />
+        <img key={story.id} className="midia" src={story.url ?? undefined} alt={`Story de ${faixa.clube.nome}`} onError={() => setFalhou(true)} />
       )}
       {falhou && <div className="caixa-info vis-erro" role="alert" onClick={(e) => e.stopPropagation()}><h2>Não deu para abrir este story</h2><button type="button" className="botao" onClick={() => setFalhou(false)}>Tentar de novo</button></div>}
       <div className="vis-topo" onClick={(e) => e.stopPropagation()}>

@@ -8,6 +8,7 @@ import { CopaFase, CopaFases } from './Copa';
 import { Denuncias } from './Denuncias';
 import { Pedidos } from './Pedidos';
 import { RodadaEditar, RodadasLista } from './Rodadas';
+import { Mcp } from './Mcp';
 import { NovaVotacao, VotacoesAdmin } from './Votacoes';
 
 export const Topo = ({ titulo, voltar }: { titulo: string; voltar?: boolean }) => (
@@ -58,6 +59,7 @@ function Inicio() {
           {clubes && <span className="giz2">{clubes.com} de {clubes.total} com técnico</span>}
           <span aria-hidden="true">›</span>
         </Link>
+        <Link para="/admin/mcp" className="linha-config"><span>Ações da CBF via MCP</span><span aria-hidden="true">›</span></Link>
       </nav>
     </div>
   );
@@ -79,6 +81,7 @@ export function Admin({ me, caminho }: { me: Me; caminho: string }) {
   if (caminho === '/admin/copa') return <CopaFases />;
   const fase = caminho.match(/^\/admin\/copa\/([^/]+)$/);
   if (fase) return <CopaFase id={decodeURIComponent(fase[1])} />;
+  if (caminho === '/admin/mcp') return <Mcp />;
   if (caminho === '/admin/votacoes') return <VotacoesAdmin />;
   if (caminho === '/admin/votacoes/nova') return <NovaVotacao />;
   return <Inicio />;

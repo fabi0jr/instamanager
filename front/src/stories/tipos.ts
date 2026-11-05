@@ -1,6 +1,11 @@
 import type { ClubeMini } from '../api/cliente';
 
-export type Story = { id: string; tipo: 'IMAGEM' | 'VIDEO'; url: string; capaUrl: string | null; criadoEm: string; visto: boolean };
+export const FUNDOS = [['gramado', 'Gramado'], ['carvao', 'Carvão'], ['vermelho', 'Vermelho'], ['azul', 'Azul']] as const;
+export type Fundo = (typeof FUNDOS)[number][0];
+export const MAX_TEXTO = 200;
+// 3 faixas de tamanho por comprimento (design pack3-onda-c): texto longo a 30 px ainda cabe em 320 px
+export const tamanhoTexto = (n: number) => (n <= 60 ? 't56' : n <= 120 ? 't40' : 't30');
+export type Story = { id: string; tipo: 'IMAGEM' | 'VIDEO' | 'TEXTO'; url: string | null; texto?: string | null; fundo?: Fundo | null; capaUrl: string | null; criadoEm: string; visto: boolean };
 export type FaixaClube = { clube: ClubeMini; stories: Story[]; todosVistos: boolean };
 
 export const MAX_VIDEO_BYTES = 60 * 1024 * 1024;
