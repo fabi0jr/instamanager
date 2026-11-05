@@ -4659,7 +4659,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "revisao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T13:13:01.664Z",
@@ -4691,6 +4691,41 @@
           "de": "dev",
           "para": "revisao",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:28:22.614Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: normalizar CRLF antes de contar"
+        },
+        {
+          "quando": "2026-11-05T13:30:57.325Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "VAR aprovou o resto; fix CRLF 6c5ea94 (1 linha + teste) revisado pelo Maestro; sem tela"
+        },
+        {
+          "quando": "2026-11-05T13:30:57.357Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "VAR aprovou o resto; fix CRLF 6c5ea94 (1 linha + teste) revisado pelo Maestro; sem tela"
+        },
+        {
+          "quando": "2026-11-05T13:30:57.397Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou o resto; fix CRLF 6c5ea94 (1 linha + teste) revisado pelo Maestro; sem tela"
+        },
+        {
+          "quando": "2026-11-05T13:30:57.425Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "VAR aprovou o resto; fix CRLF 6c5ea94 (1 linha + teste) revisado pelo Maestro; sem tela"
         }
       ]
     },
