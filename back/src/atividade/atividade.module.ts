@@ -4,13 +4,13 @@ import { InteracoesModule } from '../interacoes/interacoes.module.js';
 import { PostsModule } from '../posts/posts.module.js';
 import { PushModule } from '../push/push.module.js';
 import { TrocasModule } from '../trocas/trocas.module.js';
-import { AtividadeController, PessoasController } from './atividade.controller.js';
+import { AtividadeController } from './atividade.controller.js';
 import { AtividadeListeners } from './atividade.listeners.js';
 import { AtividadeService } from './atividade.service.js';
 
 @Module({
   imports: [AuthModule, PostsModule, InteracoesModule, TrocasModule, PushModule],
-  controllers: [AtividadeController, PessoasController],
+  controllers: [AtividadeController],
   providers: [AtividadeService, AtividadeListeners],
   exports: [AtividadeService],
 })

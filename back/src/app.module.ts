@@ -5,6 +5,7 @@ import { AtividadeModule } from './atividade/atividade.module.js';
 import { BuscaModule } from './busca/busca.module.js';
 import { StoriesModule } from './stories/stories.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { ConquistasModule } from './conquistas/conquistas.module.js';
 import { ClubesController } from './clubes/clubes.controller.js';
 import { DenunciasModule } from './denuncias/denuncias.module.js';
 import { LigaModule } from './liga/liga.module.js';
@@ -19,5 +20,5 @@ import { PrismaModule } from './prisma.module.js';
 import { PushModule } from './push/push.module.js';
 import { TrocasModule } from './trocas/trocas.module.js';
 
-@Module({ imports: [PrismaModule, AuthModule, PostsModule, InteracoesModule, TrocasModule, AdminModule, PushModule, DenunciasModule, LigaModule, CopaModule, BolaoModule, VotacoesModule, OgModule, ErrosModule, AtividadeModule, BuscaModule, StoriesModule], controllers: [AppController, ClubesController] })
+@Module({ imports: [PrismaModule, AuthModule, PostsModule, InteracoesModule, TrocasModule, AdminModule, PushModule, DenunciasModule, LigaModule, CopaModule, BolaoModule, VotacoesModule, OgModule, ErrosModule, AtividadeModule, BuscaModule, StoriesModule, ConquistasModule], controllers: [AppController, ClubesController] })
 export class AppModule {}

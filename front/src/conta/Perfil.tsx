@@ -1,3 +1,4 @@
+import { SeloNivel, type Nivel } from '../pessoa/Conquistas';
 import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import { api, ErroApi, type ChavePush, type Me } from '../api/cliente';
 import { data } from '../clube/PerfilClube';
@@ -46,6 +47,7 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
   const [ok, setOk] = useState('');
   const [push, setPush] = useState(me.pushEnabled);
   const [mudando, setMudando] = useState<boolean | null>(null); // o que a pessoa acabou de pedir, até a resposta chegar
+  const [nivel, setNivel] = useState<Nivel | null>(null);
   const [trocas, setTrocas] = useState<Troca[]>([]);
   const [nomes, setNomes] = useState<Record<string, string>>({});
   const [prefs, setPrefs] = useState<Partial<Record<ChavePush, boolean>>>(me.pushPrefs ?? {});
@@ -55,7 +57,8 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
 
   useEffect(() => {
     api<Troca[]>('/trocas/minhas').then(setTrocas, () => {});
-  }, []);
+    api<{ nivel?: Nivel }>(`/pessoas/${me.id}`).then((p) => setNivel(p.nivel ?? null), () => {}); // o nível é complemento: falhou, o card some
+  }, [me.id]);
   const estado = estadoPush(push, ehIOS(), instalado());
   const ligado = mudando ?? estado === 'ligado';
   const subAvisos = estado === 'negado' ? 'Bloqueado neste aparelho. Toque para ver como liberar.' : estado === 'ios-sem-instalar' ? 'No iPhone, instale o app para receber avisos.' : estado === 'sem-suporte' ? 'Este aparelho não recebe avisos do navegador.' : 'Avisos de post novo e comentário';
@@ -175,6 +178,8 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
       <Linha titulo="Galeria de prompts" para="/galeria" />
       <Linha titulo="Votações" para="/liga?aba=votacoes" />
       <Linha titulo="Liga" para="/liga" />
+
+      {nivel && <SeloNivel nivel={nivel} para={`/u/${me.id}`} />}
 
       <p className="grupo giz2">Conta</p>
       <Linha titulo="Nome de exibição" sub={me.nome} aoClicar={() => { setNome(me.nome); setErroNome(''); setNomeAberto(true); }} />

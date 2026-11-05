@@ -5,12 +5,14 @@ import { BolaoService } from '../bolao/bolao.service.js';
 import { AtividadeService } from '../atividade/atividade.service.js';
 import { montarResumoCopa } from '../bot/zoeira.js';
 import { ApiError } from '../http.js';
-import { gols, lerPrazo } from '../liga/liga.service.js';
+import { gols } from '../liga/gols.js';
+import { lerPrazo } from '../liga/liga.service.js';
 import { PostsService } from '../posts/posts.service.js';
 import { UUID } from '../posts/cursor.js';
 import { PrismaService } from '../prisma.service.js';
 import { PushService } from '../push/push.service.js';
 import { achaEliminadoJogando, ladoVencedor, type PlacarCopa } from './copa.js';
+import { CopaEventos } from './copa.eventos.js';
 
 const MAX_JOGOS = 10; // 20 clubes
 const invalido = (msg: string, campo = 'jogos') => new ApiError(400, 'DADOS_INVALIDOS', msg, [campo]);
@@ -29,6 +31,7 @@ export class CopaService {
     private readonly push: PushService,
     private readonly atividade: AtividadeService,
     private readonly bolao: BolaoService,
+    private readonly eventos: CopaEventos,
   ) {}
 
   async chave() {
@@ -109,6 +112,7 @@ export class CopaService {
       await tx.copaFase.update({ where: { id }, data: { fechadaEm: new Date() } });
       return { fase, js };
     });
+    this.eventos.emit('copa.faseFechada', id);
     return this.previaDe(jogos.fase.nome, jogos.js, await this.bolao.reiDaFase(id));
   }
 

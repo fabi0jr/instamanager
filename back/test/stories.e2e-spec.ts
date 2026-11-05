@@ -58,6 +58,8 @@ describe('stories (e2e)', () => {
     vi.unstubAllEnvs();
     amostras.limpar();
     await prisma.story.deleteMany({ where: { autorId: { in: usuarios } } });
+    await new Promise((r) => setTimeout(r, 300)); // o primeiro story gera conquista: o post da CBF (do admin) sai solto, depois da resposta
+    await prisma.post.deleteMany({ where: { authorId: { in: usuarios } } });
     await prisma.user.deleteMany({ where: { id: { in: usuarios } } });
     await apagarClubesDeTeste(prisma, c);
     await rm(dir, { recursive: true, force: true });

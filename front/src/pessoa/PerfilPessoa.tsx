@@ -7,11 +7,12 @@ import { IcVoltar } from '../feed/icones';
 import { sigla } from '../feed/siglas';
 import type { Pagina, Post } from '../feed/tipos';
 import { voltar } from '../rotas';
+import { GradeConquistas, SeloNivel, type Conquista, type Nivel } from './Conquistas';
 import '../clube/clube.css';
 import './pessoa.css';
 
 type Passagem = { clube: ClubeMini; inicio: string; fim: string | null };
-type Pessoa = { id: string; nome: string; avatarUrl: string | null; clube: ClubeMini | null; historico: Passagem[]; posts: Pagina<Post> };
+type Pessoa = { id: string; nome: string; avatarUrl: string | null; clube: ClubeMini | null; historico: Passagem[]; posts: Pagina<Post>; nivel?: Nivel; conquistas?: Conquista[] };
 
 // /u/:id (docs/design/pack3-onda-a.md §1): perfil público do técnico. Sem e-mail em lugar nenhum.
 export function PerfilPessoa({ id }: { id: string }) {
@@ -74,6 +75,9 @@ export function PerfilPessoa({ id }: { id: string }) {
         {p.clube ? <span className="pilula" aria-label={`Clube ${p.clube.nome}`}><Escudo src={p.clube.escudoUrl} tam={16} />{sigla(p.clube.id)}</span> : <span className="giz2 legenda-s">Torcedor, sem clube</span>}
         {desde && <span className="giz2 legenda-s">técnico desde {data(desde)}</span>}
       </header>
+
+      {p.nivel && <SeloNivel nivel={p.nivel} />}
+      {p.conquistas && <GradeConquistas conquistas={p.conquistas} />}
 
       <h2 className="secao-pessoa">Clubes por onde passou</h2>
       {p.historico.length === 0 ? (

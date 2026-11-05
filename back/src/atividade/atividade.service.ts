@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { UserComClube } from '../auth/auth.service.js';
-import type { NotificacaoTipo } from '../generated/prisma/client.js';
+import { NOMES } from '../conquistas/regras.js';
+import type { ConquistaTipo, NotificacaoTipo } from '../generated/prisma/client.js';
 import { avisadosDaResposta } from '../interacoes/respostas.js';
 import { escaparLike } from '../like.js';
 import { comNomes, extrairMencoes, resolverMencoes } from '../mencoes.js';
@@ -18,7 +19,7 @@ const INDISPONIVEL = 'Post indisponível';
 const INDISPONIVEL_COMENTARIO = 'Comentário indisponível';
 const curto = (t: string) => (t.length > RESUMO_MAX ? `${t.slice(0, RESUMO_MAX - 1)}…` : t);
 
-type Extra = { atorId?: string; postId?: string; comentarioId?: string; votacaoId?: string; trocaId?: string };
+type Extra = { atorId?: string; postId?: string; comentarioId?: string; votacaoId?: string; trocaId?: string; conquistaTipo?: ConquistaTipo };
 
 @Injectable()
 export class AtividadeService {
@@ -103,6 +104,7 @@ export class AtividadeService {
           ator: n.ator && { id: n.ator.id, nome: n.ator.name, avatarUrl: n.ator.avatarPath },
           post: n.postId ? { id: n.postId, miniUrl: p?.images[0]?.thumbPath ?? p?.video?.capaPath ?? null, resumo: p ? resumoDe(p) : INDISPONIVEL } : null,
           votacao: n.votacao,
+          ...(n.tipo === 'CONQUISTA' && n.conquistaTipo && { conquista: { tipo: n.conquistaTipo, nome: NOMES[n.conquistaTipo] } }),
           ...(comTexto(n) && { comentario: n.comentario && { id: n.comentario.id, resumo: curto(comentarioVisivel(n) !== null ? comNomes(comentarioVisivel(n)!, nomes) : INDISPONIVEL_COMENTARIO) } }),
           // clube = o que ela queria assumir (null no pedido de sair); itens antigos sem pedido ligado ficam com troca null
           ...(n.tipo === 'TROCA_DECIDIDA' && { troca: n.troca && n.troca.status !== 'PENDENTE' ? { status: n.troca.status, clube: n.troca.club && { id: n.troca.club.id, nome: n.troca.club.name, escudoUrl: n.troca.club.crestPath } } : null }),

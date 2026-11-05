@@ -10,3 +10,14 @@
 .passagens strong { font: 700 18px var(--im-fonte-display); }
 .pessoa .caixa-info { margin: 0 var(--im-e4); } .pessoa .mais-posts { width: auto; margin: 0 var(--im-e4); }
 @media (min-width: 768px) { .pessoa .grade-capas { grid-template-columns: repeat(3, 1fr); } }
+
+/* Nível e conquistas (docs/design/pack3-onda-b.md §1 e §2) */
+.nivel-selo { display: flex; flex-direction: column; gap: var(--im-e2); margin: 0 var(--im-e4); padding: var(--im-e4); background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: var(--im-r-midia); color: var(--im-giz); text-decoration: none; }
+.nivel-linha { display: flex; align-items: center; gap: var(--im-e2); } .nivel-nome { font: 700 24px var(--im-fonte-display); } .nivel-xp { margin-left: auto; font: 600 20px var(--im-fonte-display); }
+.nivel-trilho { height: 8px; border-radius: 4px; background: var(--im-superficie-alta); overflow: hidden; } .nivel-cheio { height: 100%; background: var(--im-gramado); }
+.conquistas { list-style: none; margin: 0; padding: 0 var(--im-e4); display: grid; grid-template-columns: 1fr 1fr; gap: var(--im-e2); }
+.conq { position: relative; display: flex; flex-direction: column; gap: 2px; min-height: 96px; padding: var(--im-e3); background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: var(--im-r-midia); color: var(--im-giz-3); }
+.conq .conq-nome { font: 600 14px var(--im-fonte-texto); color: var(--im-giz-2); }
+.conq.ganha { border: 1.5px solid var(--im-gramado); color: var(--im-gramado); } .conq.ganha .conq-nome { color: var(--im-giz); }
+.conq-vezes { position: absolute; top: var(--im-e3); right: var(--im-e3); min-width: 28px; height: 22px; padding: 0 var(--im-e1); display: grid; place-items: center; border-radius: var(--im-r-pilula); background: var(--im-superficie-alta); color: var(--im-giz); font: 700 16px var(--im-fonte-display); }
+@media (min-width: 768px) { .conquistas { grid-template-columns: repeat(3, 1fr); } }
