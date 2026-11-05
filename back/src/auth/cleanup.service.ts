@@ -35,7 +35,7 @@ export class CleanupService implements OnModuleInit, OnModuleDestroy {
         await this.prisma.story.deleteMany({ where: { id: { in: vencidos.map((s) => s.id) } } });
         await Promise.all(vencidos.flatMap((s) => [s.path, s.capaPath]).flatMap((p) => (p ? [apagarImagem(p)] : [])));
       }
-      if (sessoes.count + links.count + velhas.count + acoesMcp.count + vencidos.length > 0) this.logger.log(`limpeza: ${sessoes.count} sessões, ${links.count} links, ${velhas.count} avisos, ${vencidos.length} stories`);
+      if (sessoes.count + links.count + velhas.count + acoesMcp.count + vencidos.length > 0) this.logger.log(`limpeza: ${sessoes.count} sessões, ${links.count} links, ${velhas.count} avisos, ${acoesMcp.count} ações MCP, ${vencidos.length} stories`);
     } catch (erro) {
       this.logger.warn(`limpeza falhou: ${String(erro)}`);
     }

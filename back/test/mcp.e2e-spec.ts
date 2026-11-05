@@ -106,9 +106,11 @@ describe('mcp: CBF via MCP (e2e)', () => {
   afterAll(async () => {
     await prisma.mcpAcao.deleteMany({ where: { createdAt: { gte: inicio } } });
     await prisma.copaFase.deleteMany({ where: { id: faseId } });
-    await new Promise((r) => setTimeout(r, 300)); // push/bot dos posts e stories saem depois da resposta
+    await new Promise((r) => setTimeout(r, 800)); // push/bot dos posts e stories e os anúncios de conquista saem depois da resposta
     await prisma.story.deleteMany({ where: { texto: { startsWith: 'mcp-' } } });
     await prisma.post.deleteMany({ where: { texto: { startsWith: 'mcp-' } } });
+    // num banco sem admin anterior o admin do teste vira o autor dos anúncios de conquista: apaga esses posts antes dos usuários
+    await prisma.post.deleteMany({ where: { authorId: { in: usuarios } } });
     await prisma.user.deleteMany({ where: { id: { in: usuarios } } });
     await apagarClubesDeTeste(prisma, c);
     await app.close();
