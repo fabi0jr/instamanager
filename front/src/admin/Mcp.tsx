@@ -4,7 +4,7 @@ import { Icone } from '../feed/icones';
 import { haQuanto } from '../feed/tipos';
 import { Topo } from './Admin';
 
-type Acao = { id: string; ferramenta: string; entrada: string; ok: boolean; erro: string | null; criadaEm: string };
+type Acao = { id: string; ferramenta: string; resumo: string; ok: boolean; erro: string | null; criadaEm: string };
 
 // /admin/mcp: as 100 ações mais novas da CBF via MCP (shortcut: sem rolagem infinita, o back não pagina; só lista, tocar não abre nada)
 export function Mcp() {
@@ -37,7 +37,7 @@ export function Mcp() {
                 {/* sem ícone de alerta no conjunto: o X (fechar) + a palavra "erro" marcam a falha */}
                 <span className={a.ok ? 'selo-ok' : 'selo-erro'}><Icone nome={a.ok ? 'ok' : 'fechar'} />{a.ok ? 'ok' : 'erro'}</span>
               </div>
-              <span className="entrada giz2 legenda-s">{a.entrada}</span>
+              <span className="entrada giz2 legenda-s">{a.resumo}</span>
               {!a.ok && a.erro && <span className="msg-erro">{a.erro}</span>}
               <span className="giz3 legenda-s">{haQuanto(a.criadaEm)}</span>
             </li>

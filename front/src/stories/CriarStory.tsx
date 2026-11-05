@@ -7,7 +7,7 @@ import { comprimir, ErroImagem } from '../postar/comprimir';
 import { ComoCbf } from '../postar/ComoCbf';
 import { enviarForm } from '../postar/enviar';
 import { Link, navegar, useBusca } from '../rotas';
-import { codigoDeVideo, duracaoDoArquivo, ERROS_VIDEO, FUNDOS, MAX_TEXTO, MAX_VIDEO_BYTES, MAX_VIDEO_S, mb, mmss, tamanhoTexto, type CodigoVideo, type Fundo } from './tipos';
+import { codigoDeVideo, duracaoDoArquivo, ERROS_VIDEO, FUNDOS, MAX_LINHAS, MAX_TEXTO, MAX_VIDEO_BYTES, MAX_VIDEO_S, mb, mmss, nLinhas, tamanhoTexto, type CodigoVideo, type Fundo } from './tipos';
 import './stories.css';
 
 type Midia = { tipo: 'foto' | 'video'; blob: Blob; url: string; nome: string; duracao?: number };
@@ -22,6 +22,7 @@ export function CriarStory({ me }: { me: Me }) {
   const [cbf, setCbf] = useState(!me.clube || doAdmin);
   const [texto, setTexto] = useState('');
   const [fundo, setFundo] = useState<Fundo>('gramado');
+  const [ocupado, setOcupado] = useState(false);
   const [pct, setPct] = useState({ carregado: 0, total: 0 });
   const cancelar = useRef<(() => void) | null>(null);
   const url = useRef<string | null>(null);
@@ -75,7 +76,8 @@ export function CriarStory({ me }: { me: Me }) {
     if (ehTexto) { f.append('texto', texto.trim()); f.append('fundo', fundo); }
     else if (midia!.tipo === 'foto') f.append('imagem', midia!.blob, 'story.jpg');
     else f.append('video', midia!.blob, midia!.nome);
-    setFase('enviando');
+    if (ehTexto) setOcupado(true); // texto: o botão vira 'Publicando…' e o campo trava, sem a caixa de %/MB
+    else setFase('enviando');
     setPct({ carregado: 0, total: 0 });
     const { promessa, cancelar: abortar } = enviarForm('/api/stories', f, (carregado, total) => {
       setPct({ carregado, total });
@@ -85,6 +87,7 @@ export function CriarStory({ me }: { me: Me }) {
     promessa.then(
       () => { guardarAviso('Story publicado'); navegar('/'); },
       (e) => {
+        setOcupado(false);
         if (e.codigo === 'CANCELADO') return;
         const v = midia?.tipo === 'video' ? codigoDeVideo(e.status, e.codigo) : null;
         if (ehTexto && e.status !== 403) setErro({ titulo: 'Não deu para publicar o story', texto: 'Confira a conexão e tente de novo. O texto continua aí.', acao: 'tentar' });
@@ -129,19 +132,20 @@ export function CriarStory({ me }: { me: Me }) {
       )}
       {fase === 'texto' && (
         <>
-          <div className={`previa-texto fundo-${fundo}`}><p className={texto ? tamanhoTexto(texto.length) : 'vazio'}>{texto || 'O que você quer dizer?'}</p></div>
-          <textarea className="campo-story" aria-label="Texto do story" aria-describedby="contador-story" rows={3} maxLength={MAX_TEXTO} placeholder="O que você quer dizer?" value={texto} onChange={(e) => setTexto(e.target.value.slice(0, MAX_TEXTO))} />
-          <span id="contador-story" aria-live="polite" className={`contador ${texto.length >= MAX_TEXTO ? 'cheio' : texto.length >= 180 ? 'perto' : ''}`}>{texto.length}/{MAX_TEXTO}</span>
+          <div className={`previa-texto fundo-${fundo}`}><p className={texto ? tamanhoTexto(texto) : 'vazio'}>{texto || 'O que você quer dizer?'}</p></div>
+          <textarea className="campo-story" aria-label="Texto do story" aria-describedby="contador-story" rows={3} maxLength={MAX_TEXTO} disabled={ocupado} placeholder="O que você quer dizer?" value={texto} onChange={(e) => { const v = e.target.value.slice(0, MAX_TEXTO); if (nLinhas(v) <= MAX_LINHAS) setTexto(v); }} />
+          <span className="sr" aria-live="polite">{texto.length >= MAX_TEXTO ? 'Limite de 200 caracteres' : texto.length >= 180 ? 'Faltam 20 caracteres' : ''}</span>
+          <span id="contador-story" className={`contador ${texto.length >= MAX_TEXTO ? 'cheio' : texto.length >= 180 ? 'perto' : ''}`}>{texto.length}/{MAX_TEXTO}</span>
           <div className="fundos" role="radiogroup" aria-label="Fundo">
             {FUNDOS.map(([id, nome]) => (
-              <button key={id} type="button" role="radio" aria-checked={fundo === id} tabIndex={fundo === id ? 0 : -1} className={`fundo-${id}`} onClick={() => setFundo(id)}
-                onKeyDown={(e) => { const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (d) { e.preventDefault(); const n = FUNDOS[(FUNDOS.findIndex(([k]) => k === fundo) + d + FUNDOS.length) % FUNDOS.length][0]; setFundo(n); (e.currentTarget.parentElement?.querySelector(`.fundo-${n}`) as HTMLElement | null)?.focus(); } }}>
+              <button key={id} type="button" role="radio" aria-checked={fundo === id} disabled={ocupado} tabIndex={fundo === id ? 0 : -1} className={`fundo-${id}`} onClick={() => setFundo(id)}
+                onKeyDown={(e) => { const d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0; if (d) { e.preventDefault(); const n = FUNDOS[(FUNDOS.findIndex(([k]) => k === fundo) + d + FUNDOS.length) % FUNDOS.length][0]; setFundo(n); (e.currentTarget.parentElement?.querySelector(`.fundo-${n}`) as HTMLElement | null)?.focus(); } }}>
                 <i>{fundo === id && <Icone nome="ok" />}</i>{nome}
               </button>
             ))}
           </div>
           <ComoCbf me={me} ligado={cbf} aoMudar={setCbf} fixo={!me.clube} />
-          <div className="acao-fixa"><Botao disabled={!texto.trim()} onClick={publicar}>Publicar story</Botao></div>
+          <div className="acao-fixa"><Botao disabled={!texto.trim()} carregando={ocupado ? 'Publicando…' : undefined} onClick={publicar}>Publicar story</Botao></div>
         </>
       )}
       {midia && fase !== 'escolher' && fase !== 'texto' && !erro && (

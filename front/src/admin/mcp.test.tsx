@@ -5,7 +5,7 @@ import { fetchFalso } from '../testes/fetchFalso';
 import { Admin } from './Admin';
 
 const admin: Me = { id: 'a', nome: 'Adm', email: 'a@x.com', avatarUrl: null, isAdmin: true, pushEnabled: false, clube: null };
-const acao = (id: string, extra = {}) => ({ id, ferramenta: 'criar_post', entrada: 'texto: Bora', ok: true, erro: null, criadaEm: new Date().toISOString(), ...extra });
+const acao = (id: string, extra = {}) => ({ id, ferramenta: 'criar_post', resumo: 'texto: Bora', ok: true, erro: null, criadaEm: new Date().toISOString(), ...extra });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 test('início do admin tem a linha "Ações da CBF via MCP" para /admin/mcp', async () => {
@@ -15,7 +15,7 @@ test('início do admin tem a linha "Ações da CBF via MCP" para /admin/mcp', as
 });
 
 test('log lista ok e erro com palavra, ferramenta e mensagem', async () => {
-  fetchFalso({ 'GET /admin/mcp': [acao('1'), acao('2', { ferramenta: 'lancar_placares', entrada: 'rodada 12', ok: false, erro: 'Rodada fechada' })] });
+  fetchFalso({ 'GET /admin/mcp': [acao('1'), acao('2', { ferramenta: 'lancar_placares', resumo: 'rodada 12', ok: false, erro: 'Rodada fechada' })] });
   render(<Admin me={admin} caminho="/admin/mcp" />);
   const itens = await screen.findAllByRole('listitem');
   expect(itens).toHaveLength(2);

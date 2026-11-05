@@ -46,7 +46,7 @@
 .vis-texto, .previa-texto p { margin: 0; padding: 0 32px; max-width: 100%; box-sizing: border-box; text-align: center; white-space: pre-wrap; text-wrap: balance; overflow-wrap: anywhere; font: 800 56px/1.1 var(--im-fonte-display); }
 .vis-texto.t40 { font-size: 40px; } .vis-texto.t30 { font-size: 30px; }
 .fundo-gramado .vis-texto { color: var(--im-carvao); } .fundo-carvao .vis-texto, .fundo-vermelho .vis-texto, .fundo-azul .vis-texto { color: var(--im-giz); }
-.vis-texto { padding-top: 96px; } /* abaixo da barra de progresso e do fechar */
+.vis-texto { box-sizing: border-box; max-height: 100%; padding: calc(env(safe-area-inset-top) + 96px) 32px calc(env(safe-area-inset-bottom) + 72px); } /* fora da barra de progresso, do fechar e do 'Visto por' */
 
 .previa-texto { align-self: center; width: 180px; height: 320px; border-radius: 12px; display: grid; place-items: center; overflow: hidden; }
 .previa-texto p { padding: 0 16px; font-size: 28px; } .previa-texto p.t40 { font-size: 20px; } .previa-texto p.t30 { font-size: 15px; } .previa-texto p.vazio { color: inherit; opacity: .7; font-weight: 500; }

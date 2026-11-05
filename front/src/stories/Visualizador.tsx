@@ -184,7 +184,7 @@ export function Visualizador({ clubeId, me }: { clubeId: string; me: Me }) {
           onTimeUpdate={(e) => setProg(e.currentTarget.duration ? e.currentTarget.currentTime / e.currentTarget.duration : 0)}
           onEnded={proximo} onError={() => setFalhou(true)} />
       ) : story.tipo === 'TEXTO' ? (
-        <p key={story.id} className={`vis-texto ${tamanhoTexto(story.texto?.length ?? 0)}`}>{story.texto}</p>
+        <p key={story.id} className={`vis-texto ${tamanhoTexto(story.texto ?? '')}`}>{story.texto}</p>
       ) : (
         <img key={story.id} className="midia" src={story.url ?? undefined} alt={`Story de ${faixa.clube.nome}`} onError={() => setFalhou(true)} />
       )}

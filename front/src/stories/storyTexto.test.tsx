@@ -59,7 +59,8 @@ test('contador chega a 200 e o campo não aceita mais', () => {
   expect(campo().maxLength).toBe(200);
   digitar('a'.repeat(200));
   expect(screen.getByText('200/200')).toBeTruthy();
-  expect(screen.getByText('200/200').closest('[aria-live]')).toBeTruthy();
+  expect(screen.getByText('Limite de 200 caracteres').getAttribute('aria-live')).toBe('polite'); // só o aviso é anunciado, não cada tecla
+  expect(screen.getByText('200/200').closest('[aria-live]')).toBeNull();
   digitar('a'.repeat(205)); // colar além do limite é cortado
   expect(campo().value).toHaveLength(200);
 });
@@ -83,6 +84,19 @@ test('erro do servidor mantém o texto no campo e oferece tentar de novo', async
   expect(screen.getByRole('button', { name: 'Tentar de novo' })).toBeTruthy();
 });
 
+test('o campo não aceita a 9ª linha; seta para baixo troca o fundo; enviando trava o campo', async () => {
+  abrirTexto();
+  digitar('1\n2\n3\n4\n5\n6\n7\n8');
+  digitar('1\n2\n3\n4\n5\n6\n7\n8\n9');
+  expect(campo().value).toBe('1\n2\n3\n4\n5\n6\n7\n8');
+  fireEvent.keyDown(screen.getByRole('radio', { name: 'Gramado' }), { key: 'ArrowDown' });
+  expect(screen.getByRole('radio', { name: 'Carvão' }).getAttribute('aria-checked')).toBe('true');
+  fireEvent.click(screen.getByRole('button', { name: 'Publicar story' }));
+  expect(await screen.findByRole('button', { name: /Publicando/ })).toBeTruthy();
+  expect(campo().disabled).toBe(true);
+  expect(screen.queryByRole('progressbar')).toBeNull();
+});
+
 const faixa = (texto: string, fundo: string): FaixaClube[] => [{ clube: { id: 'vasco', nome: 'vasco', escudoUrl: '' }, todosVistos: false, stories: [{ id: 'a', tipo: 'TEXTO', url: null, texto, fundo, capaUrl: null, criadoEm: '2026-11-04T10:00:00Z', visto: false }] as unknown as FaixaClube['stories'] }];
 const abrirVis = async (texto: string, fundo: string) => {
   fetchFalso({ 'GET /stories': faixa(texto, fundo), 'PUT /stories/a/visto': { status: 204 } });
@@ -97,7 +111,7 @@ test('visualizador mostra o texto como <p> com quebras de linha e a classe do fu
 });
 
 // Review Focus 5: texto longo cabe em 320 px porque o tamanho cai em 3 faixas
-test.each([['a'.repeat(60), 't56'], ['a'.repeat(61), 't40'], ['a'.repeat(120), 't40'], ['a'.repeat(121), 't30'], ['a'.repeat(200), 't30']])('tamanho do texto de %#: %s', async (texto, classe) => {
+test.each([['1\n2\n3\n4', 't40'], ['1\n2\n3\n4\n5\n6\n7\n8', 't30'], ['a\nb\nc', 't56'], ['a'.repeat(100) + '\n\n\n\n', 't40'], ['a'.repeat(60), 't56'], ['a'.repeat(61), 't40'], ['a'.repeat(120), 't40'], ['a'.repeat(121), 't30'], ['a'.repeat(200), 't30']])('tamanho do texto de %#: %s', async (texto, classe) => {
   const p = await abrirVis(texto, 'gramado');
   expect(p.classList.contains(classe)).toBe(true);
 });
