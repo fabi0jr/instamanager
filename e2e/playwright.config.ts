@@ -10,6 +10,7 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:5173',
     storageState: '.auth/tecnico.json',
+    extraHTTPHeaders: { Origin: 'http://localhost:5173' }, // o back recusa POST sem Origin (os specs usam page.request)
     trace: 'retain-on-failure',
   },
   projects: [{ name: 'webkit', use: { ...devices['iPhone 13'] } }],
