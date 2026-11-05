@@ -21,7 +21,7 @@ export class AtividadeListeners implements OnModuleInit {
 
   onModuleInit() {
     this.ouvir(this.interacoes, 'reacoes.reagida', (postId: string, userId: string) => this.atividade.reacao(postId, userId));
-    this.ouvir(this.interacoes, 'comentarios.criado', (id: string) => this.atividade.comentario(id));
+    this.ouvir(this.interacoes, 'comentarios.criado', (id: string, alvoId?: string) => this.atividade.comentario(id, alvoId));
     this.ouvir(this.posts, 'posts.criado', (id: string) => this.postTexto(id));
     this.ouvir(this.posts, 'posts.editado', (id: string) => this.postTexto(id));
     this.ouvir(this.trocas, 'trocas.decidida', (id: string) => this.trocaDecidida(id));

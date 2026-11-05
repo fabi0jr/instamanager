@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import type { EventEmitter } from 'node:events';
 import { InteracoesEventos } from '../interacoes/interacoes.eventos.js';
+import { avisadosDaResposta } from '../interacoes/respostas.js';
 import { PostsEventos } from '../posts/posts.eventos.js';
 import { PrismaService } from '../prisma.service.js';
 import { TrocasEventos } from '../trocas/trocas.eventos.js';
@@ -21,13 +22,13 @@ export class PushListeners implements OnModuleInit {
 
   onModuleInit() {
     this.ouvir(this.posts, 'posts.criado', (id) => this.postNovo(id));
-    this.ouvir(this.interacoes, 'comentarios.criado', (id) => this.comentario(id));
+    this.ouvir(this.interacoes, 'comentarios.criado', (id, alvoId) => this.comentario(id, alvoId));
     this.ouvir(this.trocas, 'trocas.pedida', (id) => this.trocaPedida(id));
     this.ouvir(this.trocas, 'trocas.decidida', (id) => this.trocaDecidida(id));
   }
 
-  private ouvir(origem: EventEmitter, evento: string, tratar: (id: string) => Promise<void>) {
-    origem.on(evento, (id: string) => void tratar(id).catch((e: unknown) => this.logger.error(`${evento}: ${String(e)}`)));
+  private ouvir(origem: EventEmitter, evento: string, tratar: (id: string, alvoId?: string) => Promise<void>) {
+    origem.on(evento, (id: string, alvoId?: string) => void tratar(id, alvoId).catch((e: unknown) => this.logger.error(`${evento}: ${String(e)}`)));
   }
 
   private async postNovo(id: string) {
@@ -38,11 +39,16 @@ export class PushListeners implements OnModuleInit {
     await this.push.enviar(todos.map((u) => u.id), msg, p.club.oficial ? 'cbf' : 'posts');
   }
 
-  private async comentario(id: string) {
+  /** Resposta: quem recebe RESPOSTA (autor do raiz e do alvo) é avisado como "Nova resposta"; o técnico, se não for um deles, segue com "Novo comentário". */
+  private async comentario(id: string, alvoId?: string) {
     const c = await this.prisma.comment.findUnique({ where: { id }, include: { user: true, post: { include: { club: true } } } });
-    const tecnico = c?.post.club.coachId;
-    if (!c || !tecnico || tecnico === c.userId) return;
-    await this.push.enviar([tecnico], { titulo: 'Novo comentário', corpo: `${c.user.name}: ${c.text.slice(0, 80)}`, url: `/p/${c.postId}` }, 'comentarios');
+    if (!c) return;
+    const corpo = `${c.user.name}: ${c.text.slice(0, 80)}`;
+    const url = `/p/${c.postId}`;
+    const respondidos = await avisadosDaResposta(this.prisma, c, alvoId);
+    await this.push.enviar(respondidos, { titulo: 'Nova resposta', corpo, url }, 'comentarios');
+    const tecnico = c.post.club.coachId;
+    if (tecnico && tecnico !== c.userId && !respondidos.includes(tecnico)) await this.push.enviar([tecnico], { titulo: 'Novo comentário', corpo, url }, 'comentarios');
   }
 
   private async trocaPedida(id: string) {
