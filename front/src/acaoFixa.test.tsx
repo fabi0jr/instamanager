@@ -25,6 +25,8 @@ const ROTAS: { caminho: string; api: Record<string, unknown>; abrir?: () => Prom
     abrir: async () => fireEvent.click(await screen.findByRole('button', { name: 'Publicar resumo' })),
   },
   { caminho: '/admin/votacoes/nova', api: { 'GET /clubes': [clube] } },
+  { caminho: '/admin/copa/f1', api: { 'GET /copa': [{ fase: { id: 'f1', nome: 'Oitavas', ordem: 1, prazoPalpite: null, fechada: false }, jogos: [] }], 'GET /clubes': [clube] } },
+  { caminho: '/liga?aba=bolao', api: { 'GET /liga/tabela': [], 'GET /liga/rodadas': [{ numero: 1, fechada: false, jogos: [jogo] }], 'GET /copa': [], 'GET /bolao/meus?rodada=1': [] } },
   { caminho: '/votacoes/v1', api: { 'GET /votacoes/v1': votacao } },
   { caminho: '/postar', api: {}, edicao: true },
   { caminho: '/p/p1/editar', api: { 'GET /posts/p1': post }, edicao: true },

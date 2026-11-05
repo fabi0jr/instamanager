@@ -5,13 +5,14 @@ import { IcOk } from '../feed/icones';
 import { Link, navegar, useBusca } from '../rotas';
 import { ListaVotacoes } from '../votacoes/Votacoes';
 import { textoUltimos, type Linha, type Rodada } from './tipos';
+import { Bolao } from './Bolao';
 import { Calendario } from './Calendario';
 import { Copa } from './Copa';
 import { Ultimos } from './Ultimos';
 import './liga.css';
 
 type Dados = { tabela: Linha[]; rodadas: Rodada[] };
-const ABAS = [['tabela', 'Tabela'], ['rodadas', 'Rodadas'], ['calendario', 'Calendário'], ['copa', 'Copa'], ['votacoes', 'Votações']] as const;
+const ABAS = [['tabela', 'Tabela'], ['rodadas', 'Rodadas'], ['calendario', 'Calendário'], ['copa', 'Copa'], ['bolao', 'Bolão'], ['votacoes', 'Votações']] as const;
 type Aba = (typeof ABAS)[number][0];
 
 function Tabela({ linhas, meuClube, sem }: { linhas: Linha[]; meuClube?: string; sem: boolean }) {
@@ -89,8 +90,11 @@ function Rodadas({ rodadas, inicial }: { rodadas: Rodada[]; inicial: number }) {
 // /liga: Tabela · Rodadas (docs/design/onda-b.md §2). A rodada atual é a última fechada.
 export function Liga({ me }: { me: Me }) {
   const [dados, setDados] = useState<Dados | 'carregando' | 'erro'>('carregando');
-  const pedida = useBusca().get('aba');
+  const busca = useBusca();
+  const pedida = busca.get('aba');
   const [aba, setAba] = useState<Aba>(ABAS.find(([id]) => id === pedida)?.[0] ?? 'tabela');
+  // chegou por link (Calendário → Bolão) com a Liga já aberta
+  useEffect(() => { const a = ABAS.find(([id]) => id === pedida)?.[0]; if (a) setAba(a); }, [pedida]);
   function carregar() {
     setDados('carregando');
     Promise.all([api<Linha[]>('/liga/tabela'), api<Rodada[]>('/liga/rodadas')]).then(([tabela, rodadas]) => setDados({ tabela, rodadas }), () => setDados('erro'));
@@ -115,6 +119,7 @@ export function Liga({ me }: { me: Me }) {
       {aba === 'votacoes' && <div role="tabpanel"><ListaVotacoes /></div>}
       {aba === 'calendario' && <Calendario />}
       {aba === 'copa' && <Copa />}
+      {aba === 'bolao' && <Bolao me={me} inicial={{ rodada: busca.get('rodada'), fase: busca.get('fase') }} />}
       {(aba === 'tabela' || aba === 'rodadas') && dados === 'carregando' && <div role="tabpanel" aria-busy="true">{Array.from({ length: 16 }, (_, i) => <div key={i} className="esqueleto linha-esq-liga" />)}</div>}
       {(aba === 'tabela' || aba === 'rodadas') && dados === 'erro' && (
         <div className="caixa-info" role="alert">

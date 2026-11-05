@@ -39,3 +39,39 @@
 .lado-copa.passou .sigla-copa, .lado-copa.passou .gols-copa { font-weight: 800; } .lado-copa.passou svg { width: 20px; height: 20px; color: var(--im-gramado); }
 .lado-copa.eliminado { color: var(--im-giz-3); } .lado-copa.eliminado img { opacity: .4; } .nota-penaltis { margin: var(--im-e1) 0 0; font: 400 12px/16px var(--im-fonte-texto); }
 @media (min-width: 768px) { .cards-copa { grid-template-columns: 1fr 1fr; } }
+
+/* Bolão (docs/design/pack3-onda-a.md §4 a §6) */
+.bolao, .palpitar { flex: 1; display: flex; flex-direction: column; } .bolao { padding-bottom: 72px; } /* a .acao-fixa (margin-top: auto) cola no fim da tela mesmo com poucos jogos */
+.subabas { display: flex; gap: var(--im-e5); border-bottom: 1px solid var(--im-linha); margin-bottom: var(--im-e3); }
+.subabas button { min-height: 44px; background: none; border: 0; color: var(--im-giz-2); font: 600 20px var(--im-fonte-display); cursor: pointer; }
+.subabas button[aria-selected='true'] { color: var(--im-giz); box-shadow: inset 0 -2px 0 0 var(--im-giz); }
+.chips-escolha { display: flex; gap: var(--im-e2); overflow-x: auto; scrollbar-width: none; margin-bottom: var(--im-e3); } .chips-escolha::-webkit-scrollbar { display: none; }
+.chips-escolha button { flex: none; min-height: 44px; padding: 0 var(--im-e4); background: none; color: var(--im-giz-2); border: 1px solid var(--im-linha); border-radius: 22px; font: 400 14px var(--im-fonte-texto); cursor: pointer; }
+.chips-escolha button[aria-pressed='true'] { background: var(--im-superficie-alta); border-color: var(--im-giz-3); color: var(--im-giz); }
+.faixa-prazo { display: flex; align-items: center; gap: var(--im-e3); min-height: 52px; margin: 0 0 var(--im-e3); padding: var(--im-e2) var(--im-e3); background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: var(--im-r-midia); font: 500 13px/18px var(--im-fonte-texto); color: var(--im-giz); }
+.faixa-prazo svg { flex: none; width: 24px; height: 24px; color: var(--im-giz-2); } .faixa-prazo.correndo svg { color: var(--im-amarelo); } .faixa-prazo.erro { border-color: var(--im-vermelho-texto); color: var(--im-vermelho-texto); } .faixa-prazo.erro svg { color: var(--im-vermelho-texto); }
+.cartoes-palpite { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--im-e3); }
+.cartao-palpite { display: flex; flex-direction: column; gap: var(--im-e2); padding: var(--im-e3); background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: var(--im-r-midia); }
+.linha-palpite { display: flex; align-items: center; justify-content: space-between; gap: var(--im-e3); } .clube-palpite { display: flex; align-items: center; gap: var(--im-e2); } .clube-palpite b { font: 700 20px var(--im-fonte-display); }
+.placar-palpite { display: flex; align-items: center; gap: var(--im-e2); }
+.placar-palpite .passo { position: relative; width: 44px; height: 44px; display: grid; place-items: center; background: var(--im-superficie-alta); border: 0; border-radius: 10px; cursor: pointer; } .placar-palpite .passo:disabled { opacity: .4; cursor: default; }
+.traco { position: absolute; width: 16px; height: 2px; background: var(--im-giz); } .traco.v { width: 2px; height: 16px; }
+.placar-palpite .numero, .placar-palpite.travado, .placar-palpite .travado { min-width: 52px; height: 44px; display: grid; place-items: center; background: var(--im-carvao); border: 1px solid var(--im-giz); border-radius: 10px; font: 700 28px var(--im-fonte-display); }
+.placar-palpite .numero.vazio { border-color: var(--im-linha); color: var(--im-giz-3); }
+span.placar-palpite.travado { background: var(--im-superficie); border-color: var(--im-linha); }
+.quem-passa { display: flex; flex-wrap: wrap; gap: var(--im-e2); align-items: center; } .quem-passa > span { flex-basis: 100%; font: 600 13px var(--im-fonte-texto); }
+.quem-passa button { flex: 1; min-width: 140px; min-height: 44px; display: flex; align-items: center; justify-content: center; gap: var(--im-e2); background: var(--im-carvao); color: var(--im-giz); border: 1px solid var(--im-linha); border-radius: 10px; cursor: pointer; } .quem-passa button b { font: 700 18px var(--im-fonte-display); }
+.quem-passa button[aria-pressed='true'] { background: var(--im-superficie-alta); border: 2px solid var(--im-giz); } .quem-passa button svg { width: 20px; height: 20px; color: var(--im-gramado); }
+.rodape-palpite { display: flex; align-items: center; justify-content: space-between; gap: var(--im-e3); } .link-outros { display: inline-flex; align-items: center; min-height: 44px; color: var(--im-giz); font: 500 13px var(--im-fonte-texto); }
+.chip-pontos { display: inline-grid; place-items: center; min-width: 44px; height: 30px; padding: 0 var(--im-e2); border-radius: 15px; border: 1px solid var(--im-linha); color: var(--im-giz-2); font: 700 16px var(--im-fonte-display); } .chip-pontos.ganhou { color: var(--im-gramado); border-color: var(--im-gramado); }
+.ranking, .lista-palpites { list-style: none; margin: 0; padding: 0; }
+.linha-pessoa { display: flex; align-items: center; gap: var(--im-e3); min-height: 64px; border-bottom: 1px solid var(--im-linha); } .linha-pessoa.minha { background: var(--im-superficie); box-shadow: inset 3px 0 0 var(--im-giz); padding-left: var(--im-e2); }
+.linha-pessoa .pos { width: 36px; font: 800 22px var(--im-fonte-display); } .pessoa-rank { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--im-e3); color: var(--im-giz); text-decoration: none; } .pessoa-rank strong, .nome-palpite strong { font: 600 15px var(--im-fonte-texto); overflow: hidden; text-overflow: ellipsis; }
+.av36 { flex: none; width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: var(--im-superficie-alta); display: grid; place-items: center; font: 700 16px var(--im-fonte-display); }
+.pts { display: flex; flex-direction: column; align-items: flex-end; } .pts b { font: 800 28px/30px var(--im-fonte-display); }
+.nome-palpite { flex: 1; min-width: 0; display: flex; flex-direction: column; } .palpite-valor { font: 700 24px var(--im-fonte-display); }
+.topo-palpites { display: flex; align-items: center; gap: var(--im-e2); } .topo-palpites button { width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; color: var(--im-giz); cursor: pointer; } .topo-palpites h1 { font: 700 20px var(--im-fonte-display); }
+.cartao-jogo-resultado { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 88px; padding: 0 var(--im-e3); margin-bottom: var(--im-e3); background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: var(--im-r-midia); }
+.cartao-jogo-resultado .lado { display: flex; align-items: center; gap: var(--im-e2); } .cartao-jogo-resultado .lado.visitante { justify-content: flex-end; } .cartao-jogo-resultado b { font: 700 18px var(--im-fonte-display); }
+.cartao-jogo-resultado .resultado { display: flex; flex-direction: column; align-items: center; padding: 0 var(--im-e3); } .cartao-jogo-resultado strong { font: 800 34px var(--im-fonte-display); }
+.secao-pessoa { font: 600 20px var(--im-fonte-display); margin: var(--im-e4) 0 var(--im-e2); }

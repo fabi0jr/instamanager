@@ -18,6 +18,7 @@ import { EditarClube } from './clube/EditarClube';
 import { PerfilClube } from './clube/PerfilClube';
 import { AvisoVotacao, Votar } from './votacoes/Votacoes';
 import { Liga } from './liga/Liga';
+import { PalpitesDoJogo } from './liga/PalpitesDoJogo';
 import { PerfilPessoa } from './pessoa/PerfilPessoa';
 import { Galeria } from './galeria/Galeria';
 import { Feed } from './feed/Feed';
@@ -80,6 +81,7 @@ export function App() {
         {params.id && /^\/p\/[^/]+\/editar$/.test(caminho) && <div className="post-pagina"><EditarPost id={params.id} /></div>}
         {params.id && /^\/c\/[^/]+$/.test(caminho) && <PerfilClube id={params.id} me={me} />}
         {params.id && /^\/c\/[^/]+\/editar$/.test(caminho) && <EditarClube id={params.id} me={me} />}
+        {params.tipo && params.id && /^\/bolao\/jogo\/[^/]+\/[^/]+$/.test(caminho) && <PalpitesDoJogo tipo={params.tipo} id={params.id} />}
         {params.id && /^\/u\/[^/]+$/.test(caminho) && <PerfilPessoa id={params.id} />}
         {params.tag && /^\/tag\/[^/]+$/.test(caminho) && <Tag tag={params.tag} />}
         {caminho === '/clubes' && <ListaClubes />}
