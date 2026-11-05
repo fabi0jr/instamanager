@@ -4742,7 +4742,7 @@
         "IM-68"
       ],
       "responsavel": "Volante",
-      "coluna": "pronto",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-05T13:13:01.717Z",
@@ -4765,6 +4765,48 @@
           "quando": "2026-11-05T13:21:37.217Z",
           "quem": "PO",
           "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-05T13:32:15.288Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:32:15.329Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:38:29.645Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: e2e quebra em banco novo (FK no afterAll)"
+        },
+        {
+          "quando": "2026-11-05T13:43:19.361Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "VAR aprovou a segurança e o resto; fix do e2e 694b965 provado em banco novo 2x"
+        },
+        {
+          "quando": "2026-11-05T13:43:19.415Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "VAR aprovou a segurança e o resto; fix do e2e 694b965 provado em banco novo 2x"
+        },
+        {
+          "quando": "2026-11-05T13:43:19.466Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou a segurança e o resto; fix do e2e 694b965 provado em banco novo 2x"
         }
       ]
     },
@@ -4782,7 +4824,7 @@
         "IM-68"
       ],
       "responsavel": "Ponta",
-      "coluna": "pronto",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-05T13:13:01.772Z",
@@ -4805,6 +4847,48 @@
           "quando": "2026-11-05T13:19:43.686Z",
           "quem": "Maestro",
           "nota": "pronta 81b0d0f; selo de erro com 'fechar' + palavra (não há ícone alerta)"
+        },
+        {
+          "quando": "2026-11-05T13:32:41.456Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:32:41.494Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:41:07.746Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: overflow hidden no p para o scrollHeight contar o padding"
+        },
+        {
+          "quando": "2026-11-05T13:41:49.881Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:41:49.908Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:41:49.936Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "fix3 d9df469 = correção que o VAR testou; QA junto com IM-69"
         }
       ]
     },
