@@ -3,6 +3,7 @@ import { AdminGuard, SessionGuard } from '../auth/session.guard.js';
 import { ApiError } from '../http.js';
 import { DenunciasService } from '../denuncias/denuncias.service.js';
 import { InteracoesService } from '../interacoes/interacoes.service.js';
+import { resumir } from '../mcp/ferramentas.js';
 import { PostsService } from '../posts/posts.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { TrocasService } from '../trocas/trocas.service.js';
@@ -80,6 +81,13 @@ export class AdminController {
   @HttpCode(204)
   async resolverDenuncia(@Param('id') id: string) {
     await this.denuncias.resolver(id);
+  }
+
+  /** Log das ações de escrita da CBF via MCP: as 100 mais novas. */
+  @Get('mcp')
+  async mcp() {
+    const lista = await this.prisma.mcpAcao.findMany({ orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: 100 });
+    return lista.map((a) => ({ id: a.id, ferramenta: a.ferramenta, resumo: resumir(a.ferramenta, a.entrada), ok: a.ok, erro: a.erro, criadaEm: a.createdAt }));
   }
 
   @Get('convite')

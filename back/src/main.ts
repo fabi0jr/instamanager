@@ -11,6 +11,6 @@ if (existsSync('../.env')) process.loadEnvFile('../.env');
 const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false });
 configureApp(app);
 servirUploadsEmDev(app);
-app.setGlobalPrefix('api');
+app.setGlobalPrefix('api', { exclude: ['mcp'] }); // /mcp fica fora do /api (e do filtro de Origin)
 app.enableShutdownHooks(); // fecha o pool do Postgres no SIGTERM do Docker
 await app.listen(process.env.PORT ?? 3000, process.env.HOST ?? '127.0.0.1');

@@ -6,5 +6,5 @@ import { AdminVotacoesController, VotacoesController } from './votacoes.controll
 import { VotacoesEventos } from './votacoes.eventos.js';
 import { VotacoesService } from './votacoes.service.js';
 
-@Module({ imports: [AuthModule, PostsModule, AtividadeModule], controllers: [VotacoesController, AdminVotacoesController], providers: [VotacoesService, VotacoesEventos], exports: [VotacoesEventos] })
+@Module({ imports: [AuthModule, PostsModule, AtividadeModule], controllers: [VotacoesController, AdminVotacoesController], providers: [VotacoesService, VotacoesEventos], exports: [VotacoesEventos, VotacoesService] })
 export class VotacoesModule {}

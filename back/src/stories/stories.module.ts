@@ -4,5 +4,5 @@ import { StoriesController } from './stories.controller.js';
 import { StoriesEventos } from './stories.eventos.js';
 import { StoriesService } from './stories.service.js';
 
-@Module({ imports: [AuthModule], controllers: [StoriesController], providers: [StoriesService, StoriesEventos], exports: [StoriesEventos] })
+@Module({ imports: [AuthModule], controllers: [StoriesController], providers: [StoriesService, StoriesEventos], exports: [StoriesEventos, StoriesService] })
 export class StoriesModule {}

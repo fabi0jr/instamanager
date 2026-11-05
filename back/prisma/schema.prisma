@@ -471,3 +471,15 @@ model PostVideo {
   altura   Int
   post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
+
+// Log das ações de escrita da CBF via MCP (uma linha por chamada); a limpeza apaga as com mais de 60 dias.
+model McpAcao {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ferramenta String
+  entrada    Json
+  ok         Boolean
+  erro       String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
