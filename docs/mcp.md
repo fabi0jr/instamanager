@@ -40,6 +40,6 @@ Escrita (como CBF, menos `postar_no_clube`; cada chamada vira uma linha no log, 
 
 `lancar_placares*` troca só os jogos informados e deixa os outros como estão. Jogo que não existe na rodada ou rodada fechada dá erro e não grava nada. **Fechar rodada ou fase não é possível por aqui**: continua no admin.
 
-O corpo do `/mcp` aceita até **64 MB** (o `/api` segue com 1 MB; acima disso, `413`). O log do admin guarda só `{legenda, imagens: N}` ou `{legenda, video: true}`, nunca o base64.
+O corpo do `/mcp` aceita até **64 MB** (o `/api` segue com 1 MB; acima disso, `413`). O base64 aumenta o arquivo em 4/3, então o vídeo cru cabe até ~48 MB (um vídeo de 30 s em 4:5 e sem áudio fica bem abaixo disso). O log do admin guarda só `{legenda, imagens: N}` ou `{legenda, video: true}`, nunca o base64.
 
 Erros voltam como resultado da ferramenta (`isError`), no formato `CODIGO: mensagem`.

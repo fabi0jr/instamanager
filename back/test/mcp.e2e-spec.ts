@@ -1,3 +1,4 @@
+import { request as httpRequest } from 'node:http';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -542,20 +543,39 @@ describe('mcp: CBF via MCP (e2e)', () => {
         imagens: [img(1_900_000), img(1_900_000)],
       });
       expect(grande.result!.isError).toBeFalsy();
-      const r = await rpc({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'tools/call',
-        params: {
-          name: 'postar_no_clube',
-          arguments: { legenda: 'x'.repeat(65 * 1024 * 1024) },
+      // corpo real de 1 byte acima do limite, mandado com http puro (o supertest esconde erro de socket): a resposta é 413, não EPIPE
+      const corpo = Buffer.alloc(64 * 1024 * 1024 + 1, 'a');
+      const servidor = http().listen(0) as import('node:http').Server;
+      const { port } = servidor.address() as import('node:net').AddressInfo;
+      const resposta = await new Promise<{ status: number; corpo: string }>(
+        (resolver, rejeitar) => {
+          const req = httpRequest(
+            {
+              port,
+              method: 'POST',
+              path: '/mcp',
+              headers: {
+                Authorization: `Bearer ${CHAVE}`,
+                'Content-Type': 'application/json',
+                Accept: 'application/json, text/event-stream',
+                'Content-Length': corpo.length,
+                'X-Forwarded-For': '10.79.0.1',
+              },
+            },
+            (res) => {
+              let texto = '';
+              res.on('data', (d: Buffer) => (texto += d));
+              res.on('end', () =>
+                resolver({ status: res.statusCode!, corpo: texto }),
+              );
+            },
+          );
+          req.on('error', rejeitar);
+          req.end(corpo);
         },
-      }).catch((e: unknown) => e);
-      expect(
-        (r as { status?: number }).status ?? (r as { code?: string }).code,
-      ).toSatisfy(
-        (s: unknown) => s === 413 || s === 'EPIPE' || s === 'ECONNRESET',
       );
+      expect(resposta.status).toBe(413);
+      expect(JSON.parse(resposta.corpo)).toMatchObject({ statusCode: 413 });
       const api = await request(http())
         .post('/api/auth/entrar')
         .set('Origin', ORIGIN)
@@ -567,6 +587,7 @@ describe('mcp: CBF via MCP (e2e)', () => {
     });
 
     it('corpo grande sem chave não é lido: 401, nunca estoura memória', async () => {
+      // 3 MB com chave errada: 401 (nunca 413, que diria que o corpo foi lido e viraria oráculo da chave)
       const r = await rpc(
         {
           jsonrpc: '2.0',
@@ -575,13 +596,8 @@ describe('mcp: CBF via MCP (e2e)', () => {
           params: { name: 'x', arguments: { a: 'x'.repeat(3 * 1024 * 1024) } },
         },
         'errada',
-      ).catch((e: unknown) => e);
-      expect(
-        (r as { status?: number }).status ?? (r as { code?: string }).code,
-      ).toSatisfy(
-        (s: unknown) =>
-          s === 413 || s === 401 || s === 'EPIPE' || s === 'ECONNRESET',
       );
+      expect(r.status).toBe(401);
     });
   });
 
