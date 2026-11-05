@@ -43,7 +43,7 @@ Cada célula: `--im-superficie`, raio 12, borda `--im-linha`, padding 12. Ícone
 | `INVICTO_5` | Invicto | `escudo` | 5 jogos seguidos sem perder. |
 | `LIDER` | Líder | `liga` | Feche uma rodada em 1º. |
 | `CAMPEAO_COPA` | Campeão da Copa | `trofeu` | Vença a final da Copa. |
-| `REI_BOLAO` | Rei do bolão | `bandeira` | Maior pontuação numa rodada. |
+| `REI_BOLAO` | Rei do bolão | `bandeira` | Maior pontuação numa rodada ou fase. |
 | `PRIMEIRO_STORY` | Primeiro story | `camera` | Publique seu primeiro story. |
 | `COMUNICADOR` | Comunicador | `comentar` | Publique 100 posts. |
 
@@ -99,7 +99,7 @@ Um nível só. Dentro da folha de `feed.md` (680 de altura, campo fixo de 76).
 - Foco: **Responder** leva ao campo; o ✕ devolve o foco ao botão Responder do comentário. A faixa tem `role="status"`; o erro de raiz, `role="alert"`.
 - Resposta é lista aninhada (`ul` dentro do `li` do raiz).
 
-## Pendências para aprovar
+## Pendências (aprovadas pelo Maestro em 2026-11-05)
 
 1. Acima de 3 respostas, mostrar só as 2 últimas com “Ver mais N respostas” (a regra do plano não fala de limite).
 2. `CONQUISTA` só aparece para o próprio autor na Atividade; o resto do grupo vê o post da CBF.
