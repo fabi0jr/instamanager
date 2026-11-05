@@ -6,7 +6,8 @@ if (existsSync('../.env')) process.loadEnvFile('../.env');
 
 // Os arquivos rodam um de cada vez: eles dividem o mesmo banco e têm estado global (máx. 3 fixados, tabela da liga, avisos de votação para todos),
 // o que em paralelo dava falha aleatória. Os testes de dentro de cada arquivo seguem como estão.
-const base = { globals: true, root: './', fileParallelism: false };
+// testTimeout maior: no runner do GitHub cadastrar dezenas de usuários (scrypt) passa dos 5 s padrão
+const base = { globals: true, root: './', fileParallelism: false, testTimeout: 30_000 };
 
 export default defineConfig({
   resolve: { tsconfigPaths: true },
