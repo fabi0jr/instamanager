@@ -167,11 +167,12 @@ Placar: `golsMandante`/`golsVisitante` de 0 a 99, ou `null` nos dois (agendado).
 
 | Rota | Corpo | Resposta |
 |---|---|---|
-| `GET /api/copa` | — | `[{fase: {id,nome,ordem,prazoPalpite,fechada,resumoPublicado,resumoPostId}, jogos: [{id, mandante: ClubeMini, visitante, golsMandante, golsVisitante, penaltisMandante, penaltisVisitante, vencedor: ClubeMini\|null}]}]`, fases por `ordem`. `vencedor` é `null` sem placar. |
+| `GET /api/copa` | — | `[{fase: {id,nome,ordem,prazoPalpite,fechada,resumoPublicado: boolean,resumoPostId}, jogos: [{id, mandante: ClubeMini, visitante, golsMandante, golsVisitante, penaltisMandante, penaltisVisitante, vencedor: ClubeMini\|null}]}]`, fases por `ordem`. `vencedor` é `null` sem placar. |
 | `POST /api/admin/copa/fases` 👑 | `{nome, ordem}`: nome 1–60, ordem inteira 1–99 | `201 {id, nome, ordem}`. `409 ORDEM_REPETIDA`. |
 | `PUT /api/admin/copa/fases/:id/jogos` 👑 | `{jogos: [{mandanteId, visitanteId, golsMandante, golsVisitante, penaltisMandante, penaltisVisitante}]}` (até 10) | `204`. **Substitui todos** os jogos da fase (lista vazia limpa). Só com a fase aberta (`409 FASE_FECHADA`: placar de fase fechada não muda). `400` (clube inexistente ou a CBF, clube duas vezes, contra si mesmo, placar/pênaltis inválidos, nada gravado), `409 CLUBE_ELIMINADO`, `404` fase inexistente. |
 | `PUT /api/admin/copa/fases/:id/prazo` 👑 | `{prazoPalpite: ISO\|null}` | `204`. `400`/`404` como o da rodada. |
 | `POST /api/admin/copa/fases/:id/fechar` 👑 | — | `201 {texto, citados}`: **fecha** a fase e devolve a prévia do resumo do bot (mesmo formato da prévia da rodada, frases de mata-mata em `docs/bot-frases.md`; não publica). `409 PLACAR_PENDENTE` se não houver jogos ou faltar placar/pênaltis (continua aberta), `409 FASE_FECHADA`. |
+| `POST /api/admin/copa/fases/:id/previa` 👑 | — | `201 {texto, citados}`: gera a prévia do resumo **de novo** (outro sorteio) para fase **já fechada**, publicada ou não (como `POST /admin/rodadas/:n/previa`). Não grava nada. `409 FASE_ABERTA`, `404`. |
 | `POST /api/admin/copa/fases/:id/reabrir` 👑 | — | `204`. `409 FASE_ABERTA`. |
 | `POST /api/admin/copa/fases/:id/publicar` 👑 | `{texto, citados?}` (igual ao da rodada) | `201 Post` da CBF; push `CBF` / `Saiu o resumo da fase <nome>` para todos (menos admin e citados), `A CBF citou você` para os citados. **Um resumo por fase:** o segundo → `409 RESUMO_JA_PUBLICADO` (apagar o post libera). `409 FASE_ABERTA` se a fase não foi fechada. |
 
