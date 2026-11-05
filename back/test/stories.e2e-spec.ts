@@ -122,6 +122,15 @@ describe('stories (e2e)', () => {
     await com('delete', `/api/stories/${outro.body.id}`, tecnico1).expect(204);
   });
 
+  it('story de texto: CRLF do navegador é normalizado para \\n (193 letras + 7 quebras = 200 passa)', async () => {
+    const r = await guardar(enviar(tecnico0).field('texto', ['a'.repeat(193), ...Array(7).fill('')].join('\r\n')));
+    expect(r.status).toBe(201);
+    expect((await prisma.story.findUnique({ where: { id: r.body.id } }))!.texto).toBe(['a'.repeat(193), ...Array(7).fill('')].join('\n').trim());
+    const dois = await guardar(enviar(tecnico0).field('texto', 'a\r\nb\rc'));
+    expect(dois.body.texto).toBe('a\nb\nc');
+    await enviar(tecnico0).field('texto', 'a'.repeat(194) + '\r\nb'.repeat(7)).expect(400); // 201 depois de normalizar
+  });
+
   it('story de texto inválido → 400: 201 caracteres, vazio, fundo desconhecido, texto + imagem/vídeo', async () => {
     await enviar(tecnico0).field('texto', 'a'.repeat(201)).expect(400);
     await enviar(tecnico0).field('texto', '   ').expect(400);
