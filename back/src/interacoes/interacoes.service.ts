@@ -17,6 +17,7 @@ type ComentarioCompleto = {
   text: string;
   createdAt: Date;
   hiddenAt: Date | null;
+  parentId: string | null;
   user: { id: string; name: string; avatarPath: string | null; club: { id: string; name: string } | null };
 };
 const comUsuario = { user: { select: { id: true, name: true, avatarPath: true, club: { select: { id: true, name: true } } } } } as const;
@@ -28,6 +29,7 @@ const comentarioJson = (c: ComentarioCompleto, mencoes: Mencoes) => ({
   mencoes,
   criadoEm: c.createdAt,
   oculto: c.hiddenAt !== null,
+  parentId: c.parentId,
   // a tag é o clube de hoje de quem comentou, não o de quando comentou
   usuario: { id: c.user.id, nome: c.user.name, avatarUrl: c.user.avatarPath, clube: c.user.club && { id: c.user.club.id, nome: c.user.club.name } },
 });
@@ -88,13 +90,21 @@ export class InteracoesService {
   }
 
   async comentar(postId: string, user: UserComClube, corpo: unknown) {
-    const bruto = typeof corpo === 'object' && corpo ? (corpo as { texto?: unknown }).texto : undefined;
+    const { texto: bruto, parentId } = (typeof corpo === 'object' && corpo ? corpo : {}) as { texto?: unknown; parentId?: unknown };
     const texto = typeof bruto === 'string' ? bruto.trim() : '';
     if (!texto || texto.length > TEXTO_MAX) throw new ApiError(400, 'DADOS_INVALIDOS', `O comentário precisa ter de 1 a ${TEXTO_MAX} caracteres.`, ['texto']);
     await this.garantirPost(postId, user);
-    const c = await this.prisma.comment.create({ data: { postId, userId: user.id, text: texto }, include: comUsuario });
-    this.eventos.emit('comentarios.criado', c.id);
+    // resposta: o alvo precisa ser um comentário visível do mesmo post; responder uma resposta cai no mesmo raiz
+    const alvo = parentId === undefined || parentId === null ? null : await this.alvoDaResposta(postId, parentId, user);
+    const c = await this.prisma.comment.create({ data: { postId, userId: user.id, text: texto, parentId: alvo && (alvo.parentId ?? alvo.id) }, include: comUsuario });
+    this.eventos.emit('comentarios.criado', c.id, alvo?.id);
     return comentarioJson(c, await resolverMencoes(this.prisma, extrairMencoes(c.text)));
+  }
+
+  private async alvoDaResposta(postId: string, parentId: unknown, user: UserComClube) {
+    const alvo = typeof parentId === 'string' && UUID.test(parentId) ? await this.prisma.comment.findFirst({ where: { id: parentId, postId, ...comentariosVisiveis(user.isAdmin) }, select: { id: true, parentId: true } }) : null;
+    if (!alvo) throw new ApiError(400, 'DADOS_INVALIDOS', 'Esse comentário não existe mais.', ['parentId']);
+    return alvo;
   }
 
   async apagar(id: string, user: UserComClube) {

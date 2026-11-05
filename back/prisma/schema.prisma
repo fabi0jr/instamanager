@@ -248,13 +248,17 @@ model Comment {
   userId    String    @db.Uuid
   text      String
   hiddenAt  DateTime? // ocultado pelo admin
+  parentId  String?   @db.Uuid // resposta: o comentário raiz (um nível só; responder uma resposta cai no mesmo raiz)
   createdAt DateTime  @default(now())
   post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("Respostas", fields: [parentId], references: [id], onDelete: Cascade)
+  respostas Comment[] @relation("Respostas")
   reports   Report[]
   notificacoes Notificacao[]
 
   @@index([postId, createdAt])
+  @@index([parentId])
 }
 
 model TransferRequest {
