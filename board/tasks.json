@@ -4078,7 +4078,7 @@
       ],
       "depende": [],
       "responsavel": "Prancheta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T04:35:26.902Z",
@@ -4103,6 +4103,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T04:39:26.197Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "handoff aprovado; páginas do Penpot ficam para quando o plugin voltar"
+        },
+        {
+          "quando": "2026-11-05T04:39:26.235Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "handoff aprovado; páginas do Penpot ficam para quando o plugin voltar"
+        },
+        {
+          "quando": "2026-11-05T04:39:26.265Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "handoff aprovado; páginas do Penpot ficam para quando o plugin voltar"
         }
       ]
     },
