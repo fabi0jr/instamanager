@@ -114,3 +114,20 @@ test('fase fechada: placares travados, aviso verde e Reabrir fase com a nota do 
   await screen.findByRole('button', { name: 'Salvar fase' });
   expect(chamadas.some((x) => x.chave === 'POST /admin/copa/fases/f1/reabrir')).toBe(true);
 });
+
+test('fase fechada sem resumo: "Publicar resumo" pede a prévia de novo (POST /previa) e publica', async () => {
+  const chamadas = fetchFalso({
+    'GET /copa': [{ fase: fase({ fechada: true, resumoPublicado: false }), jogos: [{ id: 'cj1', mandante: clubes[0], visitante: clubes[1], golsMandante: 2, golsVisitante: 0, penaltisMandante: null, penaltisVisitante: null, vencedor: clubes[0] }] }],
+    'GET /clubes': clubes,
+    'POST /admin/copa/fases/f1/previa': { status: 201, corpo: { texto: 'Outra frase', citados: ['tvasco'] } },
+    'POST /admin/copa/fases/f1/publicar': { status: 201, corpo: {} },
+  });
+  tela('/admin/copa/f1');
+  expect(await screen.findByText('Fase fechada. O resumo da CBF ainda não foi publicado.')).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: 'Publicar resumo' }));
+  const campo = await screen.findByLabelText('Texto do resumo') as HTMLTextAreaElement;
+  expect(campo.value).toBe('Outra frase');
+  fireEvent.click(screen.getByRole('button', { name: 'Publicar como CBF' }));
+  await waitFor(() => expect(location.pathname).toBe('/admin/copa'));
+  expect(JSON.parse(chamadas.find((x) => x.chave === 'POST /admin/copa/fases/f1/publicar')!.body as string)).toEqual({ texto: 'Outra frase', citados: ['tvasco'] });
+});

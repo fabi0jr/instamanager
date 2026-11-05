@@ -167,6 +167,12 @@ export function CopaFase({ id }: { id: string }) {
     });
   };
   const reabrir = () => agir(async () => { await api(`/admin/copa/fases/${id}/reabrir`, { method: 'POST' }); carregar(); });
+  // fase já fechada e sem resumo: a API sorteia a prévia de novo
+  const abrirPrevia = () => agir(async () => {
+    const p = await api<{ texto: string; citados: string[] }>(`/admin/copa/fases/${id}/previa`, { method: 'POST' });
+    setPrevia(p);
+    setTexto(p.texto);
+  });
   const publicar = () => agir(async () => {
     try {
       await api(`/admin/copa/fases/${id}/publicar`, { method: 'POST', body: JSON.stringify({ texto, citados: previa?.citados ?? [] }) });
@@ -182,6 +188,20 @@ export function CopaFase({ id }: { id: string }) {
   if (fase === 'carregando') return <div className="tela admin">{topo}<div className="esqueleto" aria-busy="true" /></div>;
   if (fase === 'erro' || fase === null) return <div className="tela admin">{topo}<div className="caixa-info" role="alert"><h2>Não deu para carregar a fase</h2><button type="button" className="botao secundario" onClick={carregar}>Tentar de novo</button></div></div>;
 
+  const folha = previa && (
+    <Folha titulo="Resumo da CBF" aoFechar={() => { setPrevia(null); carregar(); }} alta>
+      <div className="folha-form">
+        <h2>Resumo da CBF</h2>
+        <p className="giz2">A fase já está fechada. O resumo só sai quando você publicar.</p>
+        <Aviso>{aviso}</Aviso>
+        <textarea aria-label="Texto do resumo" rows={6} maxLength={500} value={texto} onChange={(e) => setTexto(e.target.value)} data-foco />
+        <span className="giz2 legenda-s">{texto.length}/500 · O resumo só pode ser publicado uma vez por fase.</span>
+        <Botao disabled={!texto.trim()} carregando={ocupado ? 'Publicando…' : undefined} onClick={publicar}>Publicar como CBF</Botao>
+        <Botao variante="fantasma" onClick={() => { setPrevia(null); carregar(); }}>Cancelar</Botao>
+      </div>
+    </Folha>
+  );
+
   if (fase.fase.fechada)
     return (
       <div className="tela admin copa-ed">
@@ -190,13 +210,15 @@ export function CopaFase({ id }: { id: string }) {
         {fase.fase.resumoPublicado ? (
           <p className="aviso-gramado"><IcOk /> Fase fechada. Resumo publicado pela CBF.{fase.fase.resumoPostId && <> <Link para={`/p/${fase.fase.resumoPostId}`}>Ver resumo</Link></>}</p>
         ) : (
-          <p className="aviso-ambar">Fase fechada, mas o resumo da CBF ainda não saiu. Reabra e feche de novo para ver a prévia e publicar.</p>
+          <p className="aviso-ambar">Fase fechada. O resumo da CBF ainda não foi publicado.</p>
         )}
+        {!fase.fase.resumoPublicado && <Botao carregando={ocupado ? 'Abrindo…' : undefined} onClick={abrirPrevia}>Publicar resumo</Botao>}
         <ul className="confrontos-fechados">
           {jogos.map((j, i) => <li key={i}>{nomeClube(j.m)} {j.gm} × {j.gv} {nomeClube(j.v)}{j.pm !== '' && ` (pênaltis ${j.pm} × ${j.pv})`}</li>)}
         </ul>
         <Botao variante="fantasma" carregando={ocupado ? 'Reabrindo…' : undefined} onClick={reabrir}>Reabrir fase</Botao>
         <p className="giz2 legenda-s">Reabrir deixa mudar placares. Se mudar, os pontos do bolão são recalculados.</p>
+        {folha}
       </div>
     );
 
@@ -243,19 +265,7 @@ export function CopaFase({ id }: { id: string }) {
         <Botao variante="secundario" disabled={!salvavel} carregando={ocupado ? 'Salvando…' : undefined} onClick={salvar}>Salvar fase</Botao>
         <Botao disabled={ocupado} onClick={fechar}>Fechar fase</Botao>
       </div>
-      {previa && (
-        <Folha titulo="Resumo da CBF" aoFechar={() => { setPrevia(null); carregar(); }} alta>
-          <div className="folha-form">
-            <h2>Resumo da CBF</h2>
-            <p className="giz2">A fase já está fechada. O resumo só sai quando você publicar.</p>
-            <Aviso>{aviso}</Aviso>
-            <textarea aria-label="Texto do resumo" rows={6} maxLength={500} value={texto} onChange={(e) => setTexto(e.target.value)} data-foco />
-            <span className="giz2 legenda-s">{texto.length}/500 · O resumo só pode ser publicado uma vez por fase.</span>
-            <Botao disabled={!texto.trim()} carregando={ocupado ? 'Publicando…' : undefined} onClick={publicar}>Publicar como CBF</Botao>
-            <Botao variante="fantasma" onClick={() => { setPrevia(null); carregar(); }}>Cancelar</Botao>
-          </div>
-        </Folha>
-      )}
+      {folha}
     </div>
   );
 }
