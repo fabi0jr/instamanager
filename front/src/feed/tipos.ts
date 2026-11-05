@@ -37,6 +37,7 @@ export type Comentario = {
   texto: string;
   mencoes?: { id: string; nome: string }[];
   criadoEm: string;
+  parentId?: string | null; // resposta: o comentário raiz (um nível só); null/ausente = raiz
   oculto?: boolean; // só o admin recebe comentário oculto
   usuario: { id: string; nome: string; avatarUrl: string | null; clube: { id: string; nome: string } | null };
 };

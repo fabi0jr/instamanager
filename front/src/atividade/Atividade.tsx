@@ -7,17 +7,17 @@ import { usePaginado } from '../paginado';
 import { Link } from '../rotas';
 import './atividade.css';
 
-type Tipo = 'REACAO' | 'COMENTARIO' | 'MENCAO' | 'CBF_CITOU' | 'TROCA_DECIDIDA' | 'VOTACAO_RESULTADO' | 'CONQUISTA';
+type Tipo = 'REACAO' | 'COMENTARIO' | 'MENCAO' | 'CBF_CITOU' | 'TROCA_DECIDIDA' | 'VOTACAO_RESULTADO' | 'CONQUISTA' | 'RESPOSTA';
 export type ItemAtividade = {
   id: string; tipo: Tipo; criadoEm: string; lida: boolean;
   ator: { id: string; nome: string; avatarUrl: string | null } | null;
   post: { id: string; miniUrl: string | null; resumo: string } | null;
   votacao: { id: string; titulo: string } | null;
-  comentario?: { id?: string; resumo: string } | null; // trecho do comentário (COMENTARIO e MENCAO dentro de comentário)
+  comentario?: { id?: string; resumo: string } | null; // trecho do comentário (COMENTARIO, RESPOSTA e MENCAO dentro de comentário)
   conquista?: { tipo: string; nome: string } | null; // CONQUISTA (ator null)
   troca?: { status: string; clube?: { id: string; nome: string } | null } | null; // TROCA_DECIDIDA (status vem do back)
 };
-const SELO = { REACAO: 'curtir', COMENTARIO: 'comentar', MENCAO: 'perfil', CBF_CITOU: 'liga', TROCA_DECIDIDA: 'ok', VOTACAO_RESULTADO: 'votacao', CONQUISTA: 'trofeu' } as const;
+const SELO = { REACAO: 'curtir', COMENTARIO: 'comentar', MENCAO: 'perfil', CBF_CITOU: 'liga', TROCA_DECIDIDA: 'ok', VOTACAO_RESULTADO: 'votacao', CONQUISTA: 'trofeu', RESPOSTA: 'responder' } as const;
 const INDISPONIVEL = 'Post indisponível';
 
 function texto(i: ItemAtividade) {
@@ -34,6 +34,7 @@ function texto(i: ItemAtividade) {
     case 'CBF_CITOU': return <>CBF citou você no comunicado da rodada</>;
     // sem `troca.status` (back antigo) o texto é neutro
     case 'TROCA_DECIDIDA': return /aprov/i.test(i.troca?.status ?? '') ? <>Seu pedido de troca foi aprovado.</> : /recus/i.test(i.troca?.status ?? '') ? <>Seu pedido de troca foi recusado.</> : <>Seu pedido de troca foi decidido.</>;
+    case 'RESPOSTA': return trecho ? <><b>{nome}</b> respondeu: “{trecho}”</> : <><b>{nome}</b> respondeu a um comentário seu</>;
     case 'CONQUISTA': return <>Você conquistou <b>{i.conquista?.nome ?? 'uma conquista'}</b>.</>;
     case 'VOTACAO_RESULTADO': return <>Resultado de {i.votacao?.titulo ?? 'votação'}</>;
   }
@@ -43,6 +44,7 @@ const destino = (i: ItemAtividade, meuId?: string) => {
   if (i.post?.resumo === INDISPONIVEL) return null;
   if (i.tipo === 'TROCA_DECIDIDA') return i.troca?.clube ? `/c/${i.troca.clube.id}` : '/perfil';
   if (i.tipo === 'VOTACAO_RESULTADO' && i.votacao) return `/votacoes/${i.votacao.id}`;
+  if (i.tipo === 'RESPOSTA') return i.post ? `/p/${i.post.id}?comentarios=1` : null; // abre o post com a folha de comentários
   return i.post ? `/p/${i.post.id}` : null;
 };
 
