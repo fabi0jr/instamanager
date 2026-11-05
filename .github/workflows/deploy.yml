@@ -47,8 +47,53 @@ jobs:
           -v $PWD/front/seguranca.conf:/etc/nginx/snippets/seguranca.conf:ro
           nginxinc/nginx-unprivileged:1.29-alpine nginx -t
 
-  implantar:
+  # Caminhos críticos no Safari (WebKit, iPhone 13): login, postar, comentar, story e bolão (e2e/)
+  safari:
     needs: verificar
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: instamanager
+          POSTGRES_PASSWORD: instamanager
+          POSTGRES_DB: instamanager
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U instamanager -d instamanager"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://instamanager:instamanager@localhost:5432/instamanager
+      APP_URL: http://localhost:5173
+      INVITE_CODE: CONVITE-CI
+      ADMIN_EMAIL: admin-e2e@ci.test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.5.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter back db:deploy
+      - run: pnpm --filter back db:seed
+      - run: pnpm --filter e2e exec playwright install --with-deps webkit
+      - run: pnpm --filter e2e test:safari
+      - name: Relatório do Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-safari
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7
+
+  implantar:
+    needs: [verificar, safari]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:

@@ -1,6 +1,7 @@
 packages:
   - front
   - back
+  - e2e
 allowBuilds:
   '@prisma/engines': true
   esbuild: true
