@@ -6,6 +6,7 @@ import { processarVideo } from '../midia/video.js';
 import { UUID } from '../posts/cursor.js';
 import { apagarImagem, dimensoesJpeg, ehJpeg, salvarImagem } from '../posts/imagens.js';
 import { PrismaService } from '../prisma.service.js';
+import { StoriesEventos } from './stories.eventos.js';
 
 const DURACAO_MS = 24 * 3_600_000;
 const MAX_IMAGEM = 3 * 1024 * 1024;
@@ -17,7 +18,10 @@ const itemJson = (s: Story, visto: boolean) => ({ id: s.id, tipo: s.tipo, url: s
 
 @Injectable()
 export class StoriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventos: StoriesEventos,
+  ) {}
 
   /** Story vivo (não expirado) ou 404: expirado some de tudo, mesmo antes da limpeza apagar a linha. */
   private async vivo(id: string) {
@@ -51,6 +55,7 @@ export class StoriesService {
     }
     try {
       const s = await this.prisma.story.create({ data: dados as Parameters<PrismaService['story']['create']>[0]['data'], include: { club: true } });
+      this.eventos.emit('stories.criado', s.id);
       return { ...itemJson(s, false), clube: clubeMini(s.club), expiraEm: s.expiraEm };
     } catch (e) {
       await Promise.all(gravados.map(apagarImagem));

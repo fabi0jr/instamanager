@@ -52,6 +52,7 @@ model User {
   storiesVistos StoryVisto[]
   recebidas     Notificacao[] @relation("NotificacaoDestino")
   geradas       Notificacao[] @relation("NotificacaoAtor")
+  conquistas    Conquista[]
 }
 
 model Session {
@@ -369,6 +370,30 @@ enum NotificacaoTipo {
   CBF_CITOU
   TROCA_DECIDIDA
   VOTACAO_RESULTADO
+  CONQUISTA
+  RESPOSTA
+}
+
+enum ConquistaTipo {
+  PRIMEIRA_VITORIA
+  GOLEADA
+  INVICTO_5
+  LIDER
+  CAMPEAO_COPA
+  REI_BOLAO
+  PRIMEIRO_STORY
+  COMUNICADOR
+}
+
+// Conquista do técnico (a pessoa, não o clube). refId '' = única; REI_BOLAO é repetível, uma por rodada ("r<N>") ou fase (id).
+model Conquista {
+  userId   String        @db.Uuid
+  tipo     ConquistaTipo
+  refId    String        @default("")
+  criadaEm DateTime      @default(now())
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, tipo, refId])
 }
 
 // Histórico do que a pessoa foi avisada (o push continua igual). Apagada após 60 dias pela limpeza.
@@ -381,6 +406,7 @@ model Notificacao {
   comentarioId String?         @db.Uuid
   votacaoId    String?         @db.Uuid
   trocaId      String?         @db.Uuid
+  conquistaTipo ConquistaTipo?
   lidaEm       DateTime?
   createdAt    DateTime        @default(now())
   user         User            @relation("NotificacaoDestino", fields: [userId], references: [id], onDelete: Cascade)
