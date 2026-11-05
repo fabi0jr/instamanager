@@ -2,12 +2,14 @@
 // Assessoria do Botafogo: preenche um modelo HTML, tira a "foto" com o Chrome headless e anima com o ffmpeg.
 // Uso: node assessoria/gerar.mjs <formato> <dados.json>   |   node assessoria/gerar.mjs exemplos
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { dentroDe } from './caminhos.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(AQUI, '..');
+const FOTOS = join(AQUI, 'fotos');
 const CLUBES = JSON.parse(readFileSync(join(AQUI, 'estadios.json'), 'utf8'));
 const VIDEO_S = 8; // shortcut: duração fixa, o limite do app é 30 s
 const TORCIDA = ['jpg', 'jpeg', 'png'].map((e) => join(AQUI, 'fotos/genericas', `torcida.${e}`));
@@ -29,6 +31,12 @@ const VIDEO = (f) => f.endsWith('-video');
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const url = (caminho) => pathToFileURL(resolve(REPO, caminho)).href;
+// a foto só vale se estiver dentro de assessoria/fotos/ (nada de ../ nem caminho absoluto de fora, que viraria file:// no <img>)
+const fotoUrl = (caminho) => {
+  const abs = dentroDe(FOTOS, caminho, REPO);
+  if (!abs) throw new ErroDados(`campo "foto": só aceita imagem dentro de assessoria/fotos/ (veio "${caminho}")`);
+  return pathToFileURL(abs).href;
+};
 const escudo = (id, campo) => {
   if (!CLUBES[id]) throw new ErroDados(`campo "${campo}": clube "${id}" não existe (use o id do app, ex.: botafogo, atletico-mg)`);
   return url(`front/public/escudos/${id}.svg`);
@@ -56,7 +64,7 @@ export function quando(iso) {
 
 // valores de cada modelo: {{x}} sai escapado, {{{x}}} é HTML já montado aqui
 function variaveis(formato, d) {
-  const v = { foto: d.foto ? url(d.foto) : '', escudoMandante: escudo('botafogo', 'botafogo') };
+  const v = { foto: d.foto ? fotoUrl(d.foto) : '', escudoMandante: escudo('botafogo', 'botafogo') };
   if (formato === 'fim-de-jogo') {
     Object.assign(v, { escudoMandante: escudo(d.mandante, 'mandante'), escudoVisitante: escudo(d.visitante, 'visitante'), golsMandante: d.golsMandante, golsVisitante: d.golsVisitante,
       gols: d.gols.map((g) => `<div><img src="${escudo(g.clube, `gols.clube`)}">${esc(g.minuto)}’ ${esc(g.jogador)}</div>`).join('') });
@@ -70,7 +78,7 @@ function variaveis(formato, d) {
       nomeMandante: nomeClube(d.mandante), nomeVisitante: nomeClube(d.visitante), estadio: d.estadio || CLUBES[d.mandante].estadio, quando: quando(d.dataHora) });
   } else if (formato === 'contratacao-video') Object.assign(v, { nome: d.nome, idade: d.idade, posicao: d.posicao });
   else if (formato === 'despedida') v.nome = d.nome;
-  else if (formato === 'coletiva') v.foto = url(d.foto || TORCIDA.find(existsSync) || TORCIDA[0]);
+  else if (formato === 'coletiva') v.foto = fotoUrl(d.foto || TORCIDA.find(existsSync) || TORCIDA[0]);
   return v;
 }
 
@@ -87,14 +95,14 @@ export function preencher(formato, dados, camada = 'completo') {
 }
 
 const CHROME = process.env.CHROME || '/usr/bin/google-chrome';
-const chrome = (args) => execFileSync(CHROME, ['--headless=new', '--no-sandbox', '--disable-gpu', '--hide-scrollbars', '--allow-file-access-from-files', '--force-device-scale-factor=1', '--window-size=1080,1437', '--virtual-time-budget=8000', ...args], { stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 * 1024 * 1024 });
+const chrome = (args) => execFileSync(CHROME, ['--headless=new', '--no-sandbox', '--disable-gpu', '--hide-scrollbars', '--disable-background-networking', '--disable-extensions', '--force-device-scale-factor=1', '--window-size=1080,1437', '--virtual-time-budget=8000', ...args], { stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 * 1024 * 1024 });
 const ffmpeg = (args) => execFileSync('/usr/bin/ffmpeg', ['-y', '-v', 'error', ...args], { stdio: ['ignore', 'ignore', 'inherit'] });
 
 // roda o modelo no Chrome (sem foto) e devolve o DOM final: o teste lê data-fonte e data-cabe dos [data-fit]
 export function dom(html, dir) {
   const arq = join(dir, `dom-${process.pid}.html`);
   writeFileSync(arq, html);
-  return chrome(['--dump-dom', pathToFileURL(arq).href]).toString();
+  try { return chrome(['--dump-dom', pathToFileURL(arq).href]).toString(); } finally { rmSync(arq, { force: true }); }
 }
 
 function foto(html, saida, dir, transparente = false) {
@@ -120,26 +128,29 @@ export function gerar(formato, dados, { base = join(AQUI, 'saidas') } = {}) {
   if (f && !existsSync(resolve(REPO, f))) throw new ErroDados(`campo "foto": arquivo não existe: ${f}`);
   if (!f && formato === 'coletiva') throw new ErroDados('campo "foto": sem foto e sem fotos/genericas/torcida.jpg');
   const dir = pastaSaida(formato, base);
-  const completo = join(dir, '_completo.png');
-  foto(html, completo, dir);
-  const jpg = (de, para) => ffmpeg(['-i', de, '-frames:v', '1', '-update', '1', '-vf', 'scale=1080:1350', '-q:v', '2', para]);
-  const mini = (de, para) => ffmpeg(['-i', de, '-frames:v', '1', '-update', '1', '-vf', 'scale=400:400:force_original_aspect_ratio=decrease', '-q:v', '3', para]);
   const saidas = {};
-  if (!VIDEO(formato)) {
-    jpg(completo, join(dir, 'arte.jpg')); mini(join(dir, 'arte.jpg'), join(dir, 'mini.jpg'));
-    Object.assign(saidas, { arte: join(dir, 'arte.jpg'), mini: join(dir, 'mini.jpg') });
-  } else {
-    foto(preencher(formato, dados, 'fundo'), join(dir, '_fundo.png'), dir);
-    foto(preencher(formato, dados, 'texto'), join(dir, '_texto.png'), dir, true);
-    // zoom lento no fundo (a 2x para não tremer) e os textos entram com fade e subida
-    const filtro = `[0:v]scale=2160:2700,zoompan=z='1+0.00035*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1080x1350:fps=30[bg];` +
-      `[1:v]format=rgba,fade=t=in:st=0.8:d=0.8:alpha=1[tx];[bg][tx]overlay=x=0:y='40*(1-min(1,max(0,(t-0.8)/0.8)))',format=yuv420p[v]`;
-    ffmpeg(['-loop', '1', '-framerate', '30', '-t', String(VIDEO_S), '-i', join(dir, '_fundo.png'), '-loop', '1', '-framerate', '30', '-t', String(VIDEO_S), '-i', join(dir, '_texto.png'),
-      '-filter_complex', filtro, '-map', '[v]', '-t', String(VIDEO_S), '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-movflags', '+faststart', join(dir, 'video.mp4')]);
-    jpg(completo, join(dir, 'capa.jpg'));
-    Object.assign(saidas, { video: join(dir, 'video.mp4'), capa: join(dir, 'capa.jpg') });
+  try {
+    const completo = join(dir, '_completo.png');
+    foto(html, completo, dir);
+    const jpg = (de, para) => ffmpeg(['-i', de, '-frames:v', '1', '-update', '1', '-vf', 'scale=1080:1350', '-q:v', '2', para]);
+    const mini = (de, para) => ffmpeg(['-i', de, '-frames:v', '1', '-update', '1', '-vf', 'scale=400:400:force_original_aspect_ratio=decrease', '-q:v', '3', para]);
+    if (!VIDEO(formato)) {
+      jpg(completo, join(dir, 'arte.jpg')); mini(join(dir, 'arte.jpg'), join(dir, 'mini.jpg'));
+      Object.assign(saidas, { arte: join(dir, 'arte.jpg'), mini: join(dir, 'mini.jpg') });
+    } else {
+      foto(preencher(formato, dados, 'fundo'), join(dir, '_fundo.png'), dir);
+      foto(preencher(formato, dados, 'texto'), join(dir, '_texto.png'), dir, true);
+      // zoom lento no fundo (a 2x para não tremer) e os textos entram com fade e subida
+      const filtro = `[0:v]scale=2160:2700,zoompan=z='1+0.00035*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1080x1350:fps=30[bg];` +
+        `[1:v]format=rgba,fade=t=in:st=0.8:d=0.8:alpha=1[tx];[bg][tx]overlay=x=0:y='40*(1-min(1,max(0,(t-0.8)/0.8)))',format=yuv420p[v]`;
+      ffmpeg(['-loop', '1', '-framerate', '30', '-t', String(VIDEO_S), '-i', join(dir, '_fundo.png'), '-loop', '1', '-framerate', '30', '-t', String(VIDEO_S), '-i', join(dir, '_texto.png'),
+        '-filter_complex', filtro, '-map', '[v]', '-t', String(VIDEO_S), '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-movflags', '+faststart', join(dir, 'video.mp4')]);
+      jpg(completo, join(dir, 'capa.jpg'));
+      Object.assign(saidas, { video: join(dir, 'video.mp4'), capa: join(dir, 'capa.jpg') });
+    }
+  } finally {
+    for (const t of ['_completo.png', '_fundo.png', '_texto.png', '_tmp.html', '_bruto.png']) rmSync(join(dir, t), { force: true });
   }
-  for (const t of ['_completo.png', '_fundo.png', '_texto.png', '_tmp.html', '_bruto.png']) try { execFileSync('/bin/rm', ['-f', join(dir, t)]); } catch {}
   return saidas;
 }
 

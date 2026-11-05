@@ -11,7 +11,11 @@ import { ErroPostar, montarArgumentos, postar } from './postar.mjs';
 const CHAVE = 'chave-de-teste';
 const tmp = mkdtempSync(join(tmpdir(), 'postar-'));
 const pasta = (nome, arquivos) => { const d = join(tmp, nome); mkdirSync(d); for (const [n, c] of Object.entries(arquivos)) writeFileSync(join(d, n), c); return d; };
-after(() => rmSync(tmp, { recursive: true, force: true }));
+// a CLI só aceita pasta dentro de assessoria/saidas/: o teste dela usa uma pasta de teste lá, removida no fim
+const dentro = join(dirname(fileURLToPath(import.meta.url)), 'saidas/_teste-postar');
+mkdirSync(dentro, { recursive: true });
+writeFileSync(join(dentro, 'arte.jpg'), 'a'); writeFileSync(join(dentro, 'mini.jpg'), 'm');
+after(() => { rmSync(tmp, { recursive: true, force: true }); rmSync(dentro, { recursive: true, force: true }); });
 // assíncrono de propósito: com spawnSync o servidor falso (neste processo) não responderia ao filho
 const cli = (args, env) => new Promise((ok) => execFile('node', [join(dirname(fileURLToPath(import.meta.url)), 'postar.mjs'), ...args], { env: { ...process.env, ...env } }, (e, stdout, stderr) => ok({ status: e ? e.code : 0, stdout, stderr })));
 const imagens = pasta('img', { 'arte.jpg': Buffer.from('ARTE-bytes'), 'mini.jpg': Buffer.from('MINI-bytes') });
@@ -44,7 +48,7 @@ async function servidor({ sse = false, resultado = { content: [{ type: 'text', t
 test('imagens: initialize, depois tools/call com base64 de arte e mini, e devolve o id', async () => {
   const s = await servidor();
   try {
-    const r = await postar({ pasta: imagens, legenda: 'Fim de jogo! "aspas" e\nquebra', url: s.url, chave: CHAVE });
+    const r = await postar({ pasta: imagens, legenda: 'Fim de jogo! "aspas" e\nquebra', url: s.url, chave: CHAVE, base: tmp });
     assert.equal(r, '{"id":"p1"}');
     assert.deepEqual(s.visto.corpos.map((c) => c.method), ['initialize', 'notifications/initialized', 'tools/call']);
     const h = s.visto.headers[0];
@@ -62,7 +66,7 @@ test('imagens: initialize, depois tools/call com base64 de arte e mini, e devolv
 test('vídeo, resposta em SSE', async () => {
   const s = await servidor({ sse: true });
   try {
-    assert.equal(await postar({ pasta: video, legenda: 'Reel', url: s.url, chave: CHAVE }), '{"id":"p1"}');
+    assert.equal(await postar({ pasta: video, legenda: 'Reel', url: s.url, chave: CHAVE, base: tmp }), '{"id":"p1"}');
     const a = s.visto.corpos.at(-1).params.arguments;
     assert.equal(a.video, Buffer.from('VIDEO-bytes').toString('base64'));
     assert.equal(a.imagens, undefined);
@@ -72,9 +76,9 @@ test('vídeo, resposta em SSE', async () => {
 test('isError da ferramenta vira erro com a mensagem; CLI sai com 1', async () => {
   const s = await servidor({ resultado: { isError: true, content: [{ type: 'text', text: 'SEM_CLUBE: o admin não tem clube' }] } });
   try {
-    await assert.rejects(postar({ pasta: imagens, legenda: 'x', url: s.url, chave: CHAVE }), (e) => e instanceof ErroPostar && e.message === 'SEM_CLUBE: o admin não tem clube');
+    await assert.rejects(postar({ pasta: imagens, legenda: 'x', url: s.url, chave: CHAVE, base: tmp }), (e) => e instanceof ErroPostar && e.message === 'SEM_CLUBE: o admin não tem clube');
     const leg = join(tmp, 'legenda.txt'); writeFileSync(leg, 'Legenda\n');
-    const r = await cli([imagens, leg], { ASSESSORIA_MCP_URL: s.url, ASSESSORIA_MCP_CHAVE: CHAVE });
+    const r = await cli([dentro, leg], { ASSESSORIA_MCP_URL: s.url, ASSESSORIA_MCP_CHAVE: CHAVE });
     assert.equal(r.status, 1);
     assert.match(r.stderr, /SEM_CLUBE/);
     assert.ok(!r.stderr.includes(CHAVE) && !r.stdout.includes(CHAVE));
@@ -85,11 +89,20 @@ test('chave ausente, chave errada e MCP desligado dão erro claro', async () => 
   await assert.rejects(postar({ pasta: imagens, legenda: 'x', chave: '' }), /defina ASSESSORIA_MCP_CHAVE no \.env/);
   const s = await servidor();
   try {
-    await assert.rejects(postar({ pasta: imagens, legenda: 'x', url: s.url, chave: 'errada' }), (e) => /401/.test(e.message) && !e.message.includes('errada'));
-    await assert.rejects(postar({ pasta: imagens, legenda: 'x', url: s.url.replace('/mcp', '/outro'), chave: CHAVE }), /404/);
+    await assert.rejects(postar({ pasta: imagens, legenda: 'x', url: s.url, chave: 'errada', base: tmp }), (e) => /401/.test(e.message) && !e.message.includes('errada'));
+    await assert.rejects(postar({ pasta: imagens, legenda: 'x', url: s.url.replace('/mcp', '/outro'), chave: CHAVE, base: tmp }), /404/);
   } finally { s.fechar(); }
   const q = await servidor({ status: 500 });
-  try { await assert.rejects(postar({ pasta: imagens, legenda: 'x', url: q.url, chave: CHAVE }), /500/); } finally { q.fechar(); }
+  try { await assert.rejects(postar({ pasta: imagens, legenda: 'x', url: q.url, chave: CHAVE, base: tmp }), /500/); } finally { q.fechar(); }
+});
+
+test('pasta fora de assessoria/saidas/ é recusada antes de qualquer envio', async () => {
+  const s = await servidor();
+  try {
+    await assert.rejects(postar({ pasta: imagens, legenda: 'x', url: s.url, chave: CHAVE }), /dentro de assessoria\/saidas/); // tmp está fora
+    await assert.rejects(postar({ pasta: '../../etc', legenda: 'x', url: s.url, chave: CHAVE }), /dentro de assessoria\/saidas/);
+    assert.equal(s.visto.corpos.length, 0);
+  } finally { s.fechar(); }
 });
 
 test('pasta e legenda inválidas: nada é enviado', () => {
@@ -102,7 +115,7 @@ test('pasta e legenda inválidas: nada é enviado', () => {
 test('CLI sem a chave manda o erro do .env', async () => {
   const leg = join(tmp, 'l2.txt'); writeFileSync(leg, 'x');
   // chave vazia no ambiente vale sobre qualquer .env (loadEnvFile não sobrescreve)
-  const r = await cli([imagens, leg], { ASSESSORIA_MCP_CHAVE: '' });
+  const r = await cli([dentro, leg], { ASSESSORIA_MCP_CHAVE: '' });
   assert.equal(r.status, 1);
   assert.match(r.stderr, /defina ASSESSORIA_MCP_CHAVE no \.env/);
 });

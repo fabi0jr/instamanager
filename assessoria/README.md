@@ -13,7 +13,7 @@ Saída em `assessoria/saidas/<AAAA-MM-DD>-<formato>[-2…]/` (nunca sobrescreve)
 - vídeo: `video.mp4` e `capa.jpg`.
 
 ## Formatos e dados
-Clubes por id do app (`botafogo`, `atletico-mg`…, veja `estadios.json`). `foto` é um caminho (relativo à raiz do repo ou absoluto). Exemplos em `exemplos/`.
+`foto` só vale dentro de `assessoria/fotos/` (`../` ou caminho de fora dá erro). Clubes por id do app (`botafogo`, `atletico-mg`…, veja `estadios.json`). `foto` é um caminho (relativo à raiz do repo ou absoluto). Exemplos em `exemplos/`.
 
 | Formato | Dados |
 |---|---|
@@ -30,7 +30,7 @@ Faltou campo ou clube desconhecido: erro dizendo qual campo, saída 1.
 ```
 node assessoria/postar.mjs assessoria/saidas/<pasta> legenda.txt
 ```
-Lê `arte.jpg` + `mini.jpg` (ou `video.mp4`) da pasta, monta o base64 e chama `postar_no_clube` no MCP por HTTP (initialize e tools/call). A legenda vai em arquivo para fugir das aspas do shell. Imprime o id do post; erro da ferramenta (`isError`) sai com código 1. Config no `.env` da raiz ou no ambiente: `ASSESSORIA_MCP_CHAVE` (a mesma do `MCP_CHAVE` do servidor; nunca é impressa) e `ASSESSORIA_MCP_URL` (padrão `https://instamanager.fj-dev.tech/mcp`).
+A pasta precisa estar dentro de `assessoria/saidas/`. Lê `arte.jpg` + `mini.jpg` (ou `video.mp4`) da pasta, monta o base64 e chama `postar_no_clube` no MCP por HTTP (initialize e tools/call). A legenda vai em arquivo para fugir das aspas do shell. Imprime o id do post; erro da ferramenta (`isError`) sai com código 1. Config no `.env` da raiz ou no ambiente: `ASSESSORIA_MCP_CHAVE` (a mesma do `MCP_CHAVE` do servidor; nunca é impressa) e `ASSESSORIA_MCP_URL` (padrão `https://instamanager.fj-dev.tech/mcp`).
 
 ## Como funciona
 - `modelos/<formato>.html` + `modelos/base.css`: o modelo; `{{x}}` escapa, `{{{x}}}` é HTML montado no `gerar.mjs`.

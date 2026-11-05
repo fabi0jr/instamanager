@@ -1,16 +1,20 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import test from 'node:test';
+import test, { after } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { dom, ErroDados, FORMATOS, gerar, preencher, quando } from './gerar.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const tmp = mkdtempSync(join(tmpdir(), 'assessoria-'));
-const foto = join(tmp, 'foto.jpg');
-execFileSync('/usr/bin/ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=s=1400x1800', '-frames:v', '1', '-update', '1', foto]);
+// a foto de teste mora em assessoria/fotos/_teste/ (o gerador só aceita foto de lá); some no fim
+const pastaFotos = join(AQUI, 'fotos/_teste');
+mkdirSync(pastaFotos, { recursive: true });
+const foto = 'assessoria/fotos/_teste/foto.jpg';
+execFileSync('/usr/bin/ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=s=1400x1800', '-frames:v', '1', '-update', '1', join(AQUI, '..', foto)]);
+after(() => { rmSync(tmp, { recursive: true, force: true }); rmSync(pastaFotos, { recursive: true, force: true }); });
 
 const exemplo = (f) => ({ ...JSON.parse(readFileSync(join(AQUI, 'exemplos', `${f}.json`), 'utf8')), ...(f === 'coletiva' ? {} : { foto }) });
 const sonda = (arq, campos) => execFileSync('/usr/bin/ffprobe', ['-v', 'error', '-show_entries', campos, '-of', 'default=nw=1', arq]).toString();
@@ -55,7 +59,16 @@ test('campo obrigatório faltando dá erro que cita o campo', () => {
   assert.throws(() => preencher('proxima-partida', { ...exemplo('proxima-partida'), dataHora: 'amanhã' }), /"dataHora"/);
   assert.throws(() => preencher('nossos-onze', { ...exemplo('nossos-onze'), titulares: [] }), /"titulares"/);
   assert.throws(() => preencher('nao-existe', {}), /formato "nao-existe"/);
-  assert.throws(() => gerar('despedida', { nome: 'X', foto: join(tmp, 'sumiu.jpg') }, { base: tmp }), /"foto"/);
+  assert.throws(() => gerar('despedida', { nome: 'X', foto: 'assessoria/fotos/_teste/sumiu.jpg' }, { base: tmp }), /"foto"/);
+});
+
+test('foto fora de assessoria/fotos/ é recusada (../ e caminho absoluto)', () => {
+  for (const f of ['../../etc/passwd', '/etc/passwd', 'assessoria/fotos/../../.env', join(tmp, 'x.jpg'), 'assessoria/fotos']) {
+    assert.throws(() => preencher('despedida', { nome: 'X', foto: f }), (e) => e instanceof ErroDados && /"foto".*assessoria\/fotos/.test(e.message), f);
+    assert.throws(() => gerar('despedida', { nome: 'X', foto: f }, { base: tmp }), ErroDados, f);
+  }
+  assert.ok(preencher('despedida', { nome: 'X', foto }).includes('fotos/_teste/foto.jpg')); // a de dentro vale, relativa ou absoluta
+  assert.ok(preencher('despedida', { nome: 'X', foto: join(AQUI, '..', foto) }).includes('fotos/_teste/foto.jpg'));
 });
 
 test('fim-de-jogo gera arte 1080x1350 e mini de 400 px no lado maior', () => {

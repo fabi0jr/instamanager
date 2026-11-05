@@ -4,9 +4,11 @@
 // Config (ambiente ou .env da raiz): ASSESSORIA_MCP_CHAVE (obrigatória) e ASSESSORIA_MCP_URL (padrão abaixo).
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { dentroDe } from './caminhos.mjs';
 import { fileURLToPath } from 'node:url';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const SAIDAS = join(REPO, 'assessoria/saidas');
 export const URL_PADRAO = 'https://instamanager.fj-dev.tech/mcp';
 export class ErroPostar extends Error {}
 
@@ -33,15 +35,18 @@ const lerResposta = async (r) => {
   return t ? JSON.parse(t) : null;
 };
 
-export async function postar({ pasta, legenda, url = URL_PADRAO, chave }) {
+// `base` só muda nos testes: a pasta precisa estar dentro de assessoria/saidas/ (nada de ler arquivo de outro lugar e mandar ao MCP)
+export async function postar({ pasta, legenda, url = URL_PADRAO, chave, base = SAIDAS }) {
   if (!chave) throw new ErroPostar('defina ASSESSORIA_MCP_CHAVE no .env');
-  const args = montarArgumentos(pasta, legenda);
-  const base = { Authorization: `Bearer ${chave}`, Accept: 'application/json, text/event-stream', 'Content-Type': 'application/json' };
+  const dir = dentroDe(base, pasta, process.cwd());
+  if (!dir) throw new ErroPostar(`a pasta precisa estar dentro de assessoria/saidas/ (veio "${pasta}")`);
+  const args = montarArgumentos(dir, legenda);
+  const cab = { Authorization: `Bearer ${chave}`, Accept: 'application/json, text/event-stream', 'Content-Type': 'application/json' };
   let sessao;
   let n = 0;
   const rpc = async (method, params, notificacao = false) => {
     const corpo = { jsonrpc: '2.0', method, ...(params && { params }), ...(notificacao ? {} : { id: ++n }) };
-    const r = await fetch(url, { method: 'POST', headers: { ...base, ...(sessao && { 'Mcp-Session-Id': sessao }) }, body: JSON.stringify(corpo), signal: AbortSignal.timeout(170_000) });
+    const r = await fetch(url, { method: 'POST', headers: { ...cab, ...(sessao && { 'Mcp-Session-Id': sessao }) }, body: JSON.stringify(corpo), signal: AbortSignal.timeout(170_000) });
     if (r.status === 401) throw new ErroPostar('o MCP recusou a chave (401): confira ASSESSORIA_MCP_CHAVE');
     if (r.status === 404) throw new ErroPostar('o MCP está desligado ou a URL está errada (404): confira ASSESSORIA_MCP_URL e MCP_CHAVE no servidor');
     if (!r.ok) throw new ErroPostar(`o MCP respondeu ${r.status}: ${(await r.text()).slice(0, 300)}`);
