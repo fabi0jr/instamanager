@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ladoVencedor } from '../copa/copa.js';
 import { ApiError } from '../http.js';
-import { gols } from '../liga/liga.service.js';
+import { gols } from '../liga/gols.js';
 import { UUID } from '../posts/cursor.js';
 import { PrismaService } from '../prisma.service.js';
 import { pontosPalpite } from './pontos.js';

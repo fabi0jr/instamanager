@@ -6,12 +6,13 @@ import { PostsModule } from '../posts/posts.module.js';
 import { PushModule } from '../push/push.module.js';
 import { AdminCopaController } from './admin-copa.controller.js';
 import { CopaController } from './copa.controller.js';
+import { CopaEventos } from './copa.eventos.js';
 import { CopaService } from './copa.service.js';
 
 @Module({
   imports: [BolaoModule, AuthModule, PostsModule, PushModule, AtividadeModule],
   controllers: [CopaController, AdminCopaController],
-  providers: [CopaService],
-  exports: [CopaService],
+  providers: [CopaService, CopaEventos],
+  exports: [CopaService, CopaEventos],
 })
 export class CopaModule {}

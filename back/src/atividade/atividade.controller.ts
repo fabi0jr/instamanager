@@ -1,5 +1,6 @@
 import { Controller, Get, HttpCode, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { type AuthedRequest, SessionGuard } from '../auth/session.guard.js';
+import { ConquistasService } from '../conquistas/conquistas.service.js';
 import { AtividadeService } from './atividade.service.js';
 
 @Controller('atividade')
@@ -27,7 +28,10 @@ export class AtividadeController {
 @Controller('pessoas')
 @UseGuards(SessionGuard)
 export class PessoasController {
-  constructor(private readonly atividade: AtividadeService) {}
+  constructor(
+    private readonly atividade: AtividadeService,
+    private readonly conquistas: ConquistasService,
+  ) {}
 
   @Get()
   buscar(@Query('q') q?: string) {
@@ -35,7 +39,8 @@ export class PessoasController {
   }
 
   @Get(':id')
-  perfil(@Req() req: AuthedRequest, @Param('id') id: string, @Query('antes') antes?: string) {
-    return this.atividade.perfil(req.user, id, antes);
+  async perfil(@Req() req: AuthedRequest, @Param('id') id: string, @Query('antes') antes?: string) {
+    const p = await this.atividade.perfil(req.user, id, antes);
+    return { ...p, nivel: await this.conquistas.nivel(p.id), conquistas: await this.conquistas.listar(p.id) };
   }
 }

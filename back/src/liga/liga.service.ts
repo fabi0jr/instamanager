@@ -8,15 +8,14 @@ import { AtividadeService } from '../atividade/atividade.service.js';
 import { PostsService } from '../posts/posts.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { PushService } from '../push/push.service.js';
+import { gols, MAX_GOLS } from './gols.js';
 import { LigaEventos } from './liga.eventos.js';
 import { calcularTabela, type JogoFechado, type Linha } from './tabela.js';
 
 const RODADAS = 38;
-const MAX_GOLS = 99;
 const jaPublicado = () => new ApiError(409, 'RESUMO_JA_PUBLICADO', 'O resumo desta rodada já foi publicado.');
 const invalido = (msg: string, campo = 'jogos') => new ApiError(400, 'DADOS_INVALIDOS', msg, [campo]);
 const clubeMini = (c: { id: string; name: string; crestPath: string }) => ({ id: c.id, nome: c.name, escudoUrl: c.crestPath });
-export const gols = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= MAX_GOLS;
 
 const paraFechado = (j: { rodadaNumero: number; mandanteId: string; visitanteId: string; golsMandante: number | null; golsVisitante: number | null }) => ({ rodada: j.rodadaNumero, mandanteId: j.mandanteId, visitanteId: j.visitanteId, golsMandante: j.golsMandante, golsVisitante: j.golsVisitante });
 const apareceInteiro = (nome: string, texto: string) => new RegExp(`(?<![\\p{L}\\p{N}])${nome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'iu').test(texto);
