@@ -1,5 +1,5 @@
 {
-  "proximoId": 78,
+  "proximoId": 81,
   "tarefas": [
     {
       "id": "IM-1",
@@ -5403,6 +5403,104 @@
           "de": "qa",
           "para": "concluido",
           "nota": "deploy 2534cf3 ok; MCP com 12 ferramentas; CI com timeout no apt"
+        }
+      ]
+    },
+    {
+      "id": "IM-78",
+      "titulo": "Retirar votações · back",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "módulo, rotas, MCP (10 ferramentas), XP e tabelas fora; suíte saída 0"
+      ],
+      "depende": [],
+      "responsavel": "Volante",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-05T22:17:36.394Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T22:17:36.472Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T22:17:36.519Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-05T22:17:36.569Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-79",
+      "titulo": "Retirar votações · front",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "aba, admin, selos do clube e item de atividade fora; suíte saída 0"
+      ],
+      "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-05T22:17:36.421Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T22:17:36.496Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T22:17:36.545Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-05T22:17:36.593Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-80",
+      "titulo": "Retirar votações · QA e deploy",
+      "tipo": "qa",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ensaio no dump, backup, deploy"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-05T22:17:36.447Z",
+          "quem": "PO",
+          "nota": "criada"
         }
       ]
     }
