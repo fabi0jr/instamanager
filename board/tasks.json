@@ -4271,7 +4271,7 @@
         "IM-61"
       ],
       "responsavel": "Ponta",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T04:35:26.991Z",
@@ -4320,6 +4320,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou 48ca0f7"
+        },
+        {
+          "quando": "2026-11-05T05:21:03.902Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "QA aprovou; ressalvas: margem do card no /perfil e borda 1,5 (Ponta, na IM-64), asteriscos no post da CBF (Volante, no fix da IM-62)"
         }
       ]
     },
