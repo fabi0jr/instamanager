@@ -3676,7 +3676,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "dev",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-04T22:28:27.092Z",
@@ -3701,6 +3701,20 @@
           "quando": "2026-11-04T22:28:37.074Z",
           "quem": "PO",
           "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-04T22:41:02.308Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "53c928e"
+        },
+        {
+          "quando": "2026-11-04T22:44:28.720Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 53c928e"
         }
       ]
     },
@@ -3715,12 +3729,40 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "backlog",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-04T22:28:27.116Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T22:53:01.402Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T22:53:01.426Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T22:53:01.451Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "987bf96 + 1507762"
+        },
+        {
+          "quando": "2026-11-04T23:58:33.059Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 987bf96+1507762+d39954d"
         }
       ]
     },
@@ -3735,12 +3777,40 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "backlog",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-04T22:28:27.139Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-04T23:58:22.963Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T23:58:23.015Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-04T23:58:23.065Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T00:01:14.467Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 1e133af"
         }
       ]
     },
