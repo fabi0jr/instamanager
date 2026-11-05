@@ -14,3 +14,5 @@
 .li-ativ { position: relative; }
 /* alvo invisível de 44 px sobre o avatar da linha */
 .ativ-perfil { position: absolute; left: 0; top: 50%; margin-top: -22px; width: 44px; height: 44px; border-radius: 50%; } .ativ-perfil.nova { left: var(--im-e4); }
+
+.av-ativ > .trofeu-ativ { color: var(--im-amarelo); }
