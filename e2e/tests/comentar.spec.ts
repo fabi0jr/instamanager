@@ -20,5 +20,14 @@ test('folha de comentários: campo acima da barra inferior e o comentário apare
   await campo.fill(comentario);
   await page.getByRole('button', { name: 'Publicar', exact: true }).click();
   await expect(page.getByText(comentario)).toBeInViewport();
-  // TODO(IM-64): responder um comentário (botão Responder, faixa "Respondendo a…", parentId) quando a resposta existir
+
+  // responder: a faixa aparece, o campo continua acima da barra e a resposta fica recuada sob o comentário
+  await page.getByRole('button', { name: 'Responder a Tecnico E2E' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Respondendo a Tecnico E2E' })).toBeVisible();
+  const caixa2 = await campo.boundingBox();
+  expect(caixa2!.y + caixa2!.height).toBeLessThanOrEqual(barra!.y);
+  const resposta = `Resposta Safari ${Date.now()}`;
+  await campo.fill(resposta);
+  await page.getByRole('button', { name: 'Publicar', exact: true }).click();
+  await expect(page.locator('ul.respostas').getByText(resposta)).toBeInViewport();
 });
