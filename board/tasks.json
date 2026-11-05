@@ -4975,6 +4975,11 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T14:12:01.687Z",
+          "quem": "Maestro",
+          "nota": "ensaio no dump ok (2 migrações, 9 stories intactos, enum TEXTO); backup pre-ondaC na VPS; MCP_CHAVE criada pelo Fabio"
         }
       ]
     }
