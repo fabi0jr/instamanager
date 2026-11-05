@@ -29,8 +29,10 @@ export class ConquistasListeners implements OnModuleInit {
     this.ouvir(this.votacoes, 'votacoes.encerrada', () => this.conquistas.verificar());
     this.ouvir(this.posts, 'posts.criado', async (id) => this.doAutor((await this.prisma.post.findUnique({ where: { id }, select: { authorId: true } }))?.authorId));
     this.ouvir(this.stories, 'stories.criado', async (id) => this.doAutor((await this.prisma.story.findUnique({ where: { id }, select: { autorId: true } }))?.autorId));
-    // primeira vez no ar: grava o histórico em silêncio (o `verificar` também grava a marca)
-    if (!(await this.prisma.setting.findUnique({ where: { key: SEMEADA } }))) await this.conquistas.verificar();
+    // primeira vez no ar: grava o histórico em silêncio (o `verificar` também grava a marca). Solto e com log: erro aqui não pode derrubar o boot;
+    // sem a marca, a próxima subida tenta de novo.
+    const semeada = await this.prisma.setting.findUnique({ where: { key: SEMEADA } }).catch(() => null);
+    if (!semeada) void this.conquistas.verificar().catch((e: unknown) => this.logger.error(`semeadura: ${String(e)}`));
   }
 
   private doAutor(id?: string | null) {

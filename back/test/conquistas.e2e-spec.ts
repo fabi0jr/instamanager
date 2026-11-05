@@ -1,6 +1,8 @@
 import type { INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { vi } from 'vitest';
+import { AppModule } from '../src/app.module.js';
 import { ConquistasService } from '../src/conquistas/conquistas.service.js';
 import { StoriesEventos } from '../src/stories/stories.eventos.js';
 import type { PrismaService } from '../src/prisma.service.js';
@@ -245,5 +247,29 @@ describe('XP, níveis e conquistas (e2e)', () => {
     const cru = JSON.stringify(res.body);
     expect(cru).not.toContain(ana.email);
     expect(cru).not.toMatch(/passwordHash|email/i);
+  });
+
+  it('o perfil segue sem nivel e conquistas se o cálculo falhar (200, sem 500)', async () => {
+    const falha = vi.spyOn(conquistas, 'nivel').mockRejectedValue(new Error('cálculo quebrou'));
+    try {
+      const res = await com('get', `/api/pessoas/${ana.id}`, bruno).expect(200);
+      expect(res.body).toMatchObject({ id: ana.id, nome: 'Ana Conquistas' });
+      expect(res.body).not.toHaveProperty('nivel');
+      expect(res.body).not.toHaveProperty('conquistas');
+    } finally {
+      falha.mockRestore();
+    }
+    expect((await com('get', `/api/pessoas/${ana.id}`, bruno).expect(200)).body).toHaveProperty('nivel'); // e volta ao normal
+  });
+
+  it('o app sobe mesmo se a semeadura (verificar) lançar erro, e tenta de novo no próximo boot', async () => {
+    await prisma.setting.delete({ where: { key: SEMEADA } }); // sem a marca, o boot semeia
+    const verificar = vi.fn().mockRejectedValue(new Error('semeadura quebrou'));
+    const modulo = await Test.createTestingModule({ imports: [AppModule] }).overrideProvider(ConquistasService).useValue({ verificar }).compile();
+    const outro = modulo.createNestApplication({ bodyParser: false });
+    await expect(outro.init()).resolves.toBeDefined();
+    await vi.waitFor(() => expect(verificar).toHaveBeenCalledTimes(1));
+    expect(await prisma.setting.findUnique({ where: { key: SEMEADA } })).toBeNull(); // não deu certo: sem marca
+    await outro.close();
   });
 });
