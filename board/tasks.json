@@ -4349,7 +4349,7 @@
         "IM-62"
       ],
       "responsavel": "Ponta",
-      "coluna": "correcao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T04:35:27.020Z",
@@ -4437,6 +4437,34 @@
           "de": "revisao",
           "para": "correcao",
           "nota": "VAR: Responder duas vezes na mesma pessoa perde a menção"
+        },
+        {
+          "quando": "2026-11-05T05:42:51.527Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "QA aprovou 33a7adc; fix2 d217b97 revisado pelo Maestro"
+        },
+        {
+          "quando": "2026-11-05T05:42:51.583Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "QA aprovou 33a7adc; fix2 d217b97 revisado pelo Maestro"
+        },
+        {
+          "quando": "2026-11-05T05:42:51.634Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "QA aprovou 33a7adc; fix2 d217b97 revisado pelo Maestro"
+        },
+        {
+          "quando": "2026-11-05T05:42:51.677Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "QA aprovou 33a7adc; fix2 d217b97 revisado pelo Maestro"
         }
       ]
     },
