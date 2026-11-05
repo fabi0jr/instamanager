@@ -4416,6 +4416,27 @@
           "de": "qa",
           "para": "correcao",
           "nota": "QA: responder uma resposta manda parentId do raiz; deve mandar o id do comentário clicado (erro do plano, Task B4)"
+        },
+        {
+          "quando": "2026-11-05T05:40:16.835Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:40:16.897Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:41:48.447Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: Responder duas vezes na mesma pessoa perde a menção"
         }
       ]
     },
