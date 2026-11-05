@@ -6,7 +6,7 @@ test('folha de comentários: campo acima da barra inferior e o comentário apare
   expect(criado.ok()).toBeTruthy();
 
   await page.goto('/');
-  await page.locator('article', { hasText: texto }).getByRole('button', { name: 'Comentar' }).click();
+  await page.locator('article', { hasText: texto }).getByRole('button', { name: 'Comentar' }).first().click(); // sem comentários o link de texto também se chama Comentar
   const campo = page.getByRole('textbox', { name: /Comente como/ });
   await expect(campo).toBeVisible();
 
