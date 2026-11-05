@@ -13,6 +13,8 @@ export function gerarAmostras() {
   return {
     /** 2 s HEVC/MOV como o iPhone grava, com áudio */
     hevcMov: gerar('iphone.mov', '-f', 'lavfi', '-i', 'testsrc=duration=2:size=640x360:rate=25', '-f', 'lavfi', '-i', 'sine=duration=2', '-c:v', 'libx265', '-tag:v', 'hvc1', '-c:a', 'aac', '-pix_fmt', 'yuv420p', '-x265-params', 'log-level=error'),
+    /** 1 s H.264 em 4:5, sem áudio: o formato que o assessoria/ gera */
+    curto: gerar('curto.mp4', '-f', 'lavfi', '-i', 'testsrc=duration=1:size=216x270:rate=10', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-an'),
     /** 31 s: passa do limite */
     longo: gerar('longo.mp4', '-f', 'lavfi', '-i', 'testsrc=duration=31:size=160x90:rate=5', '-c:v', 'libx264', '-preset', 'ultrafast'),
     /** texto renomeado para .mp4 */

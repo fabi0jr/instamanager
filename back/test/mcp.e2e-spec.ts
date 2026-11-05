@@ -1,5 +1,10 @@
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
+import { arquivosEm, gerarAmostras } from './amostras.js';
+import { montarJpeg } from './jpeg.js';
 import type { PrismaService } from '../src/prisma.service.js';
 import {
   apagarClubesDeTeste,
@@ -84,7 +89,7 @@ describe('mcp: CBF via MCP (e2e)', () => {
     usuarios.push(torcedor.id, admin.id);
     await prisma.user.update({
       where: { id: admin.id },
-      data: { isAdmin: true },
+      data: { isAdmin: true, createdAt: new Date(0) }, // o mais antigo: é o admin que o MCP usa, seja qual for o banco
     });
     faseId = (
       await request(http())
@@ -160,7 +165,7 @@ describe('mcp: CBF via MCP (e2e)', () => {
     });
   });
 
-  it('initialize e tools/list trazem as 11 ferramentas', async () => {
+  it('initialize e tools/list trazem as 12 ferramentas', async () => {
     const init = await rpc({
       jsonrpc: '2.0',
       id: 1,
@@ -184,6 +189,7 @@ describe('mcp: CBF via MCP (e2e)', () => {
         'criar_votacao',
         'lancar_placares',
         'lancar_placares_copa',
+        'postar_no_clube',
         'tabela',
         'ultimos_comentarios',
         'ultimos_posts',
@@ -418,6 +424,164 @@ describe('mcp: CBF via MCP (e2e)', () => {
         ],
       });
       expect(fora.result!.isError).toBe(true);
+    });
+  });
+
+  describe('postar_no_clube', () => {
+    const b64 = (b: Buffer) => b.toString('base64');
+    const img = (extra = 0) => ({
+      cheia: b64(montarJpeg(1080, 1350, extra)),
+      mini: b64(montarJpeg(320, 400)),
+    });
+    const darClube = (id: string | null) =>
+      prisma.club.update({ where: { id: c[0] }, data: { coachId: id } });
+    const postsDoAdmin = () =>
+      prisma.post.count({ where: { authorId: admin.id } });
+    const amostras = gerarAmostras();
+    let dir: string;
+    beforeAll(async () => {
+      dir = await mkdtemp(join(tmpdir(), 'im-mcp-'));
+      vi.stubEnv('UPLOADS_DIR', dir);
+    });
+    afterAll(async () => {
+      amostras.limpar();
+      await rm(dir, { recursive: true, force: true });
+    });
+
+    it('admin sem clube → isError SEM_CLUBE e nada gravado', async () => {
+      await darClube(null);
+      const antes = await postsDoAdmin();
+      const r = await chamar('postar_no_clube', {
+        legenda: 'mcp-sem clube',
+        imagens: [img()],
+      });
+      expect(r.result!.isError).toBe(true);
+      expect(texto(r)).toMatch(/^SEM_CLUBE: /);
+      expect(await postsDoAdmin()).toBe(antes);
+      expect(arquivosEm(dir)).toEqual([]);
+    });
+
+    it('2 imagens (cheia + mini): post do clube do admin com 2 PostImage; log só com {legenda, imagens: 2}', async () => {
+      await darClube(admin.id);
+      const r = await chamar('postar_no_clube', {
+        legenda: 'mcp-duas fotos',
+        imagens: [img(), img()],
+      });
+      expect(r.result!.isError).toBeFalsy();
+      const { id } = JSON.parse(texto(r));
+      const p = await prisma.post.findUnique({
+        where: { id },
+        include: { images: true },
+      });
+      expect(p).toMatchObject({
+        clubId: c[0],
+        authorId: admin.id,
+        caption: 'mcp-duas fotos',
+      });
+      expect(p!.images).toHaveLength(2);
+      const a = (await acoes())
+        .filter((x) => x.ferramenta === 'postar_no_clube' && x.ok)
+        .at(-1)!;
+      expect(a.entrada).toEqual({ legenda: 'mcp-duas fotos', imagens: 2 });
+      expect(JSON.stringify(a.entrada).length).toBeLessThan(2048);
+      const lista = (await comAdmin('/api/admin/mcp', admin).expect(200))
+        .body as { resumo: string }[];
+      expect(
+        lista.some(
+          (x) => x.resumo === "post do clube: 'mcp-duas fotos' · 2 imagens",
+        ),
+      ).toBe(true);
+    });
+
+    it('vídeo curto (MP4 4:5): cria PostVideo; log {legenda, video: true}', async () => {
+      const r = await chamar('postar_no_clube', {
+        legenda: 'mcp-video',
+        video: b64(amostras.curto),
+      });
+      expect(r.result!.isError).toBeFalsy();
+      const { id } = JSON.parse(texto(r));
+      expect(await prisma.postVideo.count({ where: { postId: id } })).toBe(1);
+      const a = (await acoes())
+        .filter((x) => x.ferramenta === 'postar_no_clube' && x.ok)
+        .at(-1)!;
+      expect(a.entrada).toEqual({ legenda: 'mcp-video', video: true });
+    });
+
+    it('imagens e vídeo juntos, mini faltando, nenhum dos dois, base64 inválido → isError e nada gravado', async () => {
+      const antes = await postsDoAdmin();
+      const arquivos = arquivosEm(dir).length;
+      const falta = { cheia: b64(montarJpeg(1080, 1350)) };
+      for (const args of [
+        { legenda: 'mcp-x', imagens: [img()], video: b64(amostras.curto) },
+        { legenda: 'mcp-x', imagens: [img(), falta] },
+        { legenda: 'mcp-x', imagens: [falta] },
+        { legenda: 'mcp-x' },
+        { legenda: 'mcp-x', imagens: [] },
+        { legenda: 'mcp-x', imagens: Array(11).fill(img()) },
+        { legenda: 'mcp-x', imagens: [{ cheia: 5, mini: 5 }] },
+        { legenda: 'mcp-x', video: 'isto não é um mp4' },
+      ]) {
+        const r = await chamar('postar_no_clube', args);
+        expect(r.result!.isError, JSON.stringify(args).slice(0, 80)).toBe(true);
+        expect(texto(r)).toMatch(
+          /^(DADOS_INVALIDOS|IMAGEM_INVALIDA|VIDEO_INVALIDO): /,
+        );
+      }
+      expect(await postsDoAdmin()).toBe(antes);
+      expect(arquivosEm(dir).length).toBe(arquivos);
+      expect(
+        (await acoes()).filter(
+          (x) => x.ferramenta === 'postar_no_clube' && !x.ok,
+        ).length,
+      ).toBeGreaterThanOrEqual(8);
+    });
+
+    it('corpo de ~5 MB passa; acima de 64 MB → 413 claro (não 500); o /api segue com 1 MB', async () => {
+      const grande = await chamar('postar_no_clube', {
+        legenda: 'mcp-5mb',
+        imagens: [img(1_900_000), img(1_900_000)],
+      });
+      expect(grande.result!.isError).toBeFalsy();
+      const r = await rpc({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'postar_no_clube',
+          arguments: { legenda: 'x'.repeat(65 * 1024 * 1024) },
+        },
+      }).catch((e: unknown) => e);
+      expect(
+        (r as { status?: number }).status ?? (r as { code?: string }).code,
+      ).toSatisfy(
+        (s: unknown) => s === 413 || s === 'EPIPE' || s === 'ECONNRESET',
+      );
+      const api = await request(http())
+        .post('/api/auth/entrar')
+        .set('Origin', ORIGIN)
+        .set('Content-Type', 'application/json')
+        .send(
+          JSON.stringify({ email: 'a@b.co', senha: 'x'.repeat(1_200_000) }),
+        );
+      expect(api.status).toBe(413);
+    });
+
+    it('corpo grande sem chave não é lido: 401, nunca estoura memória', async () => {
+      const r = await rpc(
+        {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: { name: 'x', arguments: { a: 'x'.repeat(3 * 1024 * 1024) } },
+        },
+        'errada',
+      ).catch((e: unknown) => e);
+      expect(
+        (r as { status?: number }).status ?? (r as { code?: string }).code,
+      ).toSatisfy(
+        (s: unknown) =>
+          s === 413 || s === 401 || s === 'EPIPE' || s === 'ECONNRESET',
+      );
     });
   });
 

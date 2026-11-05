@@ -91,7 +91,7 @@ export class McpService {
         await this.prisma.mcpAcao.create({
           data: {
             ferramenta: nome,
-            entrada: args as Prisma.InputJsonObject,
+            entrada: (f.registro?.(args) ?? args) as Prisma.InputJsonObject,
             ok: erro === null,
             erro,
           },

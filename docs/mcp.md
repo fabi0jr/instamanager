@@ -27,16 +27,19 @@ Leitura (sem efeito colateral):
 | `ultimos_comentarios` | `limite?` 1–50 (20) |
 | `tabela`, `calendario`, `bolao_ranking`, `votacoes` | — |
 
-Escrita (sempre como CBF; cada chamada vira uma linha no log, aba **MCP** do admin):
+Escrita (como CBF, menos `postar_no_clube`; cada chamada vira uma linha no log, aba **MCP** do admin):
 
 | Ferramenta | Entrada |
 |---|---|
 | `criar_post` | `texto` (até 500), com o aviso normal |
 | `criar_story` | `texto` (até 200, 8 linhas), `fundo?` |
+| `postar_no_clube` | `legenda`, e **ou** `imagens: [{cheia, mini}]` (1–10, JPEG em base64) **ou** `video` (MP4 em base64). Publica no clube do admin (o técnico logado no app); admin sem clube ou com a CBF dá `SEM_CLUBE`. A `mini` tem 400 px no lado maior, e a falta dela dá o mesmo `400` do post normal |
 | `criar_votacao` | `titulo`, `tipo`, `opcoes`, `prazo` |
 | `lancar_placares` | `rodada`, `placares: [{mandanteId, visitanteId, golsMandante, golsVisitante}]` |
 | `lancar_placares_copa` | `faseId`, `placares` (com `penaltisMandante?`/`penaltisVisitante?`) |
 
 `lancar_placares*` troca só os jogos informados e deixa os outros como estão. Jogo que não existe na rodada ou rodada fechada dá erro e não grava nada. **Fechar rodada ou fase não é possível por aqui**: continua no admin.
+
+O corpo do `/mcp` aceita até **64 MB** (o `/api` segue com 1 MB; acima disso, `413`). O log do admin guarda só `{legenda, imagens: N}` ou `{legenda, video: true}`, nunca o base64.
 
 Erros voltam como resultado da ferramenta (`isError`), no formato `CODIGO: mensagem`.
