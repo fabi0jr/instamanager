@@ -4659,7 +4659,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "dev",
+      "coluna": "revisao",
       "historico": [
         {
           "quando": "2026-11-05T13:13:01.664Z",
@@ -4684,6 +4684,13 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:21:06.856Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
         }
       ]
     },
@@ -4699,13 +4706,30 @@
       "depende": [
         "IM-68"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Volante",
+      "coluna": "pronto",
       "historico": [
         {
           "quando": "2026-11-05T13:13:01.717Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T13:21:06.886Z",
+          "quem": "Maestro",
+          "nota": "começa sobre feat/IM-68-story-texto (depende da C1)"
+        },
+        {
+          "quando": "2026-11-05T13:21:37.178Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:21:37.217Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
         }
       ]
     },
@@ -4741,6 +4765,11 @@
           "quando": "2026-11-05T13:14:47.972Z",
           "quem": "PO",
           "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-05T13:19:43.686Z",
+          "quem": "Maestro",
+          "nota": "pronta 81b0d0f; selo de erro com 'fechar' + palavra (não há ícone alerta)"
         }
       ]
     },
