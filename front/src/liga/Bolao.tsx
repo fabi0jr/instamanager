@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { Alerta } from '../conta/ui';
 import { api, ErroApi, type ClubeMini, type Me } from '../api/cliente';
 import { Escudo } from '../feed/Escudo';
@@ -61,7 +61,8 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
   const [escolhido, setEscolhido] = useState<string | null>(inicial.rodada ? `r${inicial.rodada}` : inicial.fase ? `f${inicial.fase}` : null);
   const [rasc, setRasc] = useState<Record<string, Rascunho>>({});
   const [salvos, setSalvos] = useState<Record<string, Meu>>({});
-  const [carregandoMeus, setCarregandoMeus] = useState(false);
+  const [carregandoMeus, setCarregandoMeus] = useState(true); // esqueleto até o GET /bolao/meus responder
+  const editou = useRef(false); // a pessoa mexeu depois do pedido: a resposta não sobrescreve o rascunho
   const [sujo, setSujo] = useState(false);
   const [ocupado, setOcupado] = useState(false);
   const [aviso, setAviso] = useState('');
@@ -82,6 +83,7 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
 
   const carregarMeus = useCallback((a: Alvo) => {
     setCarregandoMeus(true);
+    editou.current = false;
     setSujo(false);
     setAviso409(false);
     api<Meu[]>(`/bolao/meus?${a.query}`).then(
@@ -94,7 +96,7 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
           r[id] = { gm: m.golsMandante, gv: m.golsVisitante, cl: m.classificadoId };
         }
         setSalvos(porJogo);
-        setRasc(r);
+        if (!editou.current) setRasc(r);
         setCarregandoMeus(false);
       },
       () => { setAviso('Não deu para carregar seus palpites. Tente de novo.'); setCarregandoMeus(false); },
@@ -110,7 +112,7 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
   const travado = travadoPorPrazo || aviso409;
   const pode = (j: Alvo['jogos'][number]) => !travado && j.semPlacar;
   const ver = (id: string): Rascunho => rasc[id] ?? { gm: null, gv: null, cl: null };
-  const muda = (id: string, parte: Partial<Rascunho>) => { setRasc((r) => ({ ...r, [id]: { ...ver(id), ...parte } })); setSujo(true); setOk(''); };
+  const muda = (id: string, parte: Partial<Rascunho>) => { editou.current = true; setRasc((r) => ({ ...r, [id]: { ...ver(id), ...parte } })); setSujo(true); setOk(''); };
   const preenchido = (r: Rascunho) => r.gm !== null && r.gv !== null;
   const empate = (r: Rascunho) => preenchido(r) && r.gm === r.gv;
   const abertos = alvo.jogos.filter(pode);

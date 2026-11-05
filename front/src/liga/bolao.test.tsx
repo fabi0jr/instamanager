@@ -15,6 +15,8 @@ const base = (prazo: string | null, extra = {}) => ({ 'GET /liga/tabela': [], 'G
 
 beforeEach(() => history.replaceState(null, '', '/liga?aba=bolao'));
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.useRealTimers(); });
+// os cartões só aparecem depois do GET /bolao/meus (até lá é esqueleto)
+const cartoes = () => screen.findByRole('listitem', { name: 'Santos contra Vasco' });
 const clica = (nome: string | RegExp) => fireEvent.click(screen.getByRole('button', { name: nome }));
 const mais = (clube: string, vezes = 1) => { for (let i = 0; i < vezes; i++) clica(`Mais um gol para o ${clube}`); };
 
@@ -29,6 +31,7 @@ test('palpitar: stepper 0–99, faixa de prazo correndo, Salvar só habilita com
   const chamadas = fetchFalso(base(amanha(), { 'PUT /bolao/palpites': { status: 204 } }));
   render(<Liga me={me} />);
   expect(await screen.findByText(/Palpite até/)).toBeTruthy();
+  await cartoes();
   expect(screen.getByText(/Faltam? \d+ h|Falta 1 dia/)).toBeTruthy();
   const salvar = screen.getByRole('button', { name: 'Salvar palpites' }) as HTMLButtonElement;
   expect(salvar.disabled).toBe(true);
@@ -47,6 +50,7 @@ test('meio-palpite (só um lado) não salva', async () => {
   fetchFalso(base(amanha()));
   render(<Liga me={me} />);
   await screen.findByText(/Palpite até/);
+  await cartoes();
   mais('Santos');
   expect((screen.getByRole('button', { name: 'Salvar palpites' }) as HTMLButtonElement).disabled).toBe(true);
 });
@@ -55,6 +59,7 @@ test('Copa: palpite de empate exige quem passa; Salvar fica inerte até escolher
   const chamadas = fetchFalso(base(amanha(), { 'PUT /bolao/palpites': { status: 204 } }));
   render(<Liga me={me} />);
   await screen.findByText(/Palpite até/);
+  await cartoes();
   clica('Copa · Quartas');
   await screen.findByRole('listitem', { name: 'Santos contra Vasco' });
   mais('Santos'); mais('Vasco'); // 0 × 0
@@ -78,6 +83,7 @@ test('409 PRAZO_ENCERRADO com a tela aberta: faixa de erro, campos travados e na
   fetchFalso(base(amanha(), { 'PUT /bolao/palpites': { status: 409, corpo: { codigo: 'PRAZO_ENCERRADO', mensagem: 'x' } } }));
   render(<Liga me={me} />);
   await screen.findByText(/Palpite até/);
+  await cartoes();
   mais('Santos'); mais('Vasco');
   clica('Salvar palpites');
   expect(await screen.findByText('O prazo acabou. Nenhum palpite foi salvo.')).toBeTruthy();
@@ -167,4 +173,18 @@ test('ranking: posições, exatos, minha linha marcada; vazio explica', async ()
   await screen.findByText(/Palpite até/);
   fireEvent.click(screen.getByRole('tab', { name: 'Ranking' }));
   expect(await screen.findByText('Ninguém pontuou ainda')).toBeTruthy();
+});
+
+test('até o GET /bolao/meus responder só há esqueleto (nada para digitar); depois vale o palpite salvo', async () => {
+  fetchFalso(base(amanha(), { 'GET /bolao/meus?rodada=13': [{ jogoId: 'j1', copaJogoId: null, golsMandante: 5, golsVisitante: 4, classificadoId: null, pontos: null, exato: false }] }));
+  const original = fetch;
+  let abre!: () => void;
+  const porta = new Promise<void>((r) => { abre = r; });
+  vi.stubGlobal('fetch', (u: string, i?: RequestInit) => (String(u).includes('/bolao/meus') ? porta.then(() => original(u, i)) : original(u, i)));
+  render(<Liga me={me} />);
+  await screen.findByText(/Palpite até/);
+  expect(screen.queryByRole('button', { name: /Mais um gol/ })).toBeNull();
+  expect(document.querySelector('[aria-busy="true"]')).not.toBeNull();
+  abre();
+  expect(await screen.findByRole('spinbutton', { name: 'Gols do Santos, 5' })).toBeTruthy();
 });
