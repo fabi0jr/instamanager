@@ -4945,7 +4945,7 @@
       ],
       "depende": [],
       "responsavel": "Maestro",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T13:13:01.825Z",
@@ -4980,6 +4980,27 @@
           "quando": "2026-11-05T14:12:01.687Z",
           "quem": "Maestro",
           "nota": "ensaio no dump ok (2 migrações, 9 stories intactos, enum TEXTO); backup pre-ondaC na VPS; MCP_CHAVE criada pelo Fabio"
+        },
+        {
+          "quando": "2026-11-05T14:32:59.735Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "deploy 0e9f54b ok (verificar, safari, implantar); /mcp 401 sem chave, 405 GET, 11 ferramentas com a chave; sem erro no back"
+        },
+        {
+          "quando": "2026-11-05T14:32:59.786Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "deploy 0e9f54b ok (verificar, safari, implantar); /mcp 401 sem chave, 405 GET, 11 ferramentas com a chave; sem erro no back"
+        },
+        {
+          "quando": "2026-11-05T14:32:59.842Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "deploy 0e9f54b ok (verificar, safari, implantar); /mcp 401 sem chave, 405 GET, 11 ferramentas com a chave; sem erro no back"
         }
       ]
     }
