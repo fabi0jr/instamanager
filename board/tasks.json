@@ -5297,7 +5297,7 @@
         "IM-75"
       ],
       "responsavel": "Maestro",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T15:18:12.458Z",
@@ -5322,6 +5322,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T17:00:54.292Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "terminal Estrela Solitária no canvas, testado (leitura)"
+        },
+        {
+          "quando": "2026-11-05T17:00:54.342Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "terminal Estrela Solitária no canvas, testado (leitura)"
+        },
+        {
+          "quando": "2026-11-05T17:00:54.393Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "terminal Estrela Solitária no canvas, testado (leitura)"
         }
       ]
     },
@@ -5336,7 +5357,7 @@
       ],
       "depende": [],
       "responsavel": "Maestro",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T15:18:12.502Z",
@@ -5361,6 +5382,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": "backup pre-assessoria; sem migração nova"
+        },
+        {
+          "quando": "2026-11-05T17:00:54.318Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "deploy 2534cf3 ok; MCP com 12 ferramentas; CI com timeout no apt"
+        },
+        {
+          "quando": "2026-11-05T17:00:54.367Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "deploy 2534cf3 ok; MCP com 12 ferramentas; CI com timeout no apt"
+        },
+        {
+          "quando": "2026-11-05T17:00:54.419Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "deploy 2534cf3 ok; MCP com 12 ferramentas; CI com timeout no apt"
         }
       ]
     }
