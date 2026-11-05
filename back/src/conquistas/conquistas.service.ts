@@ -164,6 +164,6 @@ export class ConquistasService {
     await this.atividade.criar([d.userId], 'CONQUISTA', { conquistaTipo: d.tipo });
     void this.push.enviar([d.userId], { titulo: 'Conquista nova', corpo: nome, url: `/u/${d.userId}` }, 'cbf');
     const admin = await this.prisma.user.findFirst({ where: { isAdmin: true }, include: { club: true }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] });
-    if (admin) await this.posts.criar(admin, { comoCbf: true, texto: `🏆 @[${u.name.replace(/[\]\n]/g, '')}](${d.userId}) conquistou *${nome}*!` }, [], [], false);
+    if (admin) await this.posts.criar(admin, { comoCbf: true, texto: `🏆 @[${u.name.replace(/[\]\n]/g, '')}](${d.userId}) conquistou ${nome}!` }, [], [], false);
   }
 }

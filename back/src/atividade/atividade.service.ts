@@ -78,7 +78,7 @@ export class AtividadeService {
       where: { userId: user.id, ...(c && { OR: [{ createdAt: { lt: c.criadoEm } }, { createdAt: c.criadoEm, id: { lt: c.id } }] }) },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: POR_PAGINA + 1,
-      include: { ator: { select: { id: true, name: true, avatarPath: true } }, votacao: { select: { id: true, titulo: true } }, comentario: { select: { id: true, text: true, hiddenAt: true } }, troca: { select: { status: true, club: { select: { id: true, name: true, crestPath: true } } } } },
+      include: { ator: { select: { id: true, name: true, avatarPath: true } }, votacao: { select: { id: true, titulo: true } }, comentario: { select: { id: true, text: true, hiddenAt: true, parent: { select: { hiddenAt: true } } } }, troca: { select: { status: true, club: { select: { id: true, name: true, crestPath: true } } } } },
     });
     const pagina = itens.slice(0, POR_PAGINA);
     const ids = [...new Set(pagina.flatMap((n) => (n.postId ? [n.postId] : [])))];
@@ -86,8 +86,8 @@ export class AtividadeService {
       ? await this.prisma.post.findMany({ where: { id: { in: ids }, ...ondeVisivel(user.id, user.isAdmin, { lista: false }) }, include: { images: { orderBy: { position: 'asc' }, take: 1 }, video: { select: { capaPath: true } } } })
       : [];
     const textoDe = (p: (typeof visiveis)[number]) => p.texto ?? (p.caption || (p.images.length ? 'Post com imagem' : p.video ? 'Post com vídeo' : 'Post'));
-    // comentário só aparece se o post está visível e o comentário não foi ocultado pelo admin (o admin vê tudo)
-    const comentarioVisivel = (n: (typeof pagina)[number]) => n.comentario && visiveis.some((v) => v.id === n.postId) && (user.isAdmin || n.comentario.hiddenAt === null) ? n.comentario.text : null;
+    // comentário só aparece se o post está visível e nem ele nem o raiz (no caso de resposta) foram ocultados pelo admin (o admin vê tudo)
+    const comentarioVisivel = (n: (typeof pagina)[number]) => n.comentario && visiveis.some((v) => v.id === n.postId) && (user.isAdmin || (n.comentario.hiddenAt === null && n.comentario.parent?.hiddenAt == null)) ? n.comentario.text : null;
     const comTexto = (n: (typeof pagina)[number]) => n.tipo === 'COMENTARIO' || n.tipo === 'MENCAO' || n.tipo === 'RESPOSTA'; // MENCAO feita dentro de comentário também mostra o trecho
     const textos = pagina.flatMap((n) => (comTexto(n) ? [comentarioVisivel(n) ?? ''] : []));
     const nomes = await resolverMencoes(this.prisma, [...new Set([...visiveis.map(textoDe), ...textos].flatMap(extrairMencoes))]);
