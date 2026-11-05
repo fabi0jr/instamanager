@@ -33,7 +33,9 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg # os testes de vídeo usam o ffmpeg/ffprobe do sistema
+      # espelho do Ubuntu às vezes trava: limite de tempo e novas tentativas em vez de prender o CI por horas
+      - run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends ffmpeg # os testes de vídeo usam o ffmpeg/ffprobe do sistema
+        timeout-minutes: 8
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter back db:deploy
       - run: pnpm --filter back db:seed # os e2e precisam dos 20 clubes e do convite
@@ -76,11 +78,14 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      # espelho do Ubuntu às vezes trava: limite de tempo e novas tentativas em vez de prender o CI por horas
+      - run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends ffmpeg
+        timeout-minutes: 8
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter back db:deploy
       - run: pnpm --filter back db:seed
       - run: pnpm --filter e2e exec playwright install --with-deps webkit
+        timeout-minutes: 10
       - run: pnpm --filter e2e test:safari
       - name: Relatório do Playwright
         if: failure()
