@@ -5,7 +5,6 @@ import { LigaEventos } from '../liga/liga.eventos.js';
 import { PostsEventos } from '../posts/posts.eventos.js';
 import { PrismaService } from '../prisma.service.js';
 import { StoriesEventos } from '../stories/stories.eventos.js';
-import { VotacoesEventos } from '../votacoes/votacoes.eventos.js';
 import { ConquistasService, SEMEADA } from './conquistas.service.js';
 
 /** Recalcula as conquistas nos eventos que já existem. Nunca segura a resposta HTTP. */
@@ -20,13 +19,11 @@ export class ConquistasListeners implements OnModuleInit {
     private readonly copa: CopaEventos,
     private readonly posts: PostsEventos,
     private readonly stories: StoriesEventos,
-    private readonly votacoes: VotacoesEventos,
   ) {}
 
   async onModuleInit() {
     this.ouvir(this.liga, 'liga.rodadaFechada', () => this.conquistas.verificar());
     this.ouvir(this.copa, 'copa.faseFechada', () => this.conquistas.verificar());
-    this.ouvir(this.votacoes, 'votacoes.encerrada', () => this.conquistas.verificar());
     this.ouvir(this.posts, 'posts.criado', async (id) => this.doAutor((await this.prisma.post.findUnique({ where: { id }, select: { authorId: true } }))?.authorId));
     this.ouvir(this.stories, 'stories.criado', async (id) => this.doAutor((await this.prisma.story.findUnique({ where: { id }, select: { autorId: true } }))?.autorId));
     // primeira vez no ar: grava o histórico em silêncio (o `verificar` também grava a marca). Solto e com log: erro aqui não pode derrubar o boot;

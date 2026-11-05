@@ -11,7 +11,6 @@ import { LigaService } from '../liga/liga.service.js';
 import { PostsService } from '../posts/posts.service.js';
 import { PrismaService } from '../prisma.service.js';
 import { StoriesService } from '../stories/stories.service.js';
-import { VotacoesService } from '../votacoes/votacoes.service.js';
 import { FERRAMENTAS, textoDoErro } from './ferramentas.js';
 
 const resultado = (texto: string, isError = false) => ({
@@ -27,7 +26,6 @@ export class McpService {
     private readonly prisma: PrismaService,
     private readonly posts: PostsService,
     private readonly stories: StoriesService,
-    private readonly votacoes: VotacoesService,
     private readonly liga: LigaService,
     private readonly copa: CopaService,
     private readonly bolao: BolaoService,
@@ -72,7 +70,6 @@ export class McpService {
             prisma: this.prisma,
             posts: this.posts,
             stories: this.stories,
-            votacoes: this.votacoes,
             liga: this.liga,
             copa: this.copa,
             bolao: this.bolao,

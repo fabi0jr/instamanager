@@ -19,7 +19,7 @@ const INDISPONIVEL = 'Post indisponível';
 const INDISPONIVEL_COMENTARIO = 'Comentário indisponível';
 const curto = (t: string) => (t.length > RESUMO_MAX ? `${t.slice(0, RESUMO_MAX - 1)}…` : t);
 
-type Extra = { atorId?: string; postId?: string; comentarioId?: string; votacaoId?: string; trocaId?: string; conquistaTipo?: ConquistaTipo };
+type Extra = { atorId?: string; postId?: string; comentarioId?: string; trocaId?: string; conquistaTipo?: ConquistaTipo };
 
 @Injectable()
 export class AtividadeService {
@@ -78,7 +78,7 @@ export class AtividadeService {
       where: { userId: user.id, ...(c && { OR: [{ createdAt: { lt: c.criadoEm } }, { createdAt: c.criadoEm, id: { lt: c.id } }] }) },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: POR_PAGINA + 1,
-      include: { ator: { select: { id: true, name: true, avatarPath: true } }, votacao: { select: { id: true, titulo: true } }, comentario: { select: { id: true, text: true, hiddenAt: true, parent: { select: { hiddenAt: true } } } }, troca: { select: { status: true, club: { select: { id: true, name: true, crestPath: true } } } } },
+      include: { ator: { select: { id: true, name: true, avatarPath: true } }, comentario: { select: { id: true, text: true, hiddenAt: true, parent: { select: { hiddenAt: true } } } }, troca: { select: { status: true, club: { select: { id: true, name: true, crestPath: true } } } } },
     });
     const pagina = itens.slice(0, POR_PAGINA);
     const ids = [...new Set(pagina.flatMap((n) => (n.postId ? [n.postId] : [])))];
@@ -103,7 +103,6 @@ export class AtividadeService {
           lida: n.lidaEm !== null,
           ator: n.ator && { id: n.ator.id, nome: n.ator.name, avatarUrl: n.ator.avatarPath },
           post: n.postId ? { id: n.postId, miniUrl: p?.images[0]?.thumbPath ?? p?.video?.capaPath ?? null, resumo: p ? resumoDe(p) : INDISPONIVEL } : null,
-          votacao: n.votacao,
           ...(n.tipo === 'CONQUISTA' && n.conquistaTipo && { conquista: { tipo: n.conquistaTipo, nome: NOMES[n.conquistaTipo] } }),
           ...(comTexto(n) && { comentario: n.comentario && { id: n.comentario.id, resumo: curto(comentarioVisivel(n) !== null ? comNomes(comentarioVisivel(n)!, nomes) : INDISPONIVEL_COMENTARIO) } }),
           // clube = o que ela queria assumir (null no pedido de sair); itens antigos sem pedido ligado ficam com troca null
