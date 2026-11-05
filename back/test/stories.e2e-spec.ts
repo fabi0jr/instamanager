@@ -125,6 +125,9 @@ describe('stories (e2e)', () => {
   it('story de texto inválido → 400: 201 caracteres, vazio, fundo desconhecido, texto + imagem/vídeo', async () => {
     await enviar(tecnico0).field('texto', 'a'.repeat(201)).expect(400);
     await enviar(tecnico0).field('texto', '   ').expect(400);
+    expect((await enviar(tecnico0).field('texto', 'l\n'.repeat(8) + 'x').expect(400)).body).toMatchObject({ codigo: 'DADOS_INVALIDOS', campos: ['texto'] }); // 9 linhas
+    const oito = await guardar(enviar(tecnico0).field('texto', Array(8).fill('l').join('\n'))); // 8 linhas (7 quebras)
+    expect(oito.status).toBe(201);
     await enviar(tecnico0).field('texto', 'oi').field('fundo', 'rosa').expect(400);
     await enviar(tecnico0).field('texto', 'oi').attach('imagem', montarJpeg(10, 10), 's.jpg').expect(400);
     await enviar(tecnico0).field('texto', 'oi').attach('video', amostras.hevcMov, 'v.mov').expect(400);

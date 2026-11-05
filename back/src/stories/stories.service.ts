@@ -11,6 +11,7 @@ import { StoriesEventos } from './stories.eventos.js';
 const DURACAO_MS = 24 * 3_600_000;
 const MAX_IMAGEM = 3 * 1024 * 1024;
 const MAX_TEXTO = 200;
+const MAX_LINHAS = 8;
 const FUNDOS = ['gramado', 'carvao', 'vermelho', 'azul'];
 type Arquivo = { buffer: Buffer };
 const naoEncontrado = () => new ApiError(404, 'NAO_ENCONTRADO', 'Não encontramos o que você procurou.');
@@ -42,6 +43,7 @@ export class StoriesService {
     if (Number(!!imagem) + Number(!!video) + Number(comTexto) !== 1) throw invalido('Envie uma imagem, um vídeo ou um texto (só um).', comTexto ? 'texto' : imagem ? 'video' : 'imagem');
     const texto = comTexto ? (typeof corpo.texto === 'string' ? corpo.texto.trim() : '') : '';
     if (comTexto && (texto.length < 1 || texto.length > MAX_TEXTO)) throw invalido(`O texto precisa ter de 1 a ${MAX_TEXTO} caracteres.`, 'texto');
+    if (comTexto && texto.split('\n').length > MAX_LINHAS) throw invalido(`O texto cabe em até ${MAX_LINHAS} linhas.`, 'texto');
     const fundo = corpo.fundo === undefined || corpo.fundo === '' ? 'gramado' : corpo.fundo;
     if (comTexto && (typeof fundo !== 'string' || !FUNDOS.includes(fundo))) throw invalido('Fundo inválido.', 'fundo');
 
