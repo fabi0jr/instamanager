@@ -1,0 +1,13 @@
+<style>
+  .titulo { top: 90px; height: 130px; font-size: 130px; }
+  .placar { position: absolute; left: 0; right: 0; top: 520px; display: flex; align-items: center; justify-content: center; gap: 34px; font-family: Titulo, serif; line-height: 1; -webkit-text-stroke: 3px #f2efe6; }
+  .placar .n { font-size: 400px; } .placar .x { font-size: 150px; } .placar .escudo { height: 200px; }
+  .gols { position: absolute; left: 140px; width: 800px; top: 1000px; height: 250px; font: 600 54px/1.2 Titulo; text-align: center; overflow: visible; }
+  .gols div { display: flex; align-items: center; justify-content: center; gap: .4em; height: 1.2em; } .gols img { height: .8em; }
+</style>
+<div class="fundo escuro"><img class="foto" src="{{foto}}"><div class="degrade-topo"></div><div class="degrade-base"></div></div>
+<div class="texto">
+  <div class="t titulo" data-fit>FIM DE JOGO</div>
+  <div class="placar"><img class="escudo" src="{{escudoMandante}}"><span class="n">{{golsMandante}}</span><span class="x">x</span><span class="n">{{golsVisitante}}</span><img class="escudo" src="{{escudoVisitante}}"></div>
+  <div class="gols" data-fit>{{{gols}}}</div>
+</div>

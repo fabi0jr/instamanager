@@ -1,0 +1,14 @@
+<style>
+  .topo { top: 90px; font-size: 32px; }
+  .nome { position: absolute; left: 60px; width: 960px; top: 700px; height: 360px; font: 400 230px/.9 Titulo; text-transform: uppercase; text-align: center; -webkit-text-stroke: 3px #f2efe6; }
+  .info { top: 1090px; font: 700 52px Barlow; letter-spacing: .12em; color: #f2efe6; } .temp { top: 1170px; font-size: 30px; }
+  .escudos { position: absolute; left: 0; right: 0; top: 1230px; display: flex; justify-content: center; } .escudos img { height: 90px; }
+</style>
+<div class="fundo escuro"><img class="foto" src="{{foto}}"><div class="degrade-topo"></div><div class="degrade-base"></div></div>
+<div class="texto">
+  <div class="peq topo">Bem-vindo ao Botafogo</div>
+  <div class="nome" data-fit>{{nome}}</div>
+  <div class="peq info">{{idade}} anos · {{posicao}}</div>
+  <div class="peq temp">Temporada 2026</div>
+  <div class="escudos"><img src="{{escudoMandante}}"></div>
+</div>

@@ -1,0 +1,16 @@
+<style>
+  body, html { background: #000 radial-gradient(rgb(255 255 255 / .06) 2px, transparent 2px) 0 0 / 28px 28px; }
+  .foto-faixa { position: absolute; left: 0; top: 380px; width: 1080px; height: 700px; object-fit: cover; -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); }
+  .comp { top: 96px; font-size: 30px; } .titulo { top: 150px; height: 220px; font-size: 220px; }
+  .jogo { position: absolute; left: 60px; width: 960px; top: 1130px; text-align: center; white-space: nowrap; font: 800 100px/1.1 Barlow; text-transform: uppercase; }
+  .jogo i { font: 400 100px Titulo; font-style: normal; margin: 0 .2em; }
+  .estadio { top: 1250px; font: 400 40px Titulo; letter-spacing: .25em; } .quando { top: 1300px; font-size: 26px; letter-spacing: .3em; }
+</style>
+<div class="fundo"><img class="foto-faixa" src="{{foto}}"></div>
+<div class="texto">
+  <div class="peq comp">{{competicao}} | {{rodadaOuFase}}</div>
+  <div class="t titulo" data-fit>PRÓXIMA PARTIDA</div>
+  <div class="jogo" data-fit>{{nomeMandante}}<i>VS</i>{{nomeVisitante}}</div>
+  <div class="peq estadio" data-fit>{{estadio}}</div>
+  <div class="peq quando">{{quando}}</div>
+</div>

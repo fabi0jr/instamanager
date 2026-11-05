@@ -1,0 +1,22 @@
+{
+  "athletico-pr": { "nome": "Athletico-PR", "estadio": "Ligga Arena" },
+  "atletico-mg": { "nome": "Atlético-MG", "estadio": "Arena MRV" },
+  "bahia": { "nome": "Bahia", "estadio": "Arena Fonte Nova" },
+  "botafogo": { "nome": "Botafogo", "estadio": "Estádio Nilton Santos" },
+  "chapecoense": { "nome": "Chapecoense", "estadio": "Arena Condá" },
+  "corinthians": { "nome": "Corinthians", "estadio": "Neo Química Arena" },
+  "coritiba": { "nome": "Coritiba", "estadio": "Estádio Couto Pereira" },
+  "cruzeiro": { "nome": "Cruzeiro", "estadio": "Mineirão" },
+  "flamengo": { "nome": "Flamengo", "estadio": "Maracanã" },
+  "fluminense": { "nome": "Fluminense", "estadio": "Maracanã" },
+  "gremio": { "nome": "Grêmio", "estadio": "Arena do Grêmio" },
+  "internacional": { "nome": "Internacional", "estadio": "Estádio Beira-Rio" },
+  "mirassol": { "nome": "Mirassol", "estadio": "Estádio Maião" },
+  "palmeiras": { "nome": "Palmeiras", "estadio": "Allianz Parque" },
+  "red-bull-bragantino": { "nome": "Red Bull Bragantino", "estadio": "Estádio Nabi Abi Chedid" },
+  "remo": { "nome": "Remo", "estadio": "Estádio Baenão" },
+  "santos": { "nome": "Santos", "estadio": "Vila Belmiro" },
+  "sao-paulo": { "nome": "São Paulo", "estadio": "MorumBIS" },
+  "vasco": { "nome": "Vasco da Gama", "estadio": "São Januário" },
+  "vitoria": { "nome": "Vitória", "estadio": "Barradão" }
+}
