@@ -112,37 +112,6 @@ test('prévia do bot com Sortear de novo, Editar (até 500) e Publicar', async (
   await waitFor(() => expect(location.pathname).toBe('/admin/rodadas'));
 });
 
-test('criar votação (título, tipo, opções, prazo) e encerrar mostra o selo criado', async () => {
-  const chamadas = fetchFalso({
-    'GET /clubes': clubes,
-    'POST /admin/votacoes': { status: 201, corpo: {} },
-  });
-  history.replaceState(null, '', '/admin/votacoes/nova');
-  tela('/admin/votacoes/nova');
-  const criar = await screen.findByRole('button', { name: 'Criar votação' }) as HTMLButtonElement;
-  await screen.findByText('Palmeiras ✕'.replace(' ✕', ''), { exact: false });
-  expect(criar.disabled).toBe(true);
-  fireEvent.change(screen.getByLabelText('Título'), { target: { value: 'Clube do mês' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Remover Santos' }));
-  fireEvent.change(screen.getByLabelText('Prazo'), { target: { value: '2099-01-01T10:00' } });
-  expect(criar.disabled).toBe(false);
-  fireEvent.click(criar);
-  await waitFor(() => expect(chamadas.some((x) => x.chave === 'POST /admin/votacoes')).toBe(true));
-  const corpo = JSON.parse(chamadas.find((x) => x.chave === 'POST /admin/votacoes')!.body as string);
-  expect(corpo).toMatchObject({ titulo: 'Clube do mês', tipo: 'CLUBE', opcoes: ['palmeiras', 'flamengo'] });
-  expect(corpo.prazo).toBe(new Date('2099-01-01T10:00').toISOString());
-});
-
-test('encerrar votação mostra o selo criado', async () => {
-  const v = { id: 'v1', titulo: 'Clube do mês', tipo: 'CLUBE', prazo: new Date(Date.now() + 86400_000).toISOString(), aberta: true, encerrada: false, opcoes: [{ id: 'flamengo', rotulo: 'Flamengo' }, { id: 'santos', rotulo: 'Santos' }], meuVoto: null };
-  fetchFalso({ 'GET /votacoes': [v], 'POST /admin/votacoes/v1/encerrar': { status: 201, corpo: { ...v, encerrada: true, resultado: [{ opcao: 'flamengo', rotulo: 'Flamengo', votos: 5 }, { opcao: 'santos', rotulo: 'Santos', votos: 2 }] } } });
-  history.replaceState(null, '', '/admin/votacoes');
-  tela('/admin/votacoes');
-  fireEvent.click(await screen.findByRole('button', { name: 'Encerrar' }));
-  fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Encerrar agora' }));
-  expect(await screen.findByText('Votação encerrada. Selo criado para Flamengo.')).toBeTruthy();
-});
-
 test('rodada fechada sem resumo mostra "Publicar resumo" (abre a prévia) e nunca diz que já saiu', async () => {
   const chamadas = fetchFalso({
     'GET /liga/rodadas': rodadas(true, [jogo]),
@@ -180,14 +149,6 @@ test('publicar: 409 RESUMO_JA_PUBLICADO conta como sucesso (sem erro, volta à l
   fireEvent.click(screen.getByRole('button', { name: 'Publicar resumo' }));
   await waitFor(() => expect(location.pathname).toBe('/admin/rodadas'));
   expect(screen.queryByText('Não deu para publicar. Tente de novo.')).toBeNull();
-});
-
-test('admin de votações lista também as encerradas com o vencedor', async () => {
-  fetchFalso({ 'GET /votacoes': [], 'GET /votacoes?encerradas=1': [{ id: 'v0', titulo: 'Técnico de outubro', tipo: 'TECNICO', prazo: '2026-10-30T12:00:00Z', aberta: false, encerrada: true, opcoes: [], meuVoto: null, vencedor: 'Abel e Rita' }] });
-  history.replaceState(null, '', '/admin/votacoes');
-  tela('/admin/votacoes');
-  expect(await screen.findByText('Técnico de outubro')).toBeTruthy();
-  expect(screen.getByText('Encerrada · Venceu: Abel e Rita')).toBeTruthy();
 });
 
 test('jogo agendado (gols vazios) vai com gols nulos, o prazo vai em ISO, e fechar com jogo sem placar avisa quantos faltam', async () => {

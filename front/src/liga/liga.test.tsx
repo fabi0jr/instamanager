@@ -65,7 +65,7 @@ test('rodadas listam resultados, com aviso de parcial na aberta e "Faltam jogos"
 });
 
 test('faixa de abas: só rola na horizontal, sem puxar a página (estilos e #rolagem intactos)', async () => {
-  fetchFalso({ 'GET /liga/tabela': tabela, 'GET /liga/rodadas': rodadas, 'GET /copa': [], 'GET /bolao/meus?rodada=1': [], 'GET /votacoes': [] });
+  fetchFalso({ 'GET /liga/tabela': tabela, 'GET /liga/rodadas': rodadas, 'GET /copa': [], 'GET /bolao/meus?rodada=1': [] });
   const css = readFileSync('src/liga/liga.css', 'utf8');
   const regra = css.match(/\.abas-liga \{[^}]*\}/)![0];
   for (const d of ['overflow-x: auto', 'overflow-y: hidden', 'overscroll-behavior-x: contain', 'touch-action: pan-x', 'scroll-snap-type: x proximity', 'scroll-padding-inline', 'scrollbar-width: none']) expect(regra).toContain(d);

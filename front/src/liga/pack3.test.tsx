@@ -12,10 +12,10 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 const abrir = (aba: string) => fireEvent.click(screen.getByRole('tab', { name: aba }));
 
-test('abas da Liga: Tabela · Rodadas · Calendário · Copa · Bolão · Votações', async () => {
+test('abas da Liga: Tabela · Rodadas · Calendário · Copa · Bolão', async () => {
   fetchFalso(base);
   render(<Liga me={me} />);
-  expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Tabela', 'Rodadas', 'Calendário', 'Copa', 'Bolão', 'Votações']);
+  expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Tabela', 'Rodadas', 'Calendário', 'Copa', 'Bolão']);
 });
 
 test('Rodadas só mostra jogo com placar; o agendado fica para o Calendário', async () => {

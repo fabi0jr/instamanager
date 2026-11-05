@@ -95,7 +95,7 @@ test('/perfil segue sem o card se o nível falhar', async () => {
 });
 
 test('atividade CONQUISTA: troféu, "Você conquistou Goleada." e leva ao próprio perfil', async () => {
-  const item = { id: 'c1', tipo: 'CONQUISTA', criadoEm: new Date().toISOString(), lida: false, ator: null, post: null, votacao: null, conquista: { tipo: 'GOLEADA', nome: 'Goleada' } };
+  const item = { id: 'c1', tipo: 'CONQUISTA', criadoEm: new Date().toISOString(), lida: false, ator: null, post: null, conquista: { tipo: 'GOLEADA', nome: 'Goleada' } };
   fetchFalso({ 'GET /atividade': { itens: [item], proximo: null }, 'POST /atividade/lidas': { status: 204 } });
   render(<Atividade meuId="a1" />);
   expect(await screen.findByText(/Você conquistou/)).toBeTruthy();

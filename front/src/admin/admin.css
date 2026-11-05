@@ -32,7 +32,7 @@ button.linha-clube { cursor: pointer; }
 .opcao img + * { }
 .previa-denuncia { display: block; padding: var(--im-e3); background: var(--im-superficie-alta); border-radius: var(--im-r-btn); color: var(--im-giz); text-decoration: none; } .corta2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
 
-/* onda B: rodadas e votações (docs/design/onda-b.md §4 e §5) */
+/* onda B: rodadas (docs/design/onda-b.md §4 e §5) */
 .rodada-nome { font: 700 22px var(--im-fonte-display); } .aviso-gramado { margin: 0; padding: var(--im-e3); border: 1px solid var(--im-gramado); border-radius: var(--im-r-btn); }
 .cartoes-jogo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--im-e3); }
 .cartao-jogo { position: relative; display: flex; flex-direction: column; gap: var(--im-e2); padding: var(--im-e3); padding-right: 56px; background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: var(--im-r-midia); }
@@ -45,7 +45,6 @@ button.linha-clube { cursor: pointer; }
 /* os 3 botões ficam na barra fixa; fundo opaco para o texto que rola não aparecer por trás */
 .previa-bot .acao-fixa { background: var(--im-carvao); } .previa-bot .duas-acoes { margin-bottom: var(--im-e3); }
 .previa-bot .botao { display: inline-flex; align-items: center; justify-content: center; gap: var(--im-e2); }
-.chips-opcoes { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--im-e2); } .chips-opcoes li { display: inline-flex; align-items: center; gap: 4px; padding: 0 0 0 var(--im-e3); min-height: 44px; background: var(--im-superficie-alta); border-radius: 999px; } .chips-opcoes button { width: 44px; height: 44px; background: none; border: 0; color: var(--im-giz-2); cursor: pointer; }
 .form-folha input { height: 44px; background: var(--im-superficie-alta); color: var(--im-giz); border: 1px solid var(--im-linha); border-radius: var(--im-r-btn); padding: 0 var(--im-e3); font: inherit; }
 
 /* Pack 3 · A: prazo de palpite e jogo sem placar (docs/design/pack3-onda-a.md §7) */

@@ -42,13 +42,9 @@
 .previa-capa .botao-capa { display: inline-flex; align-items: center; gap: var(--im-e2); padding: 0 var(--im-e4); border: 0; border-radius: var(--im-r-pilula); background: rgb(14 15 17 / .72); color: var(--im-giz); font: 600 15px var(--im-fonte-texto); cursor: pointer; }
 .previa-capa .véu { position: absolute; inset: 0; border-radius: 12px; background: rgb(0 0 0 / .55); }
 
-/* onda B: posição na Liga, selos e perfil da CBF (docs/design/onda-b.md §3 e §6) */
+/* onda B: posição na Liga e perfil da CBF (docs/design/onda-b.md §3 e §6) */
 .cartao-liga { display: flex; align-items: center; gap: var(--im-e3); min-height: 64px; margin: 0 var(--im-e4) var(--im-e3); padding: 0 var(--im-e4); background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: var(--im-r-midia); color: var(--im-giz); text-decoration: none; }
 .cartao-liga strong { font: 800 32px var(--im-fonte-display); } .cartao-liga .giz2 { flex: 1; }
-.selos { padding: 0 var(--im-e4) var(--im-e3); } .selos p { margin: 0 0 var(--im-e2); }
-.selos ul, .selos-todos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--im-e2); }
-.selo-cartao { display: flex; align-items: center; gap: var(--im-e2); min-height: 64px; padding: 0 var(--im-e3); border: 1px solid var(--im-amarelo); border-radius: var(--im-r-midia); color: var(--im-amarelo); }
-.selo-cartao > span { display: flex; flex-direction: column; color: var(--im-giz); }
 .clube-topo.cbf .escudo-cbf { border-radius: 0; background: none; } .clube-topo.cbf { border-bottom: 4px solid var(--im-vermelho); }
 .etiqueta-oficial { display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; height: 24px; border-radius: 999px; background: var(--im-superficie-alta); color: var(--im-gramado); font: 600 13px var(--im-fonte-texto); }
 .so-posts { padding: var(--im-e3) var(--im-e4); font-size: 22px; border-bottom: 1px solid var(--im-linha); }

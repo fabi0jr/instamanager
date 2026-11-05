@@ -176,7 +176,6 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
         </Link>
       )}
       <Linha titulo="Galeria de prompts" para="/galeria" />
-      <Linha titulo="Votações" para="/liga?aba=votacoes" />
       <Linha titulo="Liga" para="/liga" />
 
       {nivel && <SeloNivel nivel={nivel} para={`/u/${me.id}`} />}

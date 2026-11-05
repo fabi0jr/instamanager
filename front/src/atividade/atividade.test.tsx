@@ -5,14 +5,14 @@ import { fetchFalso } from '../testes/fetchFalso';
 import { Atividade } from './Atividade';
 
 const ator = (nome: string) => ({ id: 'u-' + nome, nome, avatarUrl: null });
-const item = (id: string, tipo: string, extra: object = {}) => ({ id, tipo, criadoEm: new Date().toISOString(), lida: true, ator: ator('Paulo'), post: { id: 'p' + id, miniUrl: `/m${id}.jpg`, resumo: 'Treino de hoje' }, votacao: null, ...extra });
+const item = (id: string, tipo: string, extra: object = {}) => ({ id, tipo, criadoEm: new Date().toISOString(), lida: true, ator: ator('Paulo'), post: { id: 'p' + id, miniUrl: `/m${id}.jpg`, resumo: 'Treino de hoje' }, ...extra });
 
 beforeEach(() => vi.stubGlobal('IntersectionObserver', class { observe() {} disconnect() {} unobserve() {} }));
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 test('Atividade lista e marca lidas ao abrir; as novas ficam destacadas nesta visita', async () => {
   const chamadas = fetchFalso({
-    'GET /atividade': { itens: [item('1', 'REACAO', { lida: false }), item('2', 'COMENTARIO', { comentario: { resumo: 'Boa jogada' } }), item('3', 'MENCAO', { lida: false }), item('4', 'CBF_CITOU', { ator: null }), item('5', 'VOTACAO_RESULTADO', { ator: null, votacao: { id: 'v1', titulo: 'Técnico do mês' } })], proximo: null },
+    'GET /atividade': { itens: [item('1', 'REACAO', { lida: false }), item('2', 'COMENTARIO', { comentario: { resumo: 'Boa jogada' } }), item('3', 'MENCAO', { lida: false }), item('4', 'CBF_CITOU', { ator: null })], proximo: null },
     'POST /atividade/lidas': { status: 204 },
   });
   render(<Atividade />);
@@ -23,8 +23,6 @@ test('Atividade lista e marca lidas ao abrir; as novas ficam destacadas nesta vi
   expect(screen.getByText(/comentou: “Boa jogada”/)).toBeTruthy();
   expect(screen.getByText(/mencionou você: “Treino de hoje”/)).toBeTruthy();
   expect(screen.getByText(/CBF citou você no comunicado/)).toBeTruthy();
-  expect(screen.getByText(/Resultado de Técnico do mês/)).toBeTruthy();
-  expect(document.querySelector('a[href="/votacoes/v1"]')).toBeTruthy();
   expect(document.querySelector('a[href="/p/p1"]')).toBeTruthy();
 });
 

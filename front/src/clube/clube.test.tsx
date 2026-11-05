@@ -109,9 +109,9 @@ test('grade do clube: post só de texto vira quadrado com as primeiras palavras,
   expect(container.querySelectorAll('.grade-capas img')).toHaveLength(1);
 });
 
-const dadosOndaB = { liga: { posicao: 10, ultimos: ['V', 'D'], pontos: 17, jogos: 12 }, selos: [{ titulo: 'Técnico do mês', createdAt: '2026-11-15T12:00:00Z' }] };
+const dadosOndaB = { liga: { posicao: 10, ultimos: ['V', 'D'], pontos: 17, jogos: 12 } };
 
-test('perfil do clube mostra posição, últimos 5 e selos', async () => {
+test('perfil do clube mostra posição e últimos 5', async () => {
   fetchFalso({
     'GET /clubes/palmeiras': { ...base, tecnico: { id: 'u1', nome: 'Abel' }, historico: [], ...dadosOndaB },
     'GET /posts?clube=palmeiras': { itens: [], proximo: null },
@@ -121,25 +121,22 @@ test('perfil do clube mostra posição, últimos 5 e selos', async () => {
   const cartao = await screen.findByRole('link', { name: '10º na Liga, últimos 2: derrota, vitória' });
   expect(cartao.getAttribute('href')).toBe('/liga');
   expect(screen.getByText('· 17 pontos · 12 jogos')).toBeTruthy();
-  expect(screen.getByText('Técnico do mês')).toBeTruthy();
-  expect(screen.getByText('Nov/26')).toBeTruthy();
 });
 
-test('perfil do clube sem selo nem resultado esconde as duas seções', async () => {
+test('perfil do clube sem resultado esconde a posição', async () => {
   fetchFalso({
-    'GET /clubes/palmeiras': { ...base, tecnico: null, historico: [], liga: { posicao: 3, ultimos: [] }, selos: [] },
+    'GET /clubes/palmeiras': { ...base, tecnico: null, historico: [], liga: { posicao: 3, ultimos: [] } },
     'GET /posts?clube=palmeiras': { itens: [], proximo: null },
     'GET /trocas/minhas': [],
   });
   render(<PerfilClube id="palmeiras" me={me} />);
   await screen.findByText('Vaga aberta');
   expect(screen.queryByText('na Liga')).toBeNull();
-  expect(screen.queryByText('SELOS')).toBeNull();
 });
 
 test('perfil da CBF sem técnico/histórico', async () => {
   fetchFalso({
-    'GET /clubes/cbf': { id: 'cbf', nome: 'CBF', escudoUrl: '/escudos/cbf.svg', bio: null, tecnico: null, historico: [], liga: null, selos: [] },
+    'GET /clubes/cbf': { id: 'cbf', nome: 'CBF', escudoUrl: '/escudos/cbf.svg', bio: null, tecnico: null, historico: [], liga: null },
     'GET /posts?clube=cbf': { itens: [], proximo: null },
     'GET /trocas/minhas': [],
   });
@@ -154,7 +151,7 @@ test('perfil da CBF sem técnico/histórico', async () => {
 });
 
 test('perfil do clube: técnico atual vê "Novo story"; torcedor não; admin vê o da CBF', async () => {
-  const dados = (id: string, tecnico: unknown) => ({ ['GET /clubes/' + id]: { id, nome: id, escudoUrl: `/escudos/${id}.svg`, tecnico, historico: [], liga: null, selos: [] }, ['GET /posts?clube=' + id]: { itens: [], proximo: null }, 'GET /trocas/minhas': [] });
+  const dados = (id: string, tecnico: unknown) => ({ ['GET /clubes/' + id]: { id, nome: id, escudoUrl: `/escudos/${id}.svg`, tecnico, historico: [], liga: null }, ['GET /posts?clube=' + id]: { itens: [], proximo: null }, 'GET /trocas/minhas': [] });
   fetchFalso(dados('palmeiras', { id: 'u9', nome: 'Torcedor' }));
   render(<PerfilClube id="palmeiras" me={me} />); // me.id u9 = técnico atual
   expect((await screen.findByRole('link', { name: 'Novo story' })).getAttribute('href')).toBe('/stories/novo');

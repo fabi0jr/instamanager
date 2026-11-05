@@ -7,7 +7,6 @@ import { fetchFalso } from './testes/fetchFalso';
 const clube = { id: 'palmeiras', nome: 'Palmeiras', escudoUrl: '/escudos/palmeiras.svg' };
 const me = { id: 'a1', nome: 'Fabio', email: 'f@x.com', avatarUrl: null, isAdmin: true, pushEnabled: false, clube };
 const jogo = { id: 'j1', mandante: clube, visitante: { ...clube, id: 'flamengo', nome: 'Flamengo' }, golsMandante: 1, golsVisitante: 0 };
-const votacao = { id: 'v1', titulo: 'Clube do mês', tipo: 'CLUBE', prazo: new Date(Date.now() + 86400_000).toISOString(), aberta: true, encerrada: false, opcoes: [{ id: 'flamengo', rotulo: 'Flamengo' }], meuVoto: null };
 const post = { id: 'p1', clube, autor: { id: 'a1', nome: 'Fabio' }, legenda: 'x', imagens: [], curtidas: 0, curtiu: false, comentarios: 0, podeEditar: true, criadoEm: new Date().toISOString() };
 
 beforeEach(() => {
@@ -24,10 +23,8 @@ const ROTAS: { caminho: string; api: Record<string, unknown>; abrir?: () => Prom
     api: { 'GET /liga/rodadas': [{ numero: 1, fechada: true, jogos: [jogo] }], 'GET /clubes': [clube], 'POST /admin/rodadas/1/previa': { status: 201, corpo: { texto: 'Resumo', citados: [] } } },
     abrir: async () => fireEvent.click(await screen.findByRole('button', { name: 'Publicar resumo' })),
   },
-  { caminho: '/admin/votacoes/nova', api: { 'GET /clubes': [clube] } },
   { caminho: '/admin/copa/f1', api: { 'GET /copa': [{ fase: { id: 'f1', nome: 'Oitavas', ordem: 1, prazoPalpite: null, fechada: false }, jogos: [] }], 'GET /clubes': [clube] } },
   { caminho: '/liga?aba=bolao', api: { 'GET /liga/tabela': [], 'GET /liga/rodadas': [{ numero: 1, fechada: false, jogos: [jogo] }], 'GET /copa': [], 'GET /bolao/meus?rodada=1': [] } },
-  { caminho: '/votacoes/v1', api: { 'GET /votacoes/v1': votacao } },
   { caminho: '/postar', api: {}, edicao: true },
   { caminho: '/p/p1/editar', api: { 'GET /posts/p1': post }, edicao: true },
 ];
@@ -50,7 +47,7 @@ test('CSS: um token --altura-barra e uma regra única para .acao-fixa (0 nas tel
   expect(tokens).toMatch(/min-width: 768px\) \{ :root \{ --altura-barra: 0px; \}/);
   expect(conta).toMatch(/main \.acao-fixa \{ bottom: calc\(var\(--altura-barra\) \+ var\(--im-e4\) \+ env\(safe-area-inset-bottom\)\); \}/);
   // nenhuma tela define posição própria para a barra fixa
-  for (const css of ['src/admin/admin.css', 'src/votacoes/votacoes.css', 'src/postar/postar.css', 'src/clube/clube.css']) expect(readFileSync(css, 'utf8')).not.toMatch(/\.acao-fixa\s*\{[^}]*bottom/);
+  for (const css of ['src/admin/admin.css', 'src/postar/postar.css', 'src/clube/clube.css']) expect(readFileSync(css, 'utf8')).not.toMatch(/\.acao-fixa\s*\{[^}]*bottom/);
 });
 
 test('rota inválida (/clubes/x) mostra "Não achamos essa página" com Voltar', async () => {

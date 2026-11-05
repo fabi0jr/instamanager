@@ -3,7 +3,6 @@ import { api, type Me } from '../api/cliente';
 import { Escudo } from '../feed/Escudo';
 import { IcOk } from '../feed/icones';
 import { Link, navegar, useBusca } from '../rotas';
-import { ListaVotacoes } from '../votacoes/Votacoes';
 import { textoUltimos, type Linha, type Rodada } from './tipos';
 import { Bolao } from './Bolao';
 import { Calendario } from './Calendario';
@@ -12,7 +11,7 @@ import { Ultimos } from './Ultimos';
 import './liga.css';
 
 type Dados = { tabela: Linha[]; rodadas: Rodada[] };
-const ABAS = [['tabela', 'Tabela'], ['rodadas', 'Rodadas'], ['calendario', 'Calendário'], ['copa', 'Copa'], ['bolao', 'Bolão'], ['votacoes', 'Votações']] as const;
+const ABAS = [['tabela', 'Tabela'], ['rodadas', 'Rodadas'], ['calendario', 'Calendário'], ['copa', 'Copa'], ['bolao', 'Bolão']] as const;
 type Aba = (typeof ABAS)[number][0];
 
 function Tabela({ linhas, meuClube, sem }: { linhas: Linha[]; meuClube?: string; sem: boolean }) {
@@ -122,7 +121,6 @@ export function Liga({ me }: { me: Me }) {
       <div role="tablist" className="abas-liga" onKeyDown={setas}>
         {ABAS.map(([id, nome]) => <button key={id} type="button" role="tab" aria-selected={aba === id} tabIndex={aba === id ? 0 : -1} onClick={() => setAba(id)}>{nome}</button>)}
       </div>
-      {aba === 'votacoes' && <div role="tabpanel"><ListaVotacoes /></div>}
       {aba === 'calendario' && <Calendario />}
       {aba === 'copa' && <Copa />}
       {aba === 'bolao' && <Bolao me={me} inicial={{ rodada: busca.get('rodada'), fase: busca.get('fase') }} />}
