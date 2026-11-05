@@ -14,3 +14,8 @@ uploads*/
 
 # prints do calendário enviados pelo Fabio (dados para cadastrar, não vão para o repo)
 rodadas/
+
+# assessoria do Botafogo: fotos de terceiros, prints de referência e saídas geradas
+assessoria/fotos/
+assessoria/referencias/
+assessoria/saidas/

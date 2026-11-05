@@ -1,5 +1,5 @@
 {
-  "proximoId": 72,
+  "proximoId": 78,
   "tarefas": [
     {
       "id": "IM-1",
@@ -5001,6 +5001,216 @@
           "de": "qa",
           "para": "concluido",
           "nota": "deploy 0e9f54b ok (verificar, safari, implantar); /mcp 401 sem chave, 405 GET, 11 ferramentas com a chave; sem erro no back"
+        }
+      ]
+    },
+    {
+      "id": "IM-72",
+      "titulo": "Assessoria · referências e gitignore",
+      "tipo": "infra",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-assessoria-botafogo.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "concluido",
+      "historico": [
+        {
+          "quando": "2026-11-05T15:18:12.219Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T15:18:12.532Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": "4 referências estáticas salvas (reels: ver no portal)"
+        },
+        {
+          "quando": "2026-11-05T15:18:12.562Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "4 referências estáticas salvas (reels: ver no portal)"
+        },
+        {
+          "quando": "2026-11-05T15:18:12.590Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "4 referências estáticas salvas (reels: ver no portal)"
+        },
+        {
+          "quando": "2026-11-05T15:18:12.620Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "4 referências estáticas salvas (reels: ver no portal)"
+        },
+        {
+          "quando": "2026-11-05T15:18:12.651Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "4 referências estáticas salvas (reels: ver no portal)"
+        }
+      ]
+    },
+    {
+      "id": "IM-73",
+      "titulo": "Assessoria · back: postar_no_clube e corpo do /mcp",
+      "tipo": "back",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-assessoria-botafogo.md"
+      ],
+      "depende": [],
+      "responsavel": "Volante",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-05T15:18:12.273Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T15:18:12.687Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T15:18:12.781Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-05T15:18:12.880Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-74",
+      "titulo": "Assessoria · front: vídeo 4:5 no feed",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-assessoria-botafogo.md"
+      ],
+      "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-05T15:18:12.335Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T15:18:12.718Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T15:18:12.819Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-05T15:18:12.916Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-75",
+      "titulo": "Assessoria · modelos e gerador",
+      "tipo": "front",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-assessoria-botafogo.md"
+      ],
+      "depende": [
+        "IM-72"
+      ],
+      "responsavel": "Ponta",
+      "coluna": "pronto",
+      "historico": [
+        {
+          "quando": "2026-11-05T15:18:12.400Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T15:18:12.749Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T15:18:12.850Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        }
+      ]
+    },
+    {
+      "id": "IM-76",
+      "titulo": "Assessoria · terminal e CLAUDE.md",
+      "tipo": "infra",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-assessoria-botafogo.md"
+      ],
+      "depende": [
+        "IM-73",
+        "IM-75"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-05T15:18:12.458Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-77",
+      "titulo": "Assessoria · QA, backup e deploy",
+      "tipo": "qa",
+      "prioridade": "media",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-assessoria-botafogo.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-05T15:18:12.502Z",
+          "quem": "PO",
+          "nota": "criada"
         }
       ]
     }
