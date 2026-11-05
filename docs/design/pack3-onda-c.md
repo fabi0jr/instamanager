@@ -103,7 +103,7 @@ Nenhum novo: `texto`, `chave`, `ok`, `alerta` e `camera`/`video` já existem em 
 - Story de texto: o texto é `<p>` real (leitor de tela lê), não imagem.
 - Log: lista `<ul>`; ok/erro com palavra e ícone.
 
-## Pendências para o Maestro/Fabio
+## Pendências (aprovadas pelo Maestro em 2026-11-05)
 
 1. **Token novo `--im-azul: #1E56B0`** (não existe azul no app). Alternativa sem token: usar `--im-superficie-alta` cinza, mas deixa de ser azul.
 2. Texto do gramado em **carvão** (giz reprova AA).
