@@ -7,7 +7,8 @@ import { comprimir, ErroImagem } from '../postar/comprimir';
 import { ComoCbf } from '../postar/ComoCbf';
 import { enviarForm } from '../postar/enviar';
 import { Link, navegar, useBusca } from '../rotas';
-import { codigoDeVideo, duracaoDoArquivo, ERROS_VIDEO, FUNDOS, MAX_LINHAS, MAX_TEXTO, MAX_VIDEO_BYTES, MAX_VIDEO_S, mb, mmss, nLinhas, tamanhoTexto, type CodigoVideo, type Fundo } from './tipos';
+import { TextoAjustado } from './TextoAjustado';
+import { codigoDeVideo, duracaoDoArquivo, ERROS_VIDEO, FUNDOS, MAX_LINHAS, MAX_TEXTO, MAX_VIDEO_BYTES, MAX_VIDEO_S, mb, mmss, nLinhas, type CodigoVideo, type Fundo } from './tipos';
 import './stories.css';
 
 type Midia = { tipo: 'foto' | 'video'; blob: Blob; url: string; nome: string; duracao?: number };
@@ -22,6 +23,7 @@ export function CriarStory({ me }: { me: Me }) {
   const [cbf, setCbf] = useState(!me.clube || doAdmin);
   const [texto, setTexto] = useState('');
   const [fundo, setFundo] = useState<Fundo>('gramado');
+  const [aviso, setAviso] = useState('');
   const [ocupado, setOcupado] = useState(false);
   const [pct, setPct] = useState({ carregado: 0, total: 0 });
   const cancelar = useRef<(() => void) | null>(null);
@@ -132,9 +134,9 @@ export function CriarStory({ me }: { me: Me }) {
       )}
       {fase === 'texto' && (
         <>
-          <div className={`previa-texto fundo-${fundo}`}><p className={texto ? tamanhoTexto(texto) : 'vazio'}>{texto || 'O que você quer dizer?'}</p></div>
-          <textarea className="campo-story" aria-label="Texto do story" aria-describedby="contador-story" rows={3} maxLength={MAX_TEXTO} disabled={ocupado} placeholder="O que você quer dizer?" value={texto} onChange={(e) => { const v = e.target.value.slice(0, MAX_TEXTO); if (nLinhas(v) <= MAX_LINHAS) setTexto(v); }} />
-          <span className="sr" aria-live="polite">{texto.length >= MAX_TEXTO ? 'Limite de 200 caracteres' : texto.length >= 180 ? 'Faltam 20 caracteres' : ''}</span>
+          <div className={`previa-texto fundo-${fundo}`}><TextoAjustado classe={texto ? '' : 'vazio'} texto={texto || 'O que você quer dizer?'} /></div>
+          <textarea className="campo-story" aria-label="Texto do story" aria-describedby="contador-story" rows={3} maxLength={MAX_TEXTO} disabled={ocupado} placeholder="O que você quer dizer?" value={texto} onChange={(e) => { const v = e.target.value.slice(0, MAX_TEXTO); if (nLinhas(v) > MAX_LINHAS) return; setAviso(v.length >= MAX_TEXTO && texto.length < MAX_TEXTO ? 'Limite de 200 caracteres' : v.length >= 180 && texto.length < 180 ? 'Faltam 20 caracteres' : ''); setTexto(v); }} />
+          <span className="sr" aria-live="polite">{aviso}</span>
           <span id="contador-story" className={`contador ${texto.length >= MAX_TEXTO ? 'cheio' : texto.length >= 180 ? 'perto' : ''}`}>{texto.length}/{MAX_TEXTO}</span>
           <div className="fundos" role="radiogroup" aria-label="Fundo">
             {FUNDOS.map(([id, nome]) => (

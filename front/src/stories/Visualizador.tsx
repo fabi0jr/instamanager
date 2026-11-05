@@ -7,7 +7,8 @@ import { IcFechar, IcLixo, IcOlho, IcVolume } from '../feed/icones';
 import { haQuanto } from '../feed/tipos';
 import { voltar } from '../rotas';
 import { ordenar } from './Faixa';
-import { tamanhoTexto, type FaixaClube } from './tipos';
+import { TextoAjustado } from './TextoAjustado';
+import type { FaixaClube } from './tipos';
 import './stories.css';
 
 const IMAGEM_MS = 5000;
@@ -184,7 +185,7 @@ export function Visualizador({ clubeId, me }: { clubeId: string; me: Me }) {
           onTimeUpdate={(e) => setProg(e.currentTarget.duration ? e.currentTarget.currentTime / e.currentTarget.duration : 0)}
           onEnded={proximo} onError={() => setFalhou(true)} />
       ) : story.tipo === 'TEXTO' ? (
-        <p key={story.id} className={`vis-texto ${tamanhoTexto(story.texto ?? '')}`}>{story.texto}</p>
+        <TextoAjustado key={story.id} classe="vis-texto" texto={story.texto ?? ''} />
       ) : (
         <img key={story.id} className="midia" src={story.url ?? undefined} alt={`Story de ${faixa.clube.nome}`} onError={() => setFalhou(true)} />
       )}

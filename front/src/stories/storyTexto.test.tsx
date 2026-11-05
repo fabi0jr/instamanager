@@ -27,7 +27,7 @@ beforeEach(() => {
   vi.stubGlobal('XMLHttpRequest', FakeXhr);
   history.replaceState(null, '', '/stories/novo');
 });
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 const campo = () => screen.getByLabelText('Texto do story') as HTMLTextAreaElement;
 const digitar = (t: string) => fireEvent.change(campo(), { target: { value: t } });
@@ -95,6 +95,54 @@ test('o campo não aceita a 9ª linha; seta para baixo troca o fundo; enviando t
   expect(await screen.findByRole('button', { name: /Publicando/ })).toBeTruthy();
   expect(campo().disabled).toBe(true);
   expect(screen.queryByRole('progressbar')).toBeNull();
+});
+
+// jsdom não faz layout: simula o transbordo por tamanho (scrollHeight > clientHeight enquanto a classe for maior que `cabeEm`)
+function simularLayout(cabeEm: string) {
+  const ordem = ['t56', 't40', 't30', 't24'];
+  vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(500);
+  vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(function (this: HTMLElement) {
+    const t = ordem.find((o) => this.classList.contains(o));
+    return t && ordem.indexOf(t) < ordem.indexOf(cabeEm) ? 900 : 100;
+  });
+}
+
+test('texto que transborda desce t56 → t40 → t30 e para onde cabe', async () => {
+  simularLayout('t30');
+  const p = await abrirVis('Curto', 'azul');
+  expect(p.classList.contains('t30')).toBe(true);
+  expect(p.classList.contains('t24')).toBe(false);
+});
+
+test('se nem t30 cabe, para em t24 (o último) sem laço infinito', async () => {
+  simularLayout('t24');
+  const p = await abrirVis('a'.repeat(200), 'azul');
+  expect(p.classList.contains('t24')).toBe(true);
+});
+
+test('no resize volta a medir a partir do tamanho calculado', async () => {
+  simularLayout('t40');
+  const p = await abrirVis('Curto', 'azul');
+  expect(p.classList.contains('t40')).toBe(true);
+  simularLayout('t56');
+  fireEvent(window, new Event('resize'));
+  await waitFor(() => expect(p.classList.contains('t56')).toBe(true));
+});
+
+test('a prévia também desce o tamanho', () => {
+  simularLayout('t30');
+  abrirTexto();
+  digitar('oi');
+  expect(document.querySelector('.previa-texto p')!.classList.contains('t30')).toBe(true);
+});
+
+test('aviso falado só ao cruzar 180 e 200, e some na tecla seguinte', () => {
+  abrirTexto();
+  const live = () => document.querySelector('[aria-live]')!.textContent;
+  digitar('a'.repeat(179)); expect(live()).toBe('');
+  digitar('a'.repeat(180)); expect(live()).toBe('Faltam 20 caracteres');
+  digitar('a'.repeat(185)); expect(live()).toBe('');
+  digitar('a'.repeat(200)); expect(live()).toBe('Limite de 200 caracteres');
 });
 
 const faixa = (texto: string, fundo: string): FaixaClube[] => [{ clube: { id: 'vasco', nome: 'vasco', escudoUrl: '' }, todosVistos: false, stories: [{ id: 'a', tipo: 'TEXTO', url: null, texto, fundo, capaUrl: null, criadoEm: '2026-11-04T10:00:00Z', visto: false }] as unknown as FaixaClube['stories'] }];
