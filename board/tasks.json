@@ -3845,13 +3845,46 @@
         "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-a.md"
       ],
       "depende": [],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-04T22:28:27.162Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T00:30:38.640Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T00:30:38.693Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T00:30:38.743Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-05T00:48:07.035Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "319af5c"
+        },
+        {
+          "quando": "2026-11-05T00:56:37.057Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 319af5c"
         }
       ]
     },
@@ -3866,12 +3899,61 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "backlog",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-04T22:28:27.186Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T00:48:07.093Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T00:48:07.144Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T00:48:07.192Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "77ab550"
+        },
+        {
+          "quando": "2026-11-05T00:56:37.119Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: estado inicial de carregandoMeus causa flicker e sobrescreve o que a pessoa digita"
+        },
+        {
+          "quando": "2026-11-05T01:00:50.483Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T01:00:50.544Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "0bdc574"
+        },
+        {
+          "quando": "2026-11-05T01:02:49.066Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 0bdc574"
         }
       ]
     },
@@ -3886,12 +3968,26 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "backlog",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-04T22:28:27.208Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T01:02:49.124Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T01:02:49.177Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     }
