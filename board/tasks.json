@@ -4479,7 +4479,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T04:35:27.048Z",
@@ -4504,6 +4504,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T12:52:01.270Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "CI verde no PR #1 (run 42029665362): 5/5 no WebKit"
+        },
+        {
+          "quando": "2026-11-05T12:52:01.291Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "CI verde no PR #1 (run 42029665362): 5/5 no WebKit"
+        },
+        {
+          "quando": "2026-11-05T12:52:01.313Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "CI verde no PR #1 (run 42029665362): 5/5 no WebKit"
         }
       ]
     },
@@ -4517,13 +4538,32 @@
         "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-b.md"
       ],
       "depende": [],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Maestro",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-05T04:35:27.077Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T12:52:01.334Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T12:52:01.355Z",
+          "quem": "PO",
+          "nota": "atribuída a Maestro"
+        },
+        {
+          "quando": "2026-11-05T12:52:01.376Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "ensaio no dump ok (2 migrações, 22 conquistas em silêncio, 0 post/atividade nova); backup pre-ondaB na VPS"
         }
       ]
     }
