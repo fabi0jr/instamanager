@@ -146,7 +146,7 @@ describe('XP, níveis e conquistas (e2e)', () => {
     await conquistas.verificar();
     expect(await atividadeDe(dani)).toMatchObject([{ tipo: 'CONQUISTA', conquistaTipo: 'PRIMEIRA_VITORIA' }]);
     const [p] = await postsCbf(dani);
-    expect(p.texto).toBe(`🏆 @[Dani Conquistas](${dani.id}) conquistou *Primeira vitória*!`);
+    expect(p.texto).toBe(`🏆 @[Dani Conquistas](${dani.id}) conquistou Primeira vitória!`);
     expect(p.clubId).toBe('cbf');
     const itens = (await com('get', '/api/atividade', dani).expect(200)).body.itens as { tipo: string; conquista?: { tipo: string; nome: string } }[];
     expect(itens).toMatchObject([{ tipo: 'CONQUISTA', conquista: { tipo: 'PRIMEIRA_VITORIA', nome: 'Primeira vitória' } }]);
