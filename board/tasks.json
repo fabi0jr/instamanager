@@ -4349,7 +4349,7 @@
         "IM-62"
       ],
       "responsavel": "Ponta",
-      "coluna": "correcao",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-05T04:35:27.020Z",
@@ -4388,6 +4388,27 @@
           "de": "revisao",
           "para": "correcao",
           "nota": "VAR: ✕ apaga o texto; deve tirar só o @Nome do início"
+        },
+        {
+          "quando": "2026-11-05T05:26:03.998Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:26:04.062Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:27:21.093Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 2dc9ee3; menor: remover(uid) tira todas as menções da pessoa (raro)"
         }
       ]
     },
