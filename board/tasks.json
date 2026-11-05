@@ -4742,7 +4742,7 @@
         "IM-68"
       ],
       "responsavel": "Volante",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T13:13:01.717Z",
@@ -4807,6 +4807,13 @@
           "de": "revisao",
           "para": "qa",
           "nota": "VAR aprovou a segurança e o resto; fix do e2e 694b965 provado em banco novo 2x"
+        },
+        {
+          "quando": "2026-11-05T14:06:40.990Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "QA ok: /admin/mcp e chamadas MCP"
         }
       ]
     },
@@ -4824,7 +4831,7 @@
         "IM-68"
       ],
       "responsavel": "Ponta",
-      "coluna": "qa",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T13:13:01.772Z",
@@ -4889,6 +4896,41 @@
           "de": "revisao",
           "para": "qa",
           "nota": "fix3 d9df469 = correção que o VAR testou; QA junto com IM-69"
+        },
+        {
+          "quando": "2026-11-05T14:01:46.521Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "correcao",
+          "nota": "QA: 8x24 letras largas em 320 ainda vaza a t24; descer até t20/t18"
+        },
+        {
+          "quando": "2026-11-05T14:06:40.778Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "QA aprovou 0bba10f (320x560 e 390)"
+        },
+        {
+          "quando": "2026-11-05T14:06:40.833Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "QA aprovou 0bba10f (320x560 e 390)"
+        },
+        {
+          "quando": "2026-11-05T14:06:40.885Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "QA aprovou 0bba10f (320x560 e 390)"
+        },
+        {
+          "quando": "2026-11-05T14:06:40.936Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "QA aprovou 0bba10f (320x560 e 390)"
         }
       ]
     },
@@ -4902,13 +4944,37 @@
         "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-c.md"
       ],
       "depende": [],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Maestro",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-05T13:13:01.825Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T13:44:48.298Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:44:48.328Z",
+          "quem": "PO",
+          "nota": "atribuída a Maestro"
+        },
+        {
+          "quando": "2026-11-05T13:46:29.860Z",
+          "quem": "Maestro",
+          "nota": "MCP ponta a ponta com o cliente oficial do SDK (back local): chave errada recusada, 11 ferramentas, tabela, criar_post, criar_story, votação com prazo passado = isError, ultimos_posts, log no admin com 3 ações, GET /mcp 405"
+        },
+        {
+          "quando": "2026-11-05T14:06:41.043Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     }
