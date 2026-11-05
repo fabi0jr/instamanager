@@ -62,6 +62,7 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
   const [rasc, setRasc] = useState<Record<string, Rascunho>>({});
   const [salvos, setSalvos] = useState<Record<string, Meu>>({});
   const [carregandoMeus, setCarregandoMeus] = useState(true); // esqueleto até o GET /bolao/meus responder
+  const pedido = useRef(0); // resposta de um chip antigo (troca rápida) é ignorada
   const editou = useRef(false); // a pessoa mexeu depois do pedido: a resposta não sobrescreve o rascunho
   const [sujo, setSujo] = useState(false);
   const [ocupado, setOcupado] = useState(false);
@@ -84,10 +85,12 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
   const carregarMeus = useCallback((a: Alvo) => {
     setCarregandoMeus(true);
     editou.current = false;
+    const meu = ++pedido.current;
     setSujo(false);
     setAviso409(false);
     api<Meu[]>(`/bolao/meus?${a.query}`).then(
       (lista) => {
+        if (meu !== pedido.current) return;
         const porJogo: Record<string, Meu> = {};
         const r: Record<string, Rascunho> = {};
         for (const m of lista) {
@@ -99,7 +102,7 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
         if (!editou.current) setRasc(r);
         setCarregandoMeus(false);
       },
-      () => { setAviso('Não deu para carregar seus palpites. Tente de novo.'); setCarregandoMeus(false); },
+      () => { if (meu !== pedido.current) return; setAviso('Não deu para carregar seus palpites. Tente de novo.'); setCarregandoMeus(false); },
     );
   }, []);
   useEffect(() => { if (alvo) { setAviso(''); setOk(''); carregarMeus(alvo); } }, [alvo?.chave]); // eslint-disable-line react-hooks/exhaustive-deps

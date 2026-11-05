@@ -188,3 +188,22 @@ test('até o GET /bolao/meus responder só há esqueleto (nada para digitar); de
   abre();
   expect(await screen.findByRole('spinbutton', { name: 'Gols do Santos, 5' })).toBeTruthy();
 });
+
+test('trocar de chip com o GET do anterior ainda no ar: a resposta velha é ignorada', async () => {
+  fetchFalso(base(amanha(), {
+    'GET /bolao/meus?rodada=13': [{ jogoId: 'j1', copaJogoId: null, golsMandante: 7, golsVisitante: 7, classificadoId: null, pontos: null, exato: false }],
+    'GET /bolao/meus?fase=f1': [{ jogoId: null, copaJogoId: 'cj1', golsMandante: 2, golsVisitante: 0, classificadoId: null, pontos: null, exato: false }],
+  }));
+  const original = fetch;
+  let abre!: () => void;
+  const porta = new Promise<void>((r) => { abre = r; });
+  vi.stubGlobal('fetch', (u: string, i?: RequestInit) => (String(u).includes('rodada=13') ? porta.then(() => original(u, i)) : original(u, i)));
+  render(<Liga me={me} />);
+  await screen.findByText(/Palpite até/);
+  clica('Copa · Quartas'); // a rodada 13 ainda não respondeu
+  expect(await screen.findByRole('spinbutton', { name: 'Gols do Santos, 2' })).toBeTruthy();
+  abre();
+  await act(async () => { await porta; });
+  expect(screen.getByRole('spinbutton', { name: 'Gols do Santos, 2' })).toBeTruthy(); // não virou 7
+  expect(screen.queryByRole('spinbutton', { name: 'Gols do Santos, 7' })).toBeNull();
+});
