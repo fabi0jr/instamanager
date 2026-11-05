@@ -277,7 +277,7 @@ Story expirado não aparece em lista nenhuma e responde `404` em tudo; a limpeza
 
 ## 4h. CBF via MCP (Task C2)
 
-`POST /mcp` (fora do `/api`, sem filtro de Origin): servidor MCP em JSON-RPC, sem sessão (`GET`/`DELETE` → `405`). Chave `Authorization: Bearer <MCP_CHAVE>`; sem `MCP_CHAVE` no ambiente o endpoint não existe (`404`); chave ausente ou errada → `401` com erro JSON-RPC; 30 tentativas por IP em 15 min (`429`). 11 ferramentas (6 de leitura, 5 de escrita como CBF); erro de negócio volta como resultado com `isError: true` e `"<codigo>: <mensagem>"`. Cada escrita deixa uma linha em `McpAcao`. Como conectar: `docs/mcp.md`.
+`POST /mcp` (fora do `/api`, sem filtro de Origin): servidor MCP em JSON-RPC, sem sessão (`GET`/`DELETE` → `405`). Chave `Authorization: Bearer <MCP_CHAVE>`; sem `MCP_CHAVE` no ambiente o endpoint não existe (`404`); chave ausente ou errada → `401` com erro JSON-RPC; 30 tentativas por IP em 15 min (`429`). 12 ferramentas (6 de leitura, 6 de escrita: 5 como CBF e `postar_no_clube`, que posta no clube do admin). O corpo do `/mcp` vai até 64 MB (`413` acima); só lê o corpo quem já mandou a chave certa; erro de negócio volta como resultado com `isError: true` e `"<codigo>: <mensagem>"`. Cada escrita deixa uma linha em `McpAcao`. Como conectar: `docs/mcp.md`.
 
 ## 5. Push (Task 7) 🔒
 

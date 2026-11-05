@@ -1,7 +1,9 @@
+import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { NextFunction, Request, Response } from 'express';
+import { chaveConfere } from './mcp/chave.js';
 
 // Erro no formato do contrato (docs/api.md, "Convenções"): { codigo, mensagem, campos? }.
 export class ApiError extends HttpException {
@@ -43,6 +45,11 @@ export class ApiExceptionFilter implements ExceptionFilter {
   }
 }
 
+// o express do próprio Nest (o pnpm não deixa importar direto, e não vale uma dependência nova só para isto)
+const express = createRequire(createRequire(import.meta.url).resolve('@nestjs/platform-express'))('express') as typeof import('express');
+const json1mb = express.json({ limit: '1mb' });
+const json64mb = express.json({ limit: '64mb' }); // só o /mcp: imagens e vídeo chegam em base64
+
 const MUDA_ESTADO = new Set(['POST', 'PUT', 'DELETE', 'PATCH']);
 
 /** Regras de transporte (docs/api.md, "Convenções"); usado pelo main.ts e pelos testes e2e. */
@@ -67,7 +74,11 @@ export function configureApp(app: NestExpressApplication) {
     next();
   });
   // depois do Origin: pedido de outra origem é recusado antes de ler o corpo
-  app.useBodyParser('json', { limit: '1mb' });
+  // /mcp: só lê o corpo (até 64 MB) quem já provou a chave; sem ela o corpo nem é lido e o controller responde 401/404 (e conta a tentativa no limite)
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (/^\/mcp\/?$/i.test(req.path)) return chaveConfere(req.headers.authorization) ? json64mb(req, res, next) : next();
+    json1mb(req, res, next);
+  });
   // erros dos middlewares do Express (Origin, JSON inválido, corpo grande) não passam pelo filtro do Nest
   app.use((erro: unknown, req: Request, res: Response, _next: NextFunction) => responderErro(erro, req, res));
 }

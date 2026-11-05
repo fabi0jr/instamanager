@@ -1,12 +1,11 @@
-import { createHash, timingSafeEqual } from 'node:crypto';
 import { Controller, Delete, Get, Post, Req, Res } from '@nestjs/common';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { Request, Response } from 'express';
 import { ipBucket, RateLimiter } from '../auth/rate-limit.js';
+import { chaveConfere } from './chave.js';
 import { McpService } from './mcp.service.js';
 
 const MIN = 60_000;
-const sha = (s: string) => createHash('sha256').update(s).digest();
 const erroRpc = (
   res: Response,
   status: number,
@@ -27,8 +26,8 @@ export class McpController {
 
   @Post()
   async pedido(@Req() req: Request, @Res() res: Response) {
-    const chave = process.env.MCP_CHAVE;
-    if (!chave) return res.status(404).json({ statusCode: 404 });
+    if (!process.env.MCP_CHAVE)
+      return res.status(404).json({ statusCode: 404 });
     // mesmo limite do login por IP; acertar a chave zera o contador
     const ip = `mcp:ip:${ipBucket(req.ip)}`;
     const espera = this.limiter.check([[ip, 30, 15 * MIN]]);
@@ -41,10 +40,7 @@ export class McpController {
         'Muitas tentativas. Espere um pouco e tente de novo.',
       );
     }
-    const enviada =
-      /^Bearer (.+)$/.exec(req.headers.authorization ?? '')?.[1] ?? '';
-    // compara os hashes: o timingSafeEqual exige o mesmo tamanho e assim o tamanho da chave não aparece
-    if (!enviada || !timingSafeEqual(sha(enviada), sha(chave)))
+    if (!chaveConfere(req.headers.authorization))
       return erroRpc(res, 401, -32001, 'Chave inválida.');
     this.limiter.apagar(ip);
 

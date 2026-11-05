@@ -26,6 +26,8 @@ type Ferramenta = {
   escrita: boolean;
   run: (a: Args, d: Deps, admin: UserComClube) => Promise<unknown>;
   resumo: (a: Args) => string;
+  /** O que vai para o log (McpAcao.entrada), se não for a entrada inteira: nada de base64. `resumo` lê esta forma. */
+  registro?: (a: Args) => Args;
 };
 
 const invalido = (mensagem: string, campo: string) =>
@@ -46,6 +48,12 @@ const lista = (v: unknown, campo: string) => {
   if (!Array.isArray(v) || v.some((x) => typeof x !== 'object' || !x))
     throw invalido(`${campo}: envie uma lista de objetos.`, campo);
   return v as Record<string, unknown>[];
+};
+const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
+const decodificar = (v: unknown, campo: string) => {
+  if (typeof v !== 'string' || !BASE64.test(v))
+    throw invalido(`${campo}: envie o arquivo em base64.`, campo);
+  return { buffer: Buffer.from(v, 'base64') };
 };
 const semEntrada = {
   type: 'object',
@@ -115,19 +123,17 @@ export const FERRAMENTAS: Ferramenta[] = [
         if (!f.proximo) break;
         antes = f.proximo;
       }
-      return itens
-        .slice(0, n)
-        .map((p) => ({
-          id: p.id,
-          clube: p.clube.nome,
-          autor: p.autor.nome,
-          texto: p.texto,
-          legenda: p.legenda,
-          reacoes: p.reacoes,
-          curtidas: p.curtidas,
-          comentarios: p.comentarios,
-          criadoEm: p.criadoEm,
-        }));
+      return itens.slice(0, n).map((p) => ({
+        id: p.id,
+        clube: p.clube.nome,
+        autor: p.autor.nome,
+        texto: p.texto,
+        legenda: p.legenda,
+        reacoes: p.reacoes,
+        curtidas: p.curtidas,
+        comentarios: p.comentarios,
+        criadoEm: p.criadoEm,
+      }));
     },
   },
   {
@@ -219,6 +225,73 @@ export const FERRAMENTAS: Ferramenta[] = [
         { comoCbf: true, texto: a.texto },
         [],
         [],
+      );
+      return { id: p.id };
+    },
+  },
+  {
+    name: 'postar_no_clube',
+    description:
+      'Publica um post no clube do admin (o do técnico logado no app), com push normal. Só imagens OU só vídeo. imagens: de 1 a 10 itens {cheia, mini}, JPEG em base64 (cheia 1080x1350, mini com 400 px no lado maior); video: MP4 H.264 4:5 de até 30 s em base64. legenda: até 2200 caracteres.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        legenda: { type: 'string', maxLength: 2200 },
+        imagens: {
+          type: 'array',
+          minItems: 1,
+          maxItems: 10,
+          items: {
+            type: 'object',
+            properties: { cheia: { type: 'string' }, mini: { type: 'string' } },
+            required: ['cheia', 'mini'],
+            additionalProperties: false,
+          },
+        },
+        video: { type: 'string' },
+      },
+      required: ['legenda'],
+      additionalProperties: false,
+    },
+    escrita: true,
+    registro: (a) => ({
+      legenda: typeof a.legenda === 'string' ? a.legenda.slice(0, 500) : '',
+      ...(a.imagens !== undefined && {
+        imagens: Array.isArray(a.imagens) ? a.imagens.length : 0,
+      }),
+      ...(a.video !== undefined && { video: true }),
+    }),
+    resumo: (a) =>
+      `post do clube: '${cortar(a.legenda)}' · ${a.video ? 'vídeo' : `${String(a.imagens ?? 0)} imagens`}`,
+    run: async (a, d, admin) => {
+      if (!admin.club || admin.club.oficial)
+        throw new ApiError(
+          403,
+          'SEM_CLUBE',
+          'O admin precisa ter um clube para postar no clube.',
+        );
+      if ((a.imagens === undefined) === (a.video === undefined))
+        throw invalido('Envie só imagens ou só um vídeo.', 'imagens');
+      let cheia: { buffer: Buffer }[] = [];
+      let mini: { buffer: Buffer }[] = [];
+      let video: { buffer: Buffer } | undefined;
+      if (a.imagens !== undefined) {
+        const itens = lista(a.imagens, 'imagens');
+        if (itens.length < 1 || itens.length > 10)
+          throw invalido('Envie de 1 a 10 imagens.', 'imagens');
+        cheia = itens.map((i) => decodificar(i.cheia, 'cheia'));
+        // mini faltando fica de fora: o PostsService recusa (400) quando o número não bate com as cheias, como no post normal
+        mini = itens
+          .filter((i) => i.mini !== undefined)
+          .map((i) => decodificar(i.mini, 'mini'));
+      } else video = decodificar(a.video, 'video');
+      const p = await d.posts.criar(
+        admin,
+        { legenda: a.legenda ?? '' },
+        cheia,
+        mini,
+        true,
+        video,
       );
       return { id: p.id };
     },
