@@ -5070,7 +5070,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "dev",
+      "coluna": "revisao",
       "historico": [
         {
           "quando": "2026-11-05T15:18:12.273Z",
@@ -5095,6 +5095,13 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T15:28:46.605Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
         }
       ]
     },
@@ -5109,7 +5116,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T15:18:12.335Z",
@@ -5134,6 +5141,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T15:35:15.554Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "1 linha de CSS + teste, revisado pelo Maestro; QA visual na IM-77"
+        },
+        {
+          "quando": "2026-11-05T15:35:15.577Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "1 linha de CSS + teste, revisado pelo Maestro; QA visual na IM-77"
+        },
+        {
+          "quando": "2026-11-05T15:35:15.599Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "1 linha de CSS + teste, revisado pelo Maestro; QA visual na IM-77"
         }
       ]
     },
@@ -5150,7 +5178,7 @@
         "IM-72"
       ],
       "responsavel": "Ponta",
-      "coluna": "pronto",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-05T15:18:12.400Z",
@@ -5168,6 +5196,13 @@
           "quando": "2026-11-05T15:18:12.850Z",
           "quem": "PO",
           "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-05T15:35:15.622Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     },
