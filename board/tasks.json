@@ -4254,6 +4254,11 @@
           "de": "qa",
           "para": "concluido",
           "nota": "VAR aprovou b95ac83; menor: trecho de RESPOSTA na atividade não olha o raiz oculto (baixo)"
+        },
+        {
+          "quando": "2026-11-05T05:25:04.465Z",
+          "quem": "Maestro",
+          "nota": "ajustes 94c169a (raiz oculto na atividade) e 5609863 (post sem asteriscos) na main; revisados pelo Maestro"
         }
       ]
     },
@@ -4344,7 +4349,7 @@
         "IM-62"
       ],
       "responsavel": "Ponta",
-      "coluna": "dev",
+      "coluna": "correcao",
       "historico": [
         {
           "quando": "2026-11-05T04:35:27.020Z",
@@ -4369,6 +4374,20 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:23:01.629Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:24:53.747Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: ✕ apaga o texto; deve tirar só o @Nome do início"
         }
       ]
     },
