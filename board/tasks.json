@@ -4138,7 +4138,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T04:35:26.931Z",
@@ -4163,6 +4163,32 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T04:59:02.829Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:03:25.803Z",
+          "quem": "Maestro",
+          "nota": "VAR aprovou com ajuste: catch no verificar() do onModuleInit; notas menores 2 (reabrir regrava fechadaEm) e 3 (globais por post) anotadas"
+        },
+        {
+          "quando": "2026-11-05T05:09:54.701Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou; fix 9743118; sem tela"
+        },
+        {
+          "quando": "2026-11-05T05:09:54.757Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "VAR aprovou; fix 9743118; sem tela"
         }
       ]
     },
@@ -4177,7 +4203,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "pronto",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-05T04:35:26.962Z",
@@ -4195,6 +4221,13 @@
           "quando": "2026-11-05T04:35:48.306Z",
           "quem": "PO",
           "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-05T04:59:02.886Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     },
@@ -4211,13 +4244,56 @@
         "IM-60",
         "IM-61"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "qa",
       "historico": [
         {
           "quando": "2026-11-05T04:35:26.991Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T04:59:24.819Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T04:59:24.874Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-05T05:02:41.366Z",
+          "quem": "Maestro",
+          "nota": "pronta 48ca0f7; aguardando IM-61 para revisão/QA"
+        },
+        {
+          "quando": "2026-11-05T05:05:25.301Z",
+          "quem": "Maestro",
+          "nota": "VAR aprovou 48ca0f7; esqueletos de carregamento ficam de fora (menor). QA depois do merge da IM-61"
+        },
+        {
+          "quando": "2026-11-05T05:09:54.813Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:09:54.870Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:09:54.923Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 48ca0f7"
         }
       ]
     },
@@ -4254,13 +4330,32 @@
         "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-b.md"
       ],
       "depende": [],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-05T04:35:27.048Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T05:02:41.223Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:02:41.270Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-05T05:02:41.317Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     },
