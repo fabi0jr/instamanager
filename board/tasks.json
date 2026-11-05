@@ -4599,7 +4599,7 @@
       ],
       "depende": [],
       "responsavel": "Prancheta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T13:13:01.609Z",
@@ -4624,6 +4624,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:14:47.850Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "handoff aprovado (azul novo, texto carvão no gramado); sem Penpot"
+        },
+        {
+          "quando": "2026-11-05T13:14:47.878Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "handoff aprovado (azul novo, texto carvão no gramado); sem Penpot"
+        },
+        {
+          "quando": "2026-11-05T13:14:47.911Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "handoff aprovado (azul novo, texto carvão no gramado); sem Penpot"
         }
       ]
     },
@@ -4701,13 +4722,25 @@
         "IM-67",
         "IM-68"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "pronto",
       "historico": [
         {
           "quando": "2026-11-05T13:13:01.772Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T13:14:47.941Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:14:47.972Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
         }
       ]
     },
