@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { UserComClube } from '../auth/auth.service.js';
 import type { NotificacaoTipo } from '../generated/prisma/client.js';
+import { avisadosDaResposta } from '../interacoes/respostas.js';
 import { escaparLike } from '../like.js';
 import { comNomes, extrairMencoes, resolverMencoes } from '../mencoes.js';
 import { ApiError } from '../http.js';
@@ -44,13 +45,17 @@ export class AtividadeService {
     ]);
   }
 
-  async comentario(comentarioId: string) {
+  /** `alvoId`: o comentário respondido, quando é resposta. Quem recebe RESPOSTA não ganha COMENTARIO nem MENCAO do mesmo texto. */
+  async comentario(comentarioId: string, alvoId?: string) {
     const c = await this.prisma.comment.findUnique({ where: { id: comentarioId }, include: { post: { select: { club: { select: { coachId: true } } } } } });
     if (!c) return;
     const tecnico = c.post.club.coachId;
-    if (tecnico) await this.criar([tecnico], 'COMENTARIO', { atorId: c.userId, postId: c.postId, comentarioId });
-    // o técnico já recebe o aviso de comentário (e o push); não ganha um segundo item por ser mencionado no mesmo texto
-    await this.mencionar(c.text, c.userId, c.postId, comentarioId, tecnico ? [tecnico] : []);
+    const respondidos = await avisadosDaResposta(this.prisma, c, alvoId);
+    const extra = { atorId: c.userId, postId: c.postId, comentarioId };
+    await this.criar(respondidos, 'RESPOSTA', extra);
+    if (tecnico && !respondidos.includes(tecnico)) await this.criar([tecnico], 'COMENTARIO', extra);
+    // quem já foi avisado por este texto (técnico, respondidos) não ganha um segundo item por ser mencionado nele
+    await this.mencionar(c.text, c.userId, c.postId, comentarioId, [...respondidos, ...(tecnico ? [tecnico] : [])]);
   }
 
   /** Menções do texto de um post (legenda ou texto) ou comentário. Quem já foi avisado por este mesmo texto não é avisado de novo (editar não repete). */
@@ -82,7 +87,7 @@ export class AtividadeService {
     const textoDe = (p: (typeof visiveis)[number]) => p.texto ?? (p.caption || (p.images.length ? 'Post com imagem' : p.video ? 'Post com vídeo' : 'Post'));
     // comentário só aparece se o post está visível e o comentário não foi ocultado pelo admin (o admin vê tudo)
     const comentarioVisivel = (n: (typeof pagina)[number]) => n.comentario && visiveis.some((v) => v.id === n.postId) && (user.isAdmin || n.comentario.hiddenAt === null) ? n.comentario.text : null;
-    const comTexto = (n: (typeof pagina)[number]) => n.tipo === 'COMENTARIO' || n.tipo === 'MENCAO'; // MENCAO feita dentro de comentário também mostra o trecho
+    const comTexto = (n: (typeof pagina)[number]) => n.tipo === 'COMENTARIO' || n.tipo === 'MENCAO' || n.tipo === 'RESPOSTA'; // MENCAO feita dentro de comentário também mostra o trecho
     const textos = pagina.flatMap((n) => (comTexto(n) ? [comentarioVisivel(n) ?? ''] : []));
     const nomes = await resolverMencoes(this.prisma, [...new Set([...visiveis.map(textoDe), ...textos].flatMap(extrairMencoes))]);
     const resumoDe = (p: (typeof visiveis)[number]) => curto(comNomes(textoDe(p), nomes));

@@ -109,8 +109,8 @@ Cursor: `criadoEm|id` codificado em base64url (`400 DADOS_INVALIDOS` se estiver 
 | `GET /api/posts/:id/reacoes` | — | `[{emoji, usuarios: [{id, nome, avatarUrl\|null, clube: {id,nome,escudoUrl}\|null}]}]`: quem reagiu, por emoji, o mais usado primeiro (empate por emoji). Mesma visibilidade do post: oculto → `404` (menos para o admin), id inexistente ou inválido → `404`. Nunca traz e-mail. |
 | `PUT /api/posts/:id/curtida` | — | `204`. Apelido de `PUT .../reacao {emoji:'❤️'}` (compatibilidade com o app antigo). |
 | `DELETE /api/posts/:id/curtida` | — | `204` (idempotente). Apelido de `DELETE .../reacao`. |
-| `GET /api/posts/:id/comentarios` | — | `[{id, texto, mencoes: [{id, nome}], criadoEm, usuario: {id, nome, avatarUrl\|null, clube: {id,nome}\|null}}]`, do mais velho ao mais novo. `clube` é o atual de quem comentou. |
-| `POST /api/posts/:id/comentarios` | `{texto}` | `201` comentário · `400` se vazio ou > 1000. Emite `comentarios.criado`. |
+| `GET /api/posts/:id/comentarios` | — | `[{id, texto, mencoes: [{id, nome}], criadoEm, parentId: string\|null, usuario: {id, nome, avatarUrl\|null, clube: {id,nome}\|null}}]`, do mais velho ao mais novo. `clube` é o atual de quem comentou. A lista é **plana**: `parentId` é o comentário raiz da resposta (`null` no raiz; um nível só). Resposta de raiz oculto não aparece (nem entra em `comentarios` do post), exceto para o admin. |
+| `POST /api/posts/:id/comentarios` | `{texto, parentId?}` | `201` comentário · `400` se vazio ou > 1000. `parentId` (Pack 3 · B2, IM-62) é o comentário respondido, raiz ou resposta: precisa ser **visível** e **do mesmo post**; senão `400 DADOS_INVALIDOS` com `campos: ['parentId']` (id inexistente, malformado, de outro post, oculto, ou resposta de raiz oculto; o front mostra "Esse comentário não existe mais."). Responder uma resposta grava no `parentId` do raiz. Apagar o raiz apaga as respostas. Emite `comentarios.criado(id, alvoId?)`, onde `alvoId` é o comentário clicado. |
 | `DELETE /api/comentarios/:id` | — | `204` (autor ou admin) · `403 NAO_E_AUTOR` |
 | `POST /api/trocas` | `{tipo: 'SAIR'\|'ASSUMIR', clubeId?}` | `201 {id, tipo, clubeId, status, criadoEm, decididoEm}` (`clubeId` só no `ASSUMIR`). `ASSUMIR` exige `clubeId` livre agora (`CLUBE_OCUPADO`); `SAIR` exige ter clube (`SEM_CLUBE`). `TROCA_PENDENTE` se já houver um. Emite `trocas.pedida`. |
 | `GET /api/trocas/minhas` | — | lista dos pedidos da pessoa, do mais novo ao mais velho |
@@ -240,6 +240,7 @@ Cada push respeita a sua chave: `posts` (post novo de clube), `comentarios` (com
 - `CBF_CITOU`: os técnicos citados no resumo da rodada (`ator: null`, `post` = o resumo).
 - `TROCA_DECIDIDA`: quem pediu a troca, aprovada ou recusada (`ator: null`, `troca` com o resultado).
 - `VOTACAO_RESULTADO`: todo mundo, menos o admin que encerrou (`ator: null`, `votacao` e `post` = o resultado).
+- `RESPOSTA`: o autor do comentário raiz e o do comentário respondido, sem o próprio autor e sem repetir (`ator` = quem respondeu, `comentario.resumo`). Quem recebe `RESPOSTA` não recebe `COMENTARIO` nem `MENCAO` do mesmo texto; o técnico dono do post, se não for um deles, segue com `COMENTARIO`. Push (chave `comentarios`): "Nova resposta" para os respondidos, "Novo comentário" para o técnico.
 
 Itens com mais de **60 dias** são apagados na limpeza (que roda no boot do back e depois a cada hora, junto com sessões e stories vencidos). Eventos novos: `reacoes.reagida(postId, userId)` e `posts.editado(postId)`.
 
