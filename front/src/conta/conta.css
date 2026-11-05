@@ -54,3 +54,4 @@
 
 /* dentro do app a barra inferior fica por cima da rolagem: a ação fixa sobe a altura dela (docs: QA da onda B) */
 main .acao-fixa { bottom: calc(var(--altura-barra) + var(--im-e4) + env(safe-area-inset-bottom)); }
+.prefs-push.inerte { opacity: .4; } .dica-avisos { margin: 0 0 var(--im-e2); }

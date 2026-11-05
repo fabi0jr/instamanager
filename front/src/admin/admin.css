@@ -42,6 +42,17 @@ button.linha-clube { cursor: pointer; }
 .comunicado { display: flex; flex-direction: column; gap: var(--im-e2); padding: var(--im-e4); background: var(--im-superficie); border-left: 5px solid var(--im-vermelho); border-radius: var(--im-r-btn); }
 .comunicado textarea { background: var(--im-superficie-alta); color: var(--im-giz); border: 2px solid var(--im-giz); border-radius: var(--im-r-btn); padding: var(--im-e3); font: inherit; }
 .rotulo-comunicado { font: 700 15px var(--im-fonte-display); color: var(--im-vermelho-texto); } .texto-bot { margin: 0; font: 700 22px/28px var(--im-fonte-display); white-space: pre-line; }
+/* os 3 botões ficam na barra fixa; fundo opaco para o texto que rola não aparecer por trás */
+.previa-bot .acao-fixa { background: var(--im-carvao); } .previa-bot .duas-acoes { margin-bottom: var(--im-e3); }
 .previa-bot .botao { display: inline-flex; align-items: center; justify-content: center; gap: var(--im-e2); }
 .chips-opcoes { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--im-e2); } .chips-opcoes li { display: inline-flex; align-items: center; gap: 4px; padding: 0 0 0 var(--im-e3); min-height: 44px; background: var(--im-superficie-alta); border-radius: 999px; } .chips-opcoes button { width: 44px; height: 44px; background: none; border: 0; color: var(--im-giz-2); cursor: pointer; }
 .form-folha input { height: 44px; background: var(--im-superficie-alta); color: var(--im-giz); border: 1px solid var(--im-linha); border-radius: var(--im-r-btn); padding: 0 var(--im-e3); font: inherit; }
+
+/* Pack 3 · A: prazo de palpite e jogo sem placar (docs/design/pack3-onda-a.md §7) */
+.campo-prazo { display: flex; align-items: center; gap: var(--im-e2); min-height: 48px; } .campo-prazo svg { width: 20px; height: 20px; } .campo-prazo span { flex: none; font: 600 14px var(--im-fonte-texto); }
+.campo-prazo input, .copa-ed input[type='datetime-local'] { flex: 1; min-width: 0; height: 48px; background: var(--im-superficie-alta); color: var(--im-giz); border: 1px solid var(--im-linha); border-radius: var(--im-r-btn); padding: 0 var(--im-e3); font: inherit; color-scheme: dark; }
+.cartao-jogo.pendente { border: 2px solid var(--im-vermelho-texto); }
+.nova-fase { display: flex; flex-direction: column; gap: var(--im-e3); margin-top: var(--im-e6); } .nova-fase h2 { font: 600 20px var(--im-fonte-display); }
+.nova-fase label { display: flex; flex-direction: column; gap: var(--im-e1); font: 600 14px var(--im-fonte-texto); } .nova-fase input { height: 48px; background: var(--im-superficie-alta); color: var(--im-giz); border: 1px solid var(--im-linha); border-radius: var(--im-r-btn); padding: 0 var(--im-e3); font: inherit; }
+.penaltis-ed { align-items: center; flex-wrap: wrap; } .penaltis-ed > span:first-child { font: 600 14px var(--im-fonte-texto); }
+.confrontos-fechados { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--im-e2); }

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
-import { api, ErroApi, type Me } from '../api/cliente';
+import { api, ErroApi, type ChavePush, type Me } from '../api/cliente';
 import { data } from '../clube/PerfilClube';
 import { Escudo } from '../feed/Escudo';
 import { Folha } from '../feed/Folha';
@@ -11,6 +11,15 @@ import { comprimir, ErroImagem } from '../postar/comprimir';
 import { Link, navegar } from '../rotas';
 import '../feed/feed.css';
 import { Aviso, Botao, Campo, useEnvio, useFocoNoErro } from './ui';
+
+const PREFS: { chave: ChavePush; titulo: string; sub?: string }[] = [
+  { chave: 'posts', titulo: 'Posts novos' },
+  { chave: 'comentarios', titulo: 'Comentários no meu clube' },
+  { chave: 'mencoes', titulo: 'Menções' },
+  { chave: 'cbf', titulo: 'CBF' },
+  { chave: 'bolao', titulo: 'Bolão', sub: 'Lembrete 2 h antes do prazo e resultado' },
+  { chave: 'trocas', titulo: 'Trocas de clube' },
+];
 
 type Troca = { id: string; tipo: 'SAIR' | 'ASSUMIR'; status: string; clubeId: string | null; decididoEm?: string | null };
 
@@ -39,6 +48,7 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
   const [mudando, setMudando] = useState<boolean | null>(null); // o que a pessoa acabou de pedir, até a resposta chegar
   const [trocas, setTrocas] = useState<Troca[]>([]);
   const [nomes, setNomes] = useState<Record<string, string>>({});
+  const [prefs, setPrefs] = useState<Partial<Record<ChavePush, boolean>>>(me.pushPrefs ?? {});
   const nomeEnvio = useEnvio();
   const fotoEnvio = useEnvio();
   useFocoNoErro(erroNome);
@@ -71,6 +81,19 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
       setOk('Nome salvo.');
       recarregar();
     });
+  }
+
+  // salva na hora, otimista; se falhar, o interruptor volta
+  async function alternarPref(chave: ChavePush) {
+    const novo = !(prefs[chave] ?? true);
+    setPrefs((p) => ({ ...p, [chave]: novo }));
+    try {
+      await api<Me>('/me', { method: 'PATCH', body: JSON.stringify({ pushPrefs: { [chave]: novo } }) });
+      setOk('Preferência salva.');
+    } catch {
+      setPrefs((p) => ({ ...p, [chave]: !novo }));
+      setOk('Não deu para salvar. Tente de novo.');
+    }
   }
 
   function trocarFoto(e: ChangeEvent<HTMLInputElement>) {
@@ -161,6 +184,17 @@ export function Perfil({ me, recarregar }: { me: Me; recarregar: () => void }) {
       <Linha titulo="Notificações" sub={subAvisos} tom={estado === 'ligado' || estado === 'desligado' ? undefined : 'aviso'}>
         <button type="button" role="switch" aria-checked={ligado} aria-label="Notificações" disabled={mudando !== null} className={`interruptor ${ligado ? 'ligado' : ''}`} onClick={alternarPush}><span /></button>
       </Linha>
+      {estado === 'desligado' && <p className="giz2 legenda-s dica-avisos">Desligado. Ligue para escolher quais avisos chegam.</p>}
+      <div className={`prefs-push ${ligado ? '' : 'inerte'}`} role="group" aria-label="Quais avisos receber" inert={!ligado}>
+        {PREFS.map(({ chave, titulo, sub }) => {
+          const on = prefs[chave] ?? true;
+          return (
+            <Linha key={chave} titulo={titulo} sub={sub}>
+              <button type="button" role="switch" aria-checked={on} aria-label={titulo} className={`interruptor ${on ? 'ligado' : ''}`} onClick={() => alternarPref(chave)}><span /></button>
+            </Linha>
+          );
+        })}
+      </div>
 
       <p className="grupo giz2">Clube</p>
       {!me.clube && <Linha titulo="Sem clube" sub="Você vê, curte e comenta, mas não posta." />}

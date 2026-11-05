@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import webpush from 'web-push';
 import { PrismaService } from '../prisma.service.js';
+import { prefsCompletas, type PushTipo } from './prefs.js';
 
 export type MensagemPush = { titulo: string; corpo: string; url: string };
 
@@ -27,10 +28,11 @@ export class PushService {
     return true;
   }
 
-  /** Envia para as inscrições de quem tem `pushEnabled`. Nunca lança: erro de um endpoint não afeta os outros. */
-  async enviar(userIds: string[], msg: MensagemPush): Promise<void> {
+  /** Envia para as inscrições de quem tem `pushEnabled` e não desligou o `tipo` em `pushPrefs`. Nunca lança: erro de um endpoint não afeta os outros. */
+  async enviar(userIds: string[], msg: MensagemPush, tipo?: PushTipo): Promise<void> {
     if (!userIds.length || !this.configurar()) return;
-    const inscricoes = await this.prisma.pushSubscription.findMany({ where: { userId: { in: userIds }, user: { pushEnabled: true } } });
+    const todas = await this.prisma.pushSubscription.findMany({ where: { userId: { in: userIds }, user: { pushEnabled: true } }, include: { user: { select: { pushPrefs: true } } } });
+    const inscricoes = tipo ? todas.filter((s) => prefsCompletas(s.user.pushPrefs)[tipo]) : todas;
     const resultados = await Promise.allSettled(
       inscricoes.map((s) => webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(msg), { TTL: 86_400 })),
     );

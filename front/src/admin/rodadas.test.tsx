@@ -34,6 +34,9 @@ test('lançar jogos: escolher mandante e visitante só entre clubes sem jogo na 
   expect(screen.getByText('Placar de 0 a 99')).toBeTruthy();
   expect((screen.getByRole('button', { name: 'Salvar jogos' }) as HTMLButtonElement).disabled).toBe(true);
   fireEvent.change(gm, { target: { value: '3' } });
+  expect(screen.getByText('Preencha os dois lados ou deixe os dois vazios.')).toBeTruthy(); // um lado só
+  expect((screen.getByRole('button', { name: 'Salvar jogos' }) as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.change(screen.getByLabelText('Gols do visitante, jogo 1'), { target: { value: '0' } });
   fireEvent.click(screen.getByRole('button', { name: 'Salvar jogos' }));
   await waitFor(() => expect(chamadas.some((x) => x.chave === 'PUT /admin/rodadas/1/jogos')).toBe(true));
   expect(JSON.parse(chamadas.find((x) => x.chave === 'PUT /admin/rodadas/1/jogos')!.body as string)).toEqual({ jogos: [{ mandanteId: 'palmeiras', visitanteId: 'flamengo', golsMandante: 3, golsVisitante: 0 }] });
@@ -93,6 +96,8 @@ test('prévia do bot com Sortear de novo, Editar (até 500) e Publicar', async (
   await screen.findByText('Frase 1');
   fireEvent.click(screen.getByRole('button', { name: /Sortear de novo/ }));
   await screen.findByText('Frase 2'); // sem edição: troca sem perguntar
+  const barra = document.querySelector('.acao-fixa')!; // as 3 ações ficam sempre à vista, na barra fixa
+  for (const n of [/Sortear de novo/, /Editar texto/, /^Publicar resumo$/]) expect(within(barra as HTMLElement).getByRole('button', { name: n })).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: /Editar texto/ }));
   const campo = screen.getByLabelText('Texto do post') as HTMLTextAreaElement;
   expect(campo.maxLength).toBe(500);
@@ -183,4 +188,21 @@ test('admin de votações lista também as encerradas com o vencedor', async () 
   tela('/admin/votacoes');
   expect(await screen.findByText('Técnico de outubro')).toBeTruthy();
   expect(screen.getByText('Encerrada · Venceu: Abel e Rita')).toBeTruthy();
+});
+
+test('jogo agendado (gols vazios) vai com gols nulos, o prazo vai em ISO, e fechar com jogo sem placar avisa quantos faltam', async () => {
+  const chamadas = fetchFalso({ 'GET /liga/rodadas': rodadas(false), 'GET /clubes': clubes, 'PUT /admin/rodadas/1/jogos': { status: 204 }, 'PUT /admin/rodadas/1/prazo': { status: 204 } });
+  tela('/admin/rodadas/1');
+  fireEvent.click(await screen.findByRole('button', { name: 'Adicionar jogo' }));
+  fireEvent.change(screen.getByLabelText('Mandante do jogo 1'), { target: { value: 'palmeiras' } });
+  fireEvent.change(screen.getByLabelText('Visitante do jogo 1'), { target: { value: 'flamengo' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Fechar rodada' }));
+  expect(await screen.findByText('Faltam placares em 1 jogo. Preencha para fechar a rodada.')).toBeTruthy();
+  expect(document.querySelector('.cartao-jogo.pendente')).not.toBeNull();
+  expect(chamadas.some((x) => x.chave.endsWith('/fechar'))).toBe(false);
+  fireEvent.change(screen.getByLabelText('Prazo de palpite'), { target: { value: '2099-11-14T19:00' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Salvar jogos' }));
+  await waitFor(() => expect(chamadas.some((x) => x.chave === 'PUT /admin/rodadas/1/prazo')).toBe(true));
+  expect(JSON.parse(chamadas.find((x) => x.chave === 'PUT /admin/rodadas/1/jogos')!.body as string)).toEqual({ jogos: [{ mandanteId: 'palmeiras', visitanteId: 'flamengo', golsMandante: null, golsVisitante: null }] });
+  expect(JSON.parse(chamadas.find((x) => x.chave === 'PUT /admin/rodadas/1/prazo')!.body as string).prazoPalpite).toMatch(/^2099-11-1[45]T/);
 });

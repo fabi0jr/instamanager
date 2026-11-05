@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { prefsCompletas, type PushPrefs } from '../push/prefs.js';
 import type { Request, Response } from 'express';
 import { Prisma, type Club, type User } from '../generated/prisma/client.js';
 import { ApiError } from '../http.js';
@@ -34,6 +35,7 @@ export const toMe = (u: UserComClube) => ({
   avatarUrl: u.avatarPath,
   isAdmin: u.isAdmin,
   pushEnabled: u.pushEnabled,
+  pushPrefs: prefsCompletas(u.pushPrefs),
   clube: u.club && { id: u.club.id, nome: u.club.name, escudoUrl: u.club.crestPath },
 });
 
@@ -149,7 +151,7 @@ export class AuthService implements OnModuleInit {
     });
   }
 
-  async atualizarPerfil(user: UserComClube, sessaoId: string, d: { nome?: string; pushEnabled?: boolean; senhaAtual?: string; senhaNova?: string }) {
+  async atualizarPerfil(user: UserComClube, sessaoId: string, d: { nome?: string; pushEnabled?: boolean; pushPrefs?: Partial<PushPrefs>; senhaAtual?: string; senhaNova?: string }) {
     let passwordHash: string | undefined;
     if (d.senhaNova) {
       if (!(await verifyPassword(d.senhaAtual!, user.passwordHash)))
@@ -157,7 +159,7 @@ export class AuthService implements OnModuleInit {
       passwordHash = await hashPassword(d.senhaNova);
     }
     const [atualizado] = await this.prisma.$transaction([
-      this.prisma.user.update({ where: { id: user.id }, data: { name: d.nome, pushEnabled: d.pushEnabled, passwordHash }, include: { club: true } }),
+      this.prisma.user.update({ where: { id: user.id }, data: { name: d.nome, pushEnabled: d.pushEnabled, passwordHash, ...(d.pushPrefs && { pushPrefs: { ...prefsCompletas(user.pushPrefs), ...d.pushPrefs } }) }, include: { club: true } }),
       // trocar a senha derruba as outras sessões; a atual continua
       ...(passwordHash
         ? [

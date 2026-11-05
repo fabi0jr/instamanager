@@ -10,3 +10,7 @@
 .selo-tipo { position: absolute; right: -4px; bottom: -4px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: var(--im-superficie); border: 2px solid var(--im-carvao); } .selo-tipo svg { width: 14px; height: 14px; stroke-width: 2; }
 .corpo-ativ { flex: 1; min-width: 0; display: flex; flex-direction: column; } .texto-ativ { font: 400 14px/18px var(--im-fonte-texto); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } .texto-ativ b { font-weight: 600; }
 .mini-ativ { flex: none; width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: var(--im-superficie-alta); } .mini-ativ.vazia { display: grid; place-items: center; color: var(--im-giz-3); }
+
+.li-ativ { position: relative; }
+/* alvo invisível de 44 px sobre o avatar da linha */
+.ativ-perfil { position: absolute; left: 0; top: 50%; margin-top: -22px; width: 44px; height: 44px; border-radius: 50%; } .ativ-perfil.nova { left: var(--im-e4); }

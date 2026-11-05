@@ -3,7 +3,9 @@ import type { UserComClube } from '../auth/auth.service.js';
 import type { NotificacaoTipo } from '../generated/prisma/client.js';
 import { escaparLike } from '../like.js';
 import { comNomes, extrairMencoes, resolverMencoes } from '../mencoes.js';
-import { codificarCursor, decodificarCursor } from '../posts/cursor.js';
+import { ApiError } from '../http.js';
+import { UUID, codificarCursor, decodificarCursor } from '../posts/cursor.js';
+import { PostsService } from '../posts/posts.service.js';
 import { ondeVisivel } from '../posts/visibilidade.js';
 import { PrismaService } from '../prisma.service.js';
 import { PushService } from '../push/push.service.js';
@@ -22,6 +24,7 @@ export class AtividadeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly push: PushService,
+    private readonly posts: PostsService,
   ) {}
 
   /** Grava um item para cada destinatário, menos para quem fez a ação (ninguém é avisado da própria ação). */
@@ -59,7 +62,7 @@ export class AtividadeService {
     if (!novos.length) return;
     await this.criar(novos, 'MENCAO', { atorId, postId, ...(comentarioId && { comentarioId }) });
     const ator = await this.prisma.user.findUnique({ where: { id: atorId }, select: { name: true } });
-    void this.push.enviar(novos, { titulo: 'Menção', corpo: `${ator?.name ?? 'Alguém'} mencionou você`, url: `/p/${postId}` });
+    void this.push.enviar(novos, { titulo: 'Menção', corpo: `${ator?.name ?? 'Alguém'} mencionou você`, url: `/p/${postId}` }, 'mencoes');
   }
 
   /** Itens do usuário, do mais novo ao mais velho. Post oculto/apagado vira "Post indisponível" (sem legenda nem foto). */
@@ -124,5 +127,20 @@ export class AtividadeService {
       LIMIT ${limite} OFFSET ${pular}`;
     const us = await this.prisma.user.findMany({ where: { id: { in: achados.map((a) => a.id) } }, include: { club: { select: { id: true, name: true, crestPath: true } } } });
     return achados.flatMap(({ id }) => us.filter((u) => u.id === id)).map((u) => ({ id: u.id, nome: u.name, avatarUrl: u.avatarPath, clube: u.club && { id: u.club.id, nome: u.club.name, escudoUrl: u.club.crestPath } }));
+  }
+
+  /** Perfil público do técnico: sem e-mail. Posts da pessoa por página (`antes`), na mesma visibilidade do feed; histórico de clubes do mais novo ao mais velho. */
+  async perfil(user: UserComClube, id: string, antes?: string) {
+    const u = UUID.test(id) ? await this.prisma.user.findUnique({ where: { id }, include: { club: true, tenures: { orderBy: { startedAt: 'desc' }, include: { club: true } } } }) : null;
+    if (!u) throw new ApiError(404, 'NAO_ENCONTRADO', 'Pessoa não encontrada.');
+    const mini = (c: { id: string; name: string; crestPath: string }) => ({ id: c.id, nome: c.name, escudoUrl: c.crestPath });
+    return {
+      id: u.id,
+      nome: u.name,
+      avatarUrl: u.avatarPath,
+      clube: u.club && mini(u.club),
+      historico: u.tenures.map((t) => ({ clube: mini(t.club), inicio: t.startedAt, fim: t.endedAt })),
+      posts: await this.posts.feed(user, antes, undefined, undefined, u.id),
+    };
   }
 }

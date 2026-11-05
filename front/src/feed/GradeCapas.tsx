@@ -1,5 +1,6 @@
 import { IcGaleria, IcTexto, IcVideo } from './icones';
 import { Link } from '../rotas';
+import { semMarcas } from '../mencoes/mencoes';
 import type { Post } from './tipos';
 
 // Grade de capas (clube e tag): post só de texto vira um quadrado com as primeiras palavras
@@ -15,7 +16,7 @@ export function GradeCapas({ posts }: { posts: Post[] }) {
             </Link>
           ) : p.imagens.length === 0 ? (
             <Link para={`/p/${p.id}`} aria-label={`Post de texto de ${p.autor.nome}, ${p.clube.nome}`} className="capa-texto">
-              <span>{p.texto ?? p.legenda}</span>
+              <span>{semMarcas(p.texto ?? p.legenda, p.mencoes)}</span>
               <span className="multi"><IcTexto /></span>
             </Link>
           ) : (

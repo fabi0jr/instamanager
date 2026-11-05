@@ -36,6 +36,14 @@ test('/tag/:tag lista com rolagem infinita, inclusive post de texto', async () =
   expect(chamadas[0].chave).toBe('GET /posts?tag=contratacao');
 });
 
+test('capa de post de texto mostra o nome do banco no lugar da marca @[Nome](id)', async () => {
+  const id = '11111111-1111-1111-1111-111111111111';
+  fetchFalso({ 'GET /posts?tag=x': { itens: [{ id: 't', clube: { id: 'p', nome: 'Palmeiras', escudoUrl: '/e.svg' }, autor: { id: 'u', nome: 'Abel' }, legenda: '', imagens: [], texto: `Olha @[Velho](${id}) #x`, mencoes: [{ id, nome: 'Novo' }] }], proximo: null } });
+  const { container } = render(<Tag tag="x" />);
+  await screen.findByRole('link', { name: 'Post de texto de Abel, Palmeiras' });
+  expect(container.querySelector('.capa-texto span')!.textContent).toBe('Olha @Novo #x');
+});
+
 test('/tag/:tag vazia e com erro', async () => {
   fetchFalso({ 'GET /posts?tag=nada': { itens: [], proximo: null } });
   render(<Tag tag="nada" />);

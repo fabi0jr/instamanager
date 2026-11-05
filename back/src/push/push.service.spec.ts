@@ -22,10 +22,17 @@ describe('PushService', () => {
   });
   afterEach(() => vi.unstubAllEnvs());
 
+  it('com tipo, pula quem desligou aquele tipo (chave ausente vale ligado)', async () => {
+    const com = (id: string, pushPrefs: object) => ({ ...sub(id), user: { pushPrefs } });
+    prisma.pushSubscription.findMany.mockResolvedValue([com('liga', {}), com('desliga', { bolao: false }), com('outro', { posts: false })]);
+    await service.enviar(['u1'], msg, 'bolao');
+    expect(enviar.mock.calls.map((c) => (c[0] as { endpoint: string }).endpoint)).toEqual(['https://push.exemplo.test/liga', 'https://push.exemplo.test/outro']);
+  });
+
   it('envia o JSON {titulo, corpo, url} para cada inscrição de quem tem push ligado', async () => {
     prisma.pushSubscription.findMany.mockResolvedValue([sub('a'), sub('b', 'u2')]);
     await service.enviar(['u1', 'u2'], msg);
-    expect(prisma.pushSubscription.findMany).toHaveBeenCalledWith({ where: { userId: { in: ['u1', 'u2'] }, user: { pushEnabled: true } } });
+    expect(prisma.pushSubscription.findMany).toHaveBeenCalledWith({ where: { userId: { in: ['u1', 'u2'] }, user: { pushEnabled: true } }, include: { user: { select: { pushPrefs: true } } } });
     expect(enviar).toHaveBeenCalledTimes(2);
     expect(enviar.mock.calls[0][0]).toMatchObject({ endpoint: 'https://push.exemplo.test/a', keys: { p256dh: 'k', auth: 'a' } });
     expect(JSON.parse(enviar.mock.calls[0][1] as string)).toEqual(msg);

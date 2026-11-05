@@ -1,6 +1,6 @@
 import { calcularTabela, type JogoFechado } from '../liga/tabela.js';
 import { FRASES, VARIAVEIS, type Categoria } from './frases.js';
-import { montarResumo } from './zoeira.js';
+import { montarResumo, montarResumoCopa } from './zoeira.js';
 
 const clubes = Array.from({ length: 20 }, (_, i) => ({ id: `c${i + 1}`, nome: `Clube ${String.fromCharCode(65 + i)}` }));
 const j = (rodada: number, m: string, gm: number, gv: number, v: string): JogoFechado => ({ rodada, mandanteId: m, visitanteId: v, golsMandante: gm, golsVisitante: gv });
@@ -121,5 +121,31 @@ describe('frases.ts', () => {
       for (const v of usadas) expect(VARIAVEIS[cat], `${cat}: {${v}} em "${f}"`).toContain(v);
       expect(usadas.includes('tecnico'), `"${f}"`).toBe(com);
     }
+  });
+});
+
+describe('montarResumoCopa', () => {
+  const a = { id: 'a', nome: 'Alfa' }, b = { id: 'b', nome: 'Beta' }, g = { id: 'g', nome: 'Gama' }, d = { id: 'd', nome: 'Delta' };
+  const jogos = [
+    { mandante: a, visitante: b, golsMandante: 2, golsVisitante: 0, penaltisMandante: null, penaltisVisitante: null },
+    { mandante: g, visitante: d, golsMandante: 1, golsVisitante: 1, penaltisMandante: 3, penaltisVisitante: 5 },
+  ];
+  const tecnicos = { b: { id: 'u1', nome: 'Beto' } };
+
+  it('abertura com a fase + uma linha por jogo; o eliminado sem técnico não cita ninguém, o com técnico cita', () => {
+    for (let k = 0; k < 20; k++) {
+      const r = montarResumoCopa('Oitavas', jogos, tecnicos, seq(k / 21));
+      const linhas = r.texto.split('\n');
+      expect(linhas).toHaveLength(3);
+      expect(linhas[0]).toContain('Oitavas');
+      expect(r.texto).not.toMatch(/\{\w+\}/);
+      expect(r.texto).toContain('Delta'); // vencedor dos pênaltis (5 a 3) aparece na linha dos pênaltis
+      expect(r.citados).toEqual(r.texto.includes('Beto') ? ['u1'] : []);
+    }
+  });
+
+  it('cabe em 500 caracteres mesmo com muitos jogos', () => {
+    const muitos = Array.from({ length: 10 }, (_, i) => ({ ...jogos[0], mandante: { id: `m${i}`, nome: 'Clube Com Nome Bem Comprido' }, visitante: { id: `v${i}`, nome: 'Outro Clube Com Nome Comprido' } }));
+    expect(montarResumoCopa('Fase', muitos, {}, fixo).texto.length).toBeLessThanOrEqual(500);
   });
 });

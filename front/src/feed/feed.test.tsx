@@ -278,3 +278,11 @@ test('Voltar do /p/:id: history.back só se a entrada anterior é do app; senão
   expect(location.pathname).toBe('/');
   voltarNav.mockRestore();
 });
+
+test('avatar e nome de quem comentou levam a /u/:id', async () => {
+  fetchFalso({ 'GET /posts/a/comentarios': [{ id: 'c1', texto: 'Boa!', criadoEm: new Date().toISOString(), usuario: { id: 'u2', nome: 'Abel', avatarUrl: null, clube: null } }] });
+  render(<Comentarios postId="a" me={me} aoFechar={() => {}} aoContar={() => {}} />);
+  await screen.findByText('Boa!');
+  expect(screen.getByRole('link', { name: 'Perfil de Abel' }).getAttribute('href')).toBe('/u/u2');
+  expect(screen.getByRole('link', { name: 'Abel' }).getAttribute('href')).toBe('/u/u2');
+});

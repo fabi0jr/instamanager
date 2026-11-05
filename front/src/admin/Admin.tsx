@@ -4,6 +4,7 @@ import { Link, navegar } from '../rotas';
 import './admin.css';
 import { Clubes } from './Clubes';
 import { Convite } from './Convite';
+import { CopaFase, CopaFases } from './Copa';
 import { Denuncias } from './Denuncias';
 import { Pedidos } from './Pedidos';
 import { RodadaEditar, RodadasLista } from './Rodadas';
@@ -51,6 +52,7 @@ function Inicio() {
         </Link>
         <Link para="/admin/rodadas" className="linha-config"><span>Rodadas</span><span aria-hidden="true">›</span></Link>
         <Link para="/admin/votacoes" className="linha-config"><span>Votações</span><span aria-hidden="true">›</span></Link>
+        <Link para="/admin/copa" className="linha-config"><span>Copa do Brasil</span><span aria-hidden="true">›</span></Link>
         <Link para="/admin/clubes" className="linha-config">
           <span>Clubes e técnicos</span>
           {clubes && <span className="giz2">{clubes.com} de {clubes.total} com técnico</span>}
@@ -74,6 +76,9 @@ export function Admin({ me, caminho }: { me: Me; caminho: string }) {
   if (caminho === '/admin/rodadas') return <RodadasLista />;
   const rodada = caminho.match(/^\/admin\/rodadas\/(\d+)$/);
   if (rodada) return <RodadaEditar n={Number(rodada[1])} />;
+  if (caminho === '/admin/copa') return <CopaFases />;
+  const fase = caminho.match(/^\/admin\/copa\/([^/]+)$/);
+  if (fase) return <CopaFase id={decodeURIComponent(fase[1])} />;
   if (caminho === '/admin/votacoes') return <VotacoesAdmin />;
   if (caminho === '/admin/votacoes/nova') return <NovaVotacao />;
   return <Inicio />;

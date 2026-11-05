@@ -102,3 +102,15 @@ test('contrato do back: comentario {id, resumo}; "Comentário indisponível" nã
   expect(screen.getByText(/mencionou você: “Olha @Rita”/)).toBeTruthy();
   expect(screen.getByText(/mencionou você: “Treino de hoje”/)).toBeTruthy(); // menção em post: resumo do post
 });
+
+test('o avatar de quem agiu leva a /u/:id (link ao lado do da linha); CBF e sem autor não têm', async () => {
+  fetchFalso({
+    'GET /atividade': { itens: [item('1', 'REACAO'), item('4', 'CBF_CITOU', { ator: null })], proximo: null },
+    'POST /atividade/lidas': { status: 204 },
+  });
+  render(<Atividade />);
+  const perfil = await screen.findByRole('link', { name: 'Perfil de Paulo' });
+  expect(perfil.getAttribute('href')).toBe('/u/u-Paulo');
+  expect(perfil.closest('a')).toBe(perfil); // não aninhado em outro link
+  expect(screen.getAllByRole('link', { name: /Perfil de/ })).toHaveLength(1);
+});

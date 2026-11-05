@@ -11,10 +11,10 @@ export const chaveDaTag = (t: string) => t.normalize('NFD').replace(/\p{M}/gu, '
 // Texto de legenda/post/comentário com as #tags viradas em link para /tag/<palavra>
 // `mencoes` vem do back com o nome de hoje, do banco: a marca @[Nome](id) vira chip com esse nome; id fora da lista (ou sem lista, como na bio) = "@pessoa removida"
 export function Texto({ children, mencoes }: { children: string; mencoes?: Mencao[] }) {
-  const partes: (string | { tag: string } | { mencao: string; nome?: string })[] = [];
+  const partes: (string | { tag: string } | { mencao: string; nome?: string; id: string })[] = [];
   const achados = [
     ...[...children.matchAll(TAG)].map((m) => ({ i: m.index, len: m[0].length, p: { tag: m[1] } as const })),
-    ...[...children.matchAll(MARCA)].map((m) => ({ i: m.index, len: m[0].length, p: { mencao: m[1], nome: mencoes?.find((x) => x.id === m[2])?.nome } as const })),
+    ...[...children.matchAll(MARCA)].map((m) => ({ i: m.index, len: m[0].length, p: { mencao: m[1], nome: mencoes?.find((x) => x.id === m[2])?.nome, id: m[2] } as const })),
   ].sort((a, b) => a.i - b.i);
   let fim = 0;
   for (const a of achados) {
@@ -29,7 +29,7 @@ export function Texto({ children, mencoes }: { children: string; mencoes?: Menca
         typeof p === 'string' ? (
           <Fragment key={i}>{p}</Fragment>
         ) : 'mencao' in p ? (
-          p.nome ? <span key={i} className="chip-mencao">@{p.nome}</span> : <span key={i} className="chip-mencao removida">@pessoa removida</span>
+          p.nome ? <Link key={i} para={`/u/${p.id}`} className="chip-mencao">@{p.nome}</Link> : <span key={i} className="chip-mencao removida">@pessoa removida</span>
         ) : (
           <Link key={i} para={`/tag/${encodeURIComponent(chaveDaTag(p.tag))}`} className="hashtag">#{p.tag}</Link>
         ),

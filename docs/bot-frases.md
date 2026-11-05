@@ -1,6 +1,6 @@
 # Frases do bot da zoeira (CBF)
 
-> **Para o Fabio revisar antes do deploy.** São 59 frases prontas, em `back/src/bot/frases.ts` (esta página é a mesma lista). Para mudar uma frase, edite o arquivo e rode o teste; o bot nunca escreve nada que não esteja aqui.
+> **Para o Fabio revisar antes do deploy.** São 72 frases prontas, em `back/src/bot/frases.ts` (esta página é a mesma lista). Para mudar uma frase, edite o arquivo e rode o teste; o bot nunca escreve nada que não esteja aqui.
 
 Como funciona: depois que o admin fecha a rodada, o bot detecta o que aconteceu (goleada, lanterna, queda, líder, sequência de derrotas, Z4, fim de jejum, empates) e junta de 3 a 6 frases, sem repetir, até 500 caracteres. Cada frase vai numa linha. O admin pode **sortear de novo**, **editar** o texto e só então **publicar**. `{tecnico}` vira o nome do técnico do clube (e ele recebe um push por ter sido citado); clube sem técnico usa as frases "sem técnico". Regra de tom: só zoeira do desempenho no jogo, sem palavrão e sem ofensa pessoal.
 
@@ -166,3 +166,55 @@ Variáveis: nenhuma
 - Rodada boa para quem ganhou, ótima para quem comenta.
 - O resumo é esse. Reclamações, no grupo.
 
+## Copa do Brasil · mata-mata (NOVAS, 10 frases: revise)
+
+Quando o admin **fecha uma fase** da Copa, o bot monta a prévia do resumo: 1 frase de abertura + 1 frase por jogo (até 5, sorteados), sem repetir, até 500 caracteres. Quem perdeu é o "eliminado"; o técnico dele só é citado (e recebe o push "A CBF citou você") nas frases "com técnico". Jogo decidido nos pênaltis usa as frases de pênaltis, e o `{placar}` ali é o dos pênaltis. O admin pode editar antes de publicar.
+
+### Abertura da fase
+
+Variáveis: `{fase}`
+
+**Sem técnico:**
+
+- Acabou a fase "{fase}" da Copa do Brasil! Quem sobrou segue vivo, o resto vai para casa.
+- Mata-mata é assim: fechou a fase "{fase}" e ninguém tem segunda chance.
+
+### Eliminado no tempo normal
+
+Variáveis: `{clube}` (o eliminado), `{tecnico}`, `{outro}` (quem passou), `{placar}`, `{fase}`
+
+**Com o técnico:**
+
+- {clube} está fora da Copa: {placar} para o {outro}. {tecnico} já volta a olhar só a tabela.
+- {tecnico} viu o {clube} cair para o {outro} ({placar}). Em jogo único não tem revanche.
+
+**Sem técnico:**
+
+- Adeus, Copa! O {clube} perdeu para o {outro} por {placar} e foi eliminado.
+- {outro} despachou o {clube} ({placar}). Jogo único não perdoa.
+
+### Eliminado nos pênaltis
+
+Variáveis: `{clube}` (o eliminado), `{tecnico}`, `{outro}`, `{placar}` (dos pênaltis)
+
+**Com o técnico:**
+
+- {tecnico} sofreu nos pênaltis: o {clube} caiu para o {outro} por {placar}. Haja coração!
+- {clube} perdeu da marca da cal para o {outro} ({placar}). {tecnico} diz que foi falta de sorte.
+
+**Sem técnico:**
+
+- Decidiu nos pênaltis! O {outro} passou pelo {clube} por {placar}.
+- Pênaltis cruéis: {clube} fora da Copa, e o {outro} avança por {placar}.
+
+## Fecho do resumo · rei do bolão (NOVAS, 3 frases: revise)
+
+Entra como última linha do resumo da rodada ou da fase quando alguém pontuou no bolão (o líder daquela rodada/fase; sem ninguém pontuando, a linha não aparece). Se o texto passar de 500 caracteres, essa linha é a primeira a sair.
+
+Variáveis: `{rei}` (nome de quem liderou), `{pontos}`
+
+**Sem técnico:**
+
+- Rei do bolão da vez: {rei}, com {pontos} na conta. Palpite não tem VAR.
+- Quem mandou bem no bolão foi {rei}: {pontos} na soma. Os outros que se expliquem.
+- {rei} é o rei do bolão, com {pontos} na soma. Reverência, por favor.

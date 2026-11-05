@@ -30,9 +30,11 @@ model User {
   avatarPath   String?
   isAdmin      Boolean  @default(false)
   pushEnabled  Boolean  @default(true)
+  pushPrefs    Json     @default("{}") // {posts, comentarios, mencoes, cbf, bolao, trocas}: chave ausente vale true
   createdAt    DateTime @default(now())
 
   club          Club?
+  palpites      Palpite[]
   sessions      Session[]
   resets        PasswordReset[]
   tenures       CoachTenure[]
@@ -87,6 +89,8 @@ model Club {
   transfers TransferRequest[]
   mandante  Jogo[]            @relation("mandante")
   visitante Jogo[]            @relation("visitante")
+  copaMandante  CopaJogo[]    @relation("copaMandante")
+  copaVisitante CopaJogo[]    @relation("copaVisitante")
   selos     Selo[]
 }
 
@@ -94,6 +98,7 @@ model Club {
 model Rodada {
   numero    Int       @id
   fechadaEm DateTime?
+  prazoPalpite DateTime? // null = ainda não dá para palpitar
   jogos     Jogo[]
   // post do resumo da CBF (null = ainda não publicado); se o post for apagado, a rodada volta a aceitar resumo
   resumoPostId String? @db.Uuid
@@ -105,14 +110,71 @@ model Jogo {
   rodadaNumero  Int
   mandanteId    String
   visitanteId   String
-  golsMandante  Int
-  golsVisitante Int
+  golsMandante  Int? // null nos dois = jogo agendado
+  golsVisitante Int?
+  palpites      Palpite[]
   rodada        Rodada @relation(fields: [rodadaNumero], references: [numero], onDelete: Cascade)
   mandante      Club   @relation("mandante", fields: [mandanteId], references: [id])
   visitante     Club   @relation("visitante", fields: [visitanteId], references: [id])
 
   @@unique([rodadaNumero, mandanteId])
   @@unique([rodadaNumero, visitanteId])
+}
+
+// Copa do Brasil: mata-mata de jogo único, fases lançadas pelo admin (ordem maior = fase mais adiante).
+model CopaFase {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome         String
+  ordem        Int       @unique
+  prazoPalpite DateTime?
+  fechadaEm    DateTime?
+  jogos        CopaJogo[]
+  resumoPostId String?   @unique @db.Uuid
+  resumoPost   Post?     @relation(fields: [resumoPostId], references: [id], onDelete: SetNull)
+}
+
+model CopaJogo {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  faseId           String   @db.Uuid
+  mandanteId       String
+  visitanteId      String
+  golsMandante     Int?
+  golsVisitante    Int?
+  penaltisMandante  Int? // só quando o jogo termina empatado
+  penaltisVisitante Int?
+  palpites         Palpite[]
+  fase             CopaFase @relation(fields: [faseId], references: [id], onDelete: Cascade)
+  mandante         Club     @relation("copaMandante", fields: [mandanteId], references: [id])
+  visitante        Club     @relation("copaVisitante", fields: [visitanteId], references: [id])
+
+  @@unique([faseId, mandanteId])
+  @@unique([faseId, visitanteId])
+}
+
+// Palpite do bolão: aponta para um Jogo OU um CopaJogo (check na migração). Pontos são calculados, nunca gravados.
+model Palpite {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @db.Uuid
+  jogoId        String?   @db.Uuid
+  copaJogoId    String?   @db.Uuid
+  golsMandante  Int
+  golsVisitante Int
+  classificadoId String? // Copa: quem passa (obrigatório no palpite de empate)
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jogo          Jogo?     @relation(fields: [jogoId], references: [id], onDelete: Cascade)
+  copaJogo      CopaJogo? @relation(fields: [copaJogoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jogoId])
+  @@unique([userId, copaJogoId])
+}
+
+// Lembrete do prazo já enviado (tipo RODADA|FASE, refId = alvo@prazo): garante uma vez só.
+model LembreteEnviado {
+  tipo String
+  refId String
+
+  @@id([tipo, refId])
 }
 
 model CoachTenure {
@@ -130,6 +192,7 @@ model CoachTenure {
 model Post {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   resumoDe  Rodada[]
+  resumoDeCopa CopaFase?
   notificacoes Notificacao[]
   clubId    String
   authorId  String    @db.Uuid // técnico que publicou

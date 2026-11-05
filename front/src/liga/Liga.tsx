@@ -5,11 +5,14 @@ import { IcOk } from '../feed/icones';
 import { Link, navegar, useBusca } from '../rotas';
 import { ListaVotacoes } from '../votacoes/Votacoes';
 import { textoUltimos, type Linha, type Rodada } from './tipos';
+import { Bolao } from './Bolao';
+import { Calendario } from './Calendario';
+import { Copa } from './Copa';
 import { Ultimos } from './Ultimos';
 import './liga.css';
 
 type Dados = { tabela: Linha[]; rodadas: Rodada[] };
-const ABAS = [['tabela', 'Tabela'], ['rodadas', 'Rodadas'], ['votacoes', 'Votações']] as const;
+const ABAS = [['tabela', 'Tabela'], ['rodadas', 'Rodadas'], ['calendario', 'Calendário'], ['copa', 'Copa'], ['bolao', 'Bolão'], ['votacoes', 'Votações']] as const;
 type Aba = (typeof ABAS)[number][0];
 
 function Tabela({ linhas, meuClube, sem }: { linhas: Linha[]; meuClube?: string; sem: boolean }) {
@@ -54,6 +57,7 @@ function Rodadas({ rodadas, inicial }: { rodadas: Rodada[]; inicial: number }) {
   const [n, setN] = useState(inicial);
   const r = rodadas.find((x) => x.numero === n) ?? rodadas[0];
   if (!r) return <p className="giz2 padrao">Nenhuma rodada ainda.</p>;
+  const jogos = r.jogos.filter((j) => j.golsMandante !== null && j.golsVisitante !== null); // agendado (sem placar) só aparece no Calendário
   return (
     <>
       <div className="chips-rodada" role="group" aria-label="Rodadas">
@@ -63,11 +67,11 @@ function Rodadas({ rodadas, inicial }: { rodadas: Rodada[]; inicial: number }) {
         <h2>Rodada {r.numero}</h2>
         {r.fechada ? <span className="etiqueta fechada"><IcOk /> Fechada</span> : <span className="etiqueta aberta">Em andamento</span>}
       </div>
-      {!r.fechada && r.jogos.length > 0 && <p className="giz2 padrao">Placar parcial. Só vale na tabela depois que o admin fechar a rodada.</p>}
-      {r.jogos.length === 0 && <p className="giz2 padrao">Faltam jogos a lançar</p>}
+      {!r.fechada && jogos.length > 0 && <p className="giz2 padrao">Placar parcial. Só vale na tabela depois que o admin fechar a rodada.</p>}
+      {jogos.length === 0 && <p className="giz2 padrao">{r.jogos.length ? 'Nenhum jogo com placar ainda. Os agendados estão em Calendário.' : 'Faltam jogos a lançar'}</p>}
       <ul className={`jogos ${r.fechada ? '' : 'parcial'}`}>
-        {r.jogos.map((j) => {
-          const m = j.golsMandante, v = j.golsVisitante;
+        {jogos.map((j) => {
+          const m = j.golsMandante!, v = j.golsVisitante!;
           return (
             <li key={j.id} aria-label={`${j.mandante.nome} ${m}, ${j.visitante.nome} ${v}`}>
               <span className={`time mandante ${m > v ? 'ganhou' : m < v ? 'perdeu' : ''}`}>{j.mandante.nome}</span>
@@ -86,12 +90,18 @@ function Rodadas({ rodadas, inicial }: { rodadas: Rodada[]; inicial: number }) {
 // /liga: Tabela · Rodadas (docs/design/onda-b.md §2). A rodada atual é a última fechada.
 export function Liga({ me }: { me: Me }) {
   const [dados, setDados] = useState<Dados | 'carregando' | 'erro'>('carregando');
-  const [aba, setAba] = useState<Aba>(useBusca().get('aba') === 'votacoes' ? 'votacoes' : 'tabela');
+  const busca = useBusca();
+  const pedida = busca.get('aba');
+  const [aba, setAba] = useState<Aba>(ABAS.find(([id]) => id === pedida)?.[0] ?? 'tabela');
+  // chegou por link (Calendário → Bolão) com a Liga já aberta
+  useEffect(() => { const a = ABAS.find(([id]) => id === pedida)?.[0]; if (a) setAba(a); }, [pedida]);
   function carregar() {
     setDados('carregando');
     Promise.all([api<Linha[]>('/liga/tabela'), api<Rodada[]>('/liga/rodadas')]).then(([tabela, rodadas]) => setDados({ tabela, rodadas }), () => setDados('erro'));
   }
   useEffect(carregar, []);
+  // a aba ativa rola para dentro da vista (seis abas não cabem no celular)
+  useEffect(() => { document.querySelector('.abas-liga [aria-selected="true"]')?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); }, [aba]);
   const setas = (e: KeyboardEvent) => {
     const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
     if (d) setAba(ABAS[(ABAS.findIndex(([id]) => id === aba) + d + ABAS.length) % ABAS.length][0]);
@@ -107,14 +117,17 @@ export function Liga({ me }: { me: Me }) {
         {ABAS.map(([id, nome]) => <button key={id} type="button" role="tab" aria-selected={aba === id} tabIndex={aba === id ? 0 : -1} onClick={() => setAba(id)}>{nome}</button>)}
       </div>
       {aba === 'votacoes' && <div role="tabpanel"><ListaVotacoes /></div>}
-      {aba !== 'votacoes' && dados === 'carregando' && <div role="tabpanel" aria-busy="true">{Array.from({ length: 16 }, (_, i) => <div key={i} className="esqueleto linha-esq-liga" />)}</div>}
-      {aba !== 'votacoes' && dados === 'erro' && (
+      {aba === 'calendario' && <Calendario />}
+      {aba === 'copa' && <Copa />}
+      {aba === 'bolao' && <Bolao me={me} inicial={{ rodada: busca.get('rodada'), fase: busca.get('fase') }} />}
+      {(aba === 'tabela' || aba === 'rodadas') && dados === 'carregando' && <div role="tabpanel" aria-busy="true">{Array.from({ length: 16 }, (_, i) => <div key={i} className="esqueleto linha-esq-liga" />)}</div>}
+      {(aba === 'tabela' || aba === 'rodadas') && dados === 'erro' && (
         <div className="caixa-info" role="alert">
           <h2>Não deu para carregar a tabela</h2>
           <button type="button" className="botao secundario" onClick={carregar}>Tentar de novo</button>
         </div>
       )}
-      {aba !== 'votacoes' && typeof dados === 'object' && (
+      {(aba === 'tabela' || aba === 'rodadas') && typeof dados === 'object' && (
         <div role="tabpanel">
           {aba === 'tabela' && <Tabela linhas={dados.tabela} meuClube={me.clube?.id} sem={fechadas.length === 0} />}
           {aba === 'rodadas' && <Rodadas rodadas={dados.rodadas} inicial={atual ?? dados.rodadas[0]?.numero ?? 1} />}

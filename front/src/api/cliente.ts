@@ -27,6 +27,7 @@ export async function api<T>(caminho: string, init: RequestInit = {}): Promise<T
 }
 
 export type ClubeMini = { id: string; nome: string; escudoUrl: string };
+export type ChavePush = 'posts' | 'comentarios' | 'mencoes' | 'cbf' | 'bolao' | 'trocas';
 export type Me = {
   id: string;
   nome: string;
@@ -34,5 +35,6 @@ export type Me = {
   avatarUrl: string | null;
   isAdmin: boolean;
   pushEnabled: boolean;
+  pushPrefs?: Partial<Record<ChavePush, boolean>>; // chave ausente vale true
   clube: ClubeMini | null;
 };

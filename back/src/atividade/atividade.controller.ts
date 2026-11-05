@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpCode, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { type AuthedRequest, SessionGuard } from '../auth/session.guard.js';
 import { AtividadeService } from './atividade.service.js';
 
@@ -32,5 +32,10 @@ export class PessoasController {
   @Get()
   buscar(@Query('q') q?: string) {
     return this.atividade.pessoas(q);
+  }
+
+  @Get(':id')
+  perfil(@Req() req: AuthedRequest, @Param('id') id: string, @Query('antes') antes?: string) {
+    return this.atividade.perfil(req.user, id, antes);
   }
 }

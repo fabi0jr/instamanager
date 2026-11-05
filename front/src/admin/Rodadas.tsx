@@ -2,14 +2,18 @@ import { useEffect, useState } from 'react';
 import { api, ErroApi } from '../api/cliente';
 import { Aviso, Botao } from '../conta/ui';
 import { Escudo } from '../feed/Escudo';
-import { IcEditar, IcLixo, IcSortear } from '../feed/icones';
+import { IcEditar, IcLixo, IcSortear, Icone } from '../feed/icones';
 import type { Rodada } from '../liga/tipos';
 import { Link, navegar } from '../rotas';
 import { Topo } from './Admin';
 import { Dialogo } from './Dialogo';
 
 type Clube = { id: string; nome: string; escudoUrl: string };
-type JogoEd = { m: string; v: string; gm: string; gv: string };
+type JogoEd = { m: string; v: string; gm: string; gv: string }; // gols vazios nos dois lados = jogo agendado
+
+// <input type="datetime-local"> trabalha em hora local, sem fuso
+const paraCampoData = (iso?: string | null) => (iso ? new Date(new Date(iso).getTime() - new Date(iso).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '');
+const deCampoData = (v: string) => (v ? new Date(v).toISOString() : null);
 const MAX_JOGOS = 10;
 
 export function RodadasLista() {
@@ -45,7 +49,8 @@ export function RodadasLista() {
 const mensagemErro = (e: unknown) => {
   if (e instanceof ErroApi) {
     if (e.codigo === 'RODADA_FECHADA') return 'Essa rodada foi fechada. Reabra para editar.';
-    if (e.codigo === 'DADOS_INVALIDOS') return 'Confira os jogos: cada clube joga uma vez por rodada, sem jogo repetido, e o placar vai de 0 a 99. Nada foi gravado: corrija e salve de novo.';
+    if (e.codigo === 'PLACAR_PENDENTE') return 'Faltam placares. Preencha todos os jogos para fechar a rodada.';
+    if (e.codigo === 'DADOS_INVALIDOS') return 'Confira os jogos: cada clube joga uma vez por rodada, sem jogo repetido, e o placar vai de 0 a 99 (ou fica vazio, jogo agendado). Nada foi gravado: corrija e salve de novo.';
   }
   return 'Não deu para completar. Confira a conexão e tente de novo.';
 };
@@ -58,6 +63,9 @@ export function RodadaEditar({ n }: { n: number }) {
   const [ocupado, setOcupado] = useState(false);
   const [reabrir, setReabrir] = useState(false);
   const [confirmarFechar, setConfirmarFechar] = useState(false);
+  const [prazo, setPrazo] = useState('');
+  const [prazoIni, setPrazoIni] = useState('');
+  const [pendentes, setPendentes] = useState<number[]>([]); // jogos sem placar que travaram o fechamento
   const [previa, setPrevia] = useState<{ texto: string; citados: string[] } | null>(null);
 
   function carregar() {
@@ -67,7 +75,9 @@ export function RodadaEditar({ n }: { n: number }) {
         const r = rs.find((x) => x.numero === n) ?? null;
         setClubes(cs);
         setRodada(r);
-        setJogos(r?.jogos.map((j) => ({ m: j.mandante.id, v: j.visitante.id, gm: String(j.golsMandante), gv: String(j.golsVisitante) })) ?? []);
+        setJogos(r?.jogos.map((j) => ({ m: j.mandante.id, v: j.visitante.id, gm: j.golsMandante === null ? '' : String(j.golsMandante), gv: j.golsVisitante === null ? '' : String(j.golsVisitante) })) ?? []);
+        setPrazo(paraCampoData(r?.prazoPalpite));
+        setPrazoIni(paraCampoData(r?.prazoPalpite));
       },
       () => setRodada('erro'),
     );
@@ -76,9 +86,12 @@ export function RodadaEditar({ n }: { n: number }) {
 
   const usados = (i: number) => new Set(jogos.flatMap((j, k) => (k === i ? [] : [j.m, j.v])).filter(Boolean));
   const placarOk = (s: string) => /^\d{1,2}$/.test(s);
-  const completos = jogos.length > 0 && jogos.every((j) => j.m && j.v && j.m !== j.v && placarOk(j.gm) && placarOk(j.gv));
+  const semPlacar = (j: JogoEd) => j.gm === '' && j.gv === '';
+  const valido = (j: JogoEd) => j.m && j.v && j.m !== j.v && (semPlacar(j) || (placarOk(j.gm) && placarOk(j.gv)));
+  const salvavel = jogos.every(valido);
+  const completos = jogos.length > 0 && jogos.every((j) => valido(j) && !semPlacar(j));
   const edita = (i: number, campo: keyof JogoEd, valor: string) => setJogos((l) => l.map((j, k) => (k === i ? { ...j, [campo]: valor } : j)));
-  const corpo = () => JSON.stringify({ jogos: jogos.map((j) => ({ mandanteId: j.m, visitanteId: j.v, golsMandante: Number(j.gm), golsVisitante: Number(j.gv) })) });
+  const corpo = () => JSON.stringify({ jogos: jogos.map((j) => ({ mandanteId: j.m, visitanteId: j.v, golsMandante: semPlacar(j) ? null : Number(j.gm), golsVisitante: semPlacar(j) ? null : Number(j.gv) })) });
 
   async function agir(f: () => Promise<void>) {
     setOcupado(true);
@@ -91,15 +104,23 @@ export function RodadaEditar({ n }: { n: number }) {
       setOcupado(false);
     }
   }
+  const salvarPrazo = async () => {
+    if (prazo !== prazoIni) await api(`/admin/rodadas/${n}/prazo`, { method: 'PUT', body: JSON.stringify({ prazoPalpite: deCampoData(prazo) }) });
+  };
   const salvar = () => agir(async () => {
     await api(`/admin/rodadas/${n}/jogos`, { method: 'PUT', body: corpo() });
+    await salvarPrazo();
     setAviso('');
+    setPendentes([]);
     carregar();
   });
   // fechar: grava os jogos, fecha e já mostra a prévia do post da CBF (a API só sorteia a frase com a rodada fechada)
   const pedirFechar = () => {
     if (!jogos.length) return setAviso('Lance ao menos um jogo');
-    if (!completos) return setAviso('Escolha os dois clubes e o placar (0 a 99) de cada jogo.');
+    if (!salvavel) return setAviso('Escolha os dois clubes e o placar (0 a 99) de cada jogo.');
+    const faltam = jogos.flatMap((j, i) => (semPlacar(j) ? [i] : []));
+    setPendentes(faltam);
+    if (faltam.length) return setAviso(`Faltam placares em ${faltam.length} ${faltam.length === 1 ? 'jogo' : 'jogos'}. Preencha para fechar a rodada.`);
     setConfirmarFechar(true);
   };
   const abrirPrevia = () => agir(async () => setPrevia(await api(`/admin/rodadas/${n}/previa`, { method: 'POST' })));
@@ -107,6 +128,7 @@ export function RodadaEditar({ n }: { n: number }) {
     setConfirmarFechar(false);
     return agir(async () => {
       await api(`/admin/rodadas/${n}/jogos`, { method: 'PUT', body: corpo() });
+      await salvarPrazo();
       await api(`/admin/rodadas/${n}/fechar`, { method: 'POST' });
       setPrevia(await api(`/admin/rodadas/${n}/previa`, { method: 'POST' }));
     });
@@ -144,6 +166,10 @@ export function RodadaEditar({ n }: { n: number }) {
     <div className="tela admin">
       <Topo titulo={`Rodada ${n}`} voltar />
       <Aviso>{aviso}</Aviso>
+      <label className="campo-prazo"><Icone nome="relogio" /><span>Prazo de palpite</span>
+        <input type="datetime-local" value={prazo} disabled={ocupado} onChange={(e) => setPrazo(e.target.value)} />
+      </label>
+      <p className="giz2 legenda-s">Sem prazo ninguém palpita. Gols vazios deixam o jogo agendado.</p>
       <ul className="cartoes-jogo">
         {jogos.map((j, i) => {
           const fora = usados(i);
@@ -161,18 +187,19 @@ export function RodadaEditar({ n }: { n: number }) {
             <input type="number" inputMode="numeric" min={0} max={99} aria-label={rotulo} value={j[lado]} disabled={ocupado} onChange={(e) => edita(i, lado, e.target.value)} />
           );
           return (
-            <li key={i} className="cartao-jogo">
+            <li key={i} className={`cartao-jogo ${pendentes.includes(i) && semPlacar(j) ? 'pendente' : ''}`}>
               <div>{seletor('m', 'Mandante')}{placar('gm', `Gols do mandante, jogo ${i + 1}`)}</div>
               <div>{seletor('v', 'Visitante')}{placar('gv', `Gols do visitante, jogo ${i + 1}`)}</div>
               {(!placarOk(j.gm) && j.gm !== '' || !placarOk(j.gv) && j.gv !== '') && <p className="erro-txt">Placar de 0 a 99</p>}
+              {(j.gm === '') !== (j.gv === '') && <p className="erro-txt">Preencha os dois lados ou deixe os dois vazios.</p>}
               <button type="button" className="remover-jogo" aria-label={`Remover jogo ${i + 1}`} onClick={() => setJogos((l) => l.filter((_, k) => k !== i))}><IcLixo /></button>
             </li>
           );
         })}
       </ul>
-      {jogos.length < MAX_JOGOS && <Botao variante="secundario" disabled={ocupado} onClick={() => setJogos((l) => [...l, { m: '', v: '', gm: '0', gv: '0' }])}>Adicionar jogo</Botao>}
+      {jogos.length < MAX_JOGOS && <Botao variante="secundario" disabled={ocupado} onClick={() => setJogos((l) => [...l, { m: '', v: '', gm: '', gv: '' }])}>Adicionar jogo</Botao>}
       <div className="acao-fixa">
-        <Botao variante="secundario" disabled={!completos && jogos.length > 0} carregando={ocupado ? 'Salvando…' : undefined} onClick={salvar}>Salvar jogos</Botao>
+        <Botao variante="secundario" disabled={!salvavel && jogos.length > 0} carregando={ocupado ? 'Salvando…' : undefined} onClick={salvar}>Salvar jogos</Botao>
         <Botao disabled={ocupado} onClick={pedirFechar}>Fechar rodada</Botao>
       </div>
       {confirmarFechar && <Dialogo titulo={`Fechar a rodada ${n}?`} texto="Depois você vê a prévia do resumo da CBF." acao="Fechar rodada" voltarRotulo="Cancelar" aoConfirmar={fechar} aoVoltar={() => setConfirmarFechar(false)} />}
@@ -234,13 +261,13 @@ function Previa({ n, inicial }: { n: number; inicial: { texto: string; citados: 
         )}
       </div>
       {sorteado.citados.length > 0 && <p className="giz2 legenda-s">{sorteado.citados.length} {sorteado.citados.length === 1 ? 'técnico recebe' : 'técnicos recebem'} aviso por ser citado.</p>}
-      <div className="duas-acoes">
-        <button type="button" className="botao secundario" onClick={() => (editado ? setDescartar(true) : sortear())}><IcSortear /> Sortear de novo</button>
-        {editando
-          ? <button type="button" className="botao secundario" onClick={() => { setTexto(sorteado.texto); setEditando(false); }}>Voltar à frase sorteada</button>
-          : <button type="button" className="botao secundario" onClick={() => setEditando(true)}><IcEditar /> Editar texto</button>}
-      </div>
       <div className="acao-fixa">
+        <div className="duas-acoes">
+          <button type="button" className="botao secundario" onClick={() => (editado ? setDescartar(true) : sortear())}><IcSortear /> Sortear de novo</button>
+          {editando
+            ? <button type="button" className="botao secundario" onClick={() => { setTexto(sorteado.texto); setEditando(false); }}>Voltar à frase sorteada</button>
+            : <button type="button" className="botao secundario" onClick={() => setEditando(true)}><IcEditar /> Editar texto</button>}
+        </div>
         <Botao disabled={!texto.trim()} carregando={ocupado ? 'Publicando…' : undefined} onClick={publicar}>Publicar resumo</Botao>
         <button type="button" className="link giz2" disabled={ocupado} onClick={() => navegar('/admin/rodadas')}>Agora não, publico depois</button>
       </div>

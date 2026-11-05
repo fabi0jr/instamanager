@@ -1,4 +1,4 @@
-import { calcularTabela, type JogoFechado } from './tabela.js';
+import { calcularTabela, type JogoFechado, type JogoTabela } from './tabela.js';
 
 const clubes = [
   { id: 'a', nome: 'Alfa' },
@@ -60,5 +60,12 @@ describe('calcularTabela', () => {
     expect(linha(calcularTabela(clubes, jogos), 'a').ultimos).toEqual(['E', 'D', 'V', 'V', 'E']);
     // ordem de chegada dos jogos não importa
     expect(linha(calcularTabela(clubes, [...jogos].reverse()), 'a').ultimos).toEqual(['E', 'D', 'V', 'V', 'E']);
+  });
+
+  it('jogo agendado (sem placar) não conta: nem jogo, nem ponto, nem últimos', () => {
+    const agendado: JogoTabela = { rodada: 2, mandanteId: 'a', visitanteId: 'b', golsMandante: null, golsVisitante: null };
+    const t = calcularTabela(clubes, [j(1, 'a', 2, 0, 'b'), agendado]);
+    expect(linha(t, 'a')).toMatchObject({ P: 3, J: 1, ultimos: ['V'] });
+    expect(linha(t, 'b')).toMatchObject({ P: 0, J: 1, ultimos: ['D'] });
   });
 });

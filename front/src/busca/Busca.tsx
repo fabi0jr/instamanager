@@ -55,8 +55,7 @@ function Linha({ aba, item, q }: { aba: Aba; item: unknown; q: string }) {
       {p.clube ? <span className="pilula"><Escudo src={p.clube.escudoUrl} tam={14} />{sigla(p.clube.id)}</span> : <span className="pilula">torcedor</span>}
     </>
   );
-  // não existe perfil de pessoa: quem tem clube leva ao clube; o torcedor fica sem link
-  return p.clube ? <Link para={`/c/${p.clube.id}`} className="res-linha">{corpo}</Link> : <div className="res-linha">{corpo}</div>;
+  return <Link para={`/u/${p.id}`} className="res-linha">{corpo}</Link>;
 }
 
 // só existe com 2 caracteres ou mais: montar este componente é o que chama a API
