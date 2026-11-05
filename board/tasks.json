@@ -4189,6 +4189,11 @@
           "de": "qa",
           "para": "concluido",
           "nota": "VAR aprovou; fix 9743118; sem tela"
+        },
+        {
+          "quando": "2026-11-05T05:10:33.654Z",
+          "quem": "Maestro",
+          "nota": "pendência (não feita, 30 pessoas): posts.criado/stories.criado rodam o cálculo global; se pesar, checar só COMUNICADOR/PRIMEIRO_STORY e coalescer"
         }
       ]
     },
@@ -4203,7 +4208,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T04:35:26.962Z",
@@ -4228,6 +4233,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:17:25.136Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:20:30.071Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou b95ac83; menor: trecho de RESPOSTA na atividade não olha o raiz oculto (baixo)"
+        },
+        {
+          "quando": "2026-11-05T05:20:30.099Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "VAR aprovou b95ac83; menor: trecho de RESPOSTA na atividade não olha o raiz oculto (baixo)"
         }
       ]
     },
@@ -4310,13 +4336,32 @@
         "IM-60",
         "IM-62"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-05T04:35:27.020Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T05:17:33.871Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:17:33.921Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-05T05:20:30.124Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     },
