@@ -173,6 +173,18 @@ describe('responder comentário (e2e)', () => {
     expect(await tipos(ana)).toEqual(['RESPOSTA']);
   });
 
+  it('o trecho do item RESPOSTA vira "Comentário indisponível" quando o raiz é ocultado depois, e volta quando ele é mostrado', async () => {
+    const r = await raiz(ana);
+    await comentar(bruno, 'segredo da resposta', r.id).expect(201);
+    await esperar();
+    const trecho = async () => ((await com('get', '/api/atividade', ana).expect(200)).body.itens as { tipo: string; comentario: { resumo: string } }[]).find((i) => i.tipo === 'RESPOSTA')!.comentario.resumo;
+    expect(await trecho()).toBe('segredo da resposta');
+    await com('put', `/api/admin/comentarios/${r.id}/ocultar`, admin).expect(204);
+    expect(await trecho()).toBe('Comentário indisponível');
+    await com('delete', `/api/admin/comentarios/${r.id}/ocultar`, admin).expect(204);
+    expect(await trecho()).toBe('segredo da resposta');
+  });
+
   it('comentário sem parentId segue como antes: COMENTARIO para o técnico, nada de RESPOSTA', async () => {
     await prisma.notificacao.deleteMany({ where: { userId: { in: ids } } });
     await raiz(ana);
