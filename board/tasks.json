@@ -5192,7 +5192,7 @@
         "IM-72"
       ],
       "responsavel": "Ponta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T15:18:12.400Z",
@@ -5217,6 +5217,69 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T15:46:30.476Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "Maestro comparou os exemplos com as referências: layout fiel"
+        },
+        {
+          "quando": "2026-11-05T15:48:31.568Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: foto aceita qualquer caminho (path traversal)"
+        },
+        {
+          "quando": "2026-11-05T15:55:38.903Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T15:55:38.941Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T15:57:18.537Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: legenda lida de qualquer caminho"
+        },
+        {
+          "quando": "2026-11-05T15:59:01.153Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "VAR aprovou o resto; fix2 6e0465e revisado pelo Maestro; layout aprovado contra as referências"
+        },
+        {
+          "quando": "2026-11-05T15:59:01.179Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "VAR aprovou o resto; fix2 6e0465e revisado pelo Maestro; layout aprovado contra as referências"
+        },
+        {
+          "quando": "2026-11-05T15:59:01.207Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou o resto; fix2 6e0465e revisado pelo Maestro; layout aprovado contra as referências"
+        },
+        {
+          "quando": "2026-11-05T15:59:01.234Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "VAR aprovou o resto; fix2 6e0465e revisado pelo Maestro; layout aprovado contra as referências"
         }
       ]
     },
@@ -5233,13 +5296,32 @@
         "IM-73",
         "IM-75"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Maestro",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-05T15:18:12.458Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T15:59:01.262Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T15:59:01.287Z",
+          "quem": "PO",
+          "nota": "atribuída a Maestro"
+        },
+        {
+          "quando": "2026-11-05T15:59:01.313Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     },
