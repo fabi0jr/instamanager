@@ -8,7 +8,7 @@ import { apagarClubesDeTeste, cadastrarUsuario, criarApp, criarClubesDeTeste, OR
 
 // Clubes teste-atividade-N são só deste arquivo (os e2e rodam em paralelo no mesmo banco).
 type U = { id: string; email: string; cookie: string[] };
-type Item = { id: string; tipo: string; lida: boolean; ator: { id: string; nome: string } | null; post: { id: string; miniUrl: string | null; resumo: string } | null; votacao: { id: string; titulo: string } | null };
+type Item = { id: string; tipo: string; lida: boolean; ator: { id: string; nome: string } | null; post: { id: string; miniUrl: string | null; resumo: string } | null };
 
 describe('atividade e menções (e2e)', () => {
   let app: INestApplication;
@@ -20,10 +20,7 @@ describe('atividade e menções (e2e)', () => {
   const usuarios: string[] = [];
   const esperar = () => new Promise((r) => setTimeout(r, 300)); // os ouvintes de evento rodam soltos
   const com = (m: 'get' | 'put' | 'post' | 'patch' | 'delete', url: string, u: U) => request(http())[m](url).set('Origin', ORIGIN).set('Cookie', u.cookie);
-  // votação encerrada por OUTRO arquivo de teste (em paralelo) avisa todo mundo, inclusive estes usuários: descarta antes de ler
-  const ruido = () => prisma.notificacao.deleteMany({ where: { userId: { in: usuarios }, tipo: 'VOTACAO_RESULTADO', votacao: { criadaPor: { not: admin.id } } } });
-  const itens = async (u: U) => (await ruido(), (await itensBrutos(u)).filter((i) => i.tipo !== 'VOTACAO_RESULTADO' || i.votacao?.titulo === 'Melhor da rodada'));
-  const itensBrutos = async (u: U) => (await com('get', '/api/atividade', u).expect(200)).body.itens as Item[];
+  const itens = async (u: U) => (await com('get', '/api/atividade', u).expect(200)).body.itens as Item[];
   const tipos = async (u: U) => (await itens(u)).map((i) => i.tipo);
   const marca = (u: U, nome: string) => `@[${nome}](${u.id})`;
   const postar = async (u: U, texto: string) => (await com('post', '/api/posts', u).send({ texto }).expect(201)).body as { id: string; mencoes: { id: string; nome: string }[] };
@@ -43,7 +40,6 @@ describe('atividade e menções (e2e)', () => {
   afterEach(async () => {
     vi.restoreAllMocks();
     await prisma.notificacao.deleteMany({ where: { userId: { in: usuarios } } });
-    await prisma.votacao.deleteMany({ where: { criadaPor: admin.id } });
     await prisma.post.deleteMany({ where: { authorId: { in: usuarios } } });
   });
   afterAll(async () => {
@@ -138,7 +134,6 @@ describe('atividade e menções (e2e)', () => {
     await comentar(torcedor, p.id, 'um').expect(201);
     await comentar(outro, p.id, 'dois').expect(201);
     await esperar();
-    await ruido();
     expect((await com('get', '/api/atividade/nao-lidas', tecnico0).expect(200)).body).toEqual({ total: 2 });
     expect((await com('get', '/api/atividade/nao-lidas', torcedor).expect(200)).body).toEqual({ total: 0 });
     await com('post', '/api/atividade/lidas', torcedor).expect(204);
@@ -151,7 +146,6 @@ describe('atividade e menções (e2e)', () => {
   it('paginação por cursor: 20 por página, sem repetir', async () => {
     const p = await postar(tecnico0, 'Muito comentado');
     await prisma.notificacao.createMany({ data: Array.from({ length: 25 }, () => ({ userId: tecnico0.id, tipo: 'COMENTARIO' as const, atorId: torcedor.id, postId: p.id })) });
-    await ruido();
     const a = (await com('get', '/api/atividade', tecnico0).expect(200)).body;
     expect(a.itens).toHaveLength(20);
     const b = (await com('get', `/api/atividade?antes=${a.proximo}`, tecnico0).expect(200)).body;
@@ -194,17 +188,11 @@ describe('atividade e menções (e2e)', () => {
     expect(r).not.toMatch(/Forjado|Fantasma/);
   });
 
-  it('decisão de troca cria TROCA_DECIDIDA para quem pediu; resultado de votação avisa todos menos o admin', async () => {
+  it('decisão de troca cria TROCA_DECIDIDA para quem pediu', async () => {
     const t = (await com('post', '/api/trocas', outro).send({ tipo: 'ASSUMIR', clubeId: c[2] }).expect(201)).body;
     await com('post', `/api/admin/trocas/${t.id}/recusar`, admin).expect(204);
     await esperar();
     expect(await itens(outro)).toMatchObject([{ tipo: 'TROCA_DECIDIDA', ator: null, post: null, troca: { status: 'RECUSADA', clube: { id: c[2], nome: 'Teste atividade 3', escudoUrl: '/escudos/generico.svg' } } }]);
-    const v = (await com('post', '/api/admin/votacoes', admin).send({ titulo: 'Melhor da rodada', tipo: 'CLUBE', opcoes: [c[0], c[1]], prazo: new Date(Date.now() + 86_400_000).toISOString() }).expect(201)).body;
-    await com('post', `/api/votacoes/${v.id}/voto`, torcedor).send({ opcao: c[0] }).expect(204);
-    await com('post', `/api/admin/votacoes/${v.id}/encerrar`, admin).expect(201);
-    await esperar();
-    expect(await itens(torcedor)).toMatchObject([{ tipo: 'VOTACAO_RESULTADO', votacao: { id: v.id, titulo: 'Melhor da rodada' } }]);
-    expect(await tipos(admin)).toEqual([]);
     await prisma.coachTenure.deleteMany({ where: { userId: outro.id } });
   });
 

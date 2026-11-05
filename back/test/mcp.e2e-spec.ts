@@ -187,14 +187,12 @@ describe('mcp: CBF via MCP (e2e)', () => {
         'calendario',
         'criar_post',
         'criar_story',
-        'criar_votacao',
         'lancar_placares',
         'lancar_placares_copa',
         'postar_no_clube',
         'tabela',
         'ultimos_comentarios',
         'ultimos_posts',
-        'votacoes',
       ].sort(),
     );
   });
@@ -238,38 +236,6 @@ describe('mcp: CBF via MCP (e2e)', () => {
       expect(ruim.result!.isError).toBe(true);
       expect(texto(ruim)).toMatch(/^DADOS_INVALIDOS: /);
     });
-    it('criar_votacao com prazo no passado → isError, nada criado e McpAcao ok:false', async () => {
-      const antes = await prisma.votacao.count();
-      const r = await chamar('criar_votacao', {
-        titulo: 'mcp-v',
-        tipo: 'CLUBE',
-        opcoes: [c[0], c[1]],
-        prazo: '2020-01-01T00:00:00Z',
-      });
-      expect(r.result!.isError).toBe(true);
-      expect(texto(r)).toMatch(/^DADOS_INVALIDOS: /);
-      expect(await prisma.votacao.count()).toBe(antes);
-      expect((await acoes()).at(-1)).toMatchObject({
-        ferramenta: 'criar_votacao',
-        ok: false,
-        erro: expect.stringContaining('DADOS_INVALIDOS'),
-      });
-    });
-    it('criar_votacao válida cria a votação', async () => {
-      const prazo = new Date(Date.now() + 86_400_000).toISOString();
-      const r = await chamar('criar_votacao', {
-        titulo: 'mcp-v2',
-        tipo: 'CLUBE',
-        opcoes: [c[0], c[1]],
-        prazo,
-      });
-      expect(r.result!.isError).toBeFalsy();
-      expect(await prisma.votacao.count({ where: { titulo: 'mcp-v2' } })).toBe(
-        1,
-      );
-      await prisma.votacao.deleteMany({ where: { titulo: 'mcp-v2' } });
-    });
-
     describe('placares', () => {
       beforeEach(async () => {
         await request(http())
@@ -617,7 +583,6 @@ describe('mcp: CBF via MCP (e2e)', () => {
         'tabela',
         'calendario',
         'bolao_ranking',
-        'votacoes',
       ]) {
         const r = await chamar(n, n.startsWith('ultimos') ? { limite: 5 } : {});
         expect(r.result!.isError, n).toBeFalsy();

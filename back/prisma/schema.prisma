@@ -46,8 +46,6 @@ model User {
   favorites     PromptFavorite[]
   hiddenPosts   HiddenPost[]
   reports       Report[]
-  votacoes      Votacao[]
-  votos         Voto[]
   stories       Story[]
   storiesVistos StoryVisto[]
   recebidas     Notificacao[] @relation("NotificacaoDestino")
@@ -92,7 +90,6 @@ model Club {
   visitante Jogo[]            @relation("visitante")
   copaMandante  CopaJogo[]    @relation("copaMandante")
   copaVisitante CopaJogo[]    @relation("copaVisitante")
-  selos     Selo[]
 }
 
 // 38 rodadas (criadas na migração). A tabela é calculada dos jogos de rodadas fechadas.
@@ -325,55 +322,13 @@ model Report {
   @@index([resolvidaEm, createdAt])
 }
 
-enum VotacaoTipo {
-  CLUBE
-  TECNICO
-  POST
-}
-
-// `opcoes`: lista de ids (clube, usuário técnico ou post, conforme o tipo). Voto secreto até encerrar.
-model Votacao {
-  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  titulo      String
-  tipo        VotacaoTipo
-  opcoes      Json
-  prazo       DateTime
-  encerradaEm DateTime?
-  criadaPor   String      @db.Uuid
-  createdAt   DateTime    @default(now())
-  criador     User        @relation(fields: [criadaPor], references: [id], onDelete: Cascade)
-  votos       Voto[]
-  selos       Selo[]
-  notificacoes Notificacao[]
-}
-
-model Voto {
-  votacaoId String  @db.Uuid
-  userId    String  @db.Uuid
-  opcao     String
-  votacao   Votacao @relation(fields: [votacaoId], references: [id], onDelete: Cascade)
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([votacaoId, userId])
-}
-
-model Selo {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  clubId    String
-  titulo    String
-  votacaoId String   @db.Uuid
-  createdAt DateTime @default(now())
-  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  votacao   Votacao  @relation(fields: [votacaoId], references: [id], onDelete: Cascade)
-}
-
 enum NotificacaoTipo {
   REACAO
   COMENTARIO
   MENCAO
   CBF_CITOU
   TROCA_DECIDIDA
-  VOTACAO_RESULTADO
+  VOTACAO_RESULTADO // legado: votações saíram (IM-78); o Postgres não remove valor de enum
   CONQUISTA
   RESPOSTA
 }
@@ -408,7 +363,6 @@ model Notificacao {
   atorId       String?         @db.Uuid
   postId       String?         @db.Uuid
   comentarioId String?         @db.Uuid
-  votacaoId    String?         @db.Uuid
   trocaId      String?         @db.Uuid
   conquistaTipo ConquistaTipo?
   lidaEm       DateTime?
@@ -417,7 +371,6 @@ model Notificacao {
   ator         User?           @relation("NotificacaoAtor", fields: [atorId], references: [id], onDelete: Cascade)
   post         Post?           @relation(fields: [postId], references: [id], onDelete: Cascade)
   comentario   Comment?        @relation(fields: [comentarioId], references: [id], onDelete: Cascade)
-  votacao      Votacao?        @relation(fields: [votacaoId], references: [id], onDelete: Cascade)
   troca        TransferRequest? @relation(fields: [trocaId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])

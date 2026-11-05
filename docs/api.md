@@ -39,8 +39,6 @@ Contrato das Tasks 3–7. Tudo sob `/api`, JSON, UTF-8. Qualquer rota fora desta
 | `PRAZO_ENCERRADO` | 409 | palpite em jogo cujo prazo acabou (ou que ainda não tem prazo) |
 | `RODADA_FECHADA` | 409 | lançar jogos numa rodada fechada (ou fechar uma já fechada) |
 | `RODADA_ABERTA` | 409 | reabrir uma rodada que já está aberta |
-| `VOTACAO_ENCERRADA` | 409 | votar depois do prazo ou da votação encerrada; encerrar de novo |
-| `JA_VOTOU` | 409 | segundo voto da mesma pessoa na votação |
 | `CORPO_GRANDE` | 413 | `POST /api/erros-front` com corpo > 4 KB |
 | `NAO_ENCONTRADO` | 404 | id inexistente |
 
@@ -79,7 +77,7 @@ Pagina<T> = { itens: T[], proximo: string|null }   // proximo = cursor opaco par
 | Rota | Resposta |
 |---|---|
 | `GET /api/clubes?livres=1` (pública) | `[{id, nome, escudoUrl, tecnico: {id,nome}\|null}]`, por nome. Com `livres=1`, só os sem técnico, e a **CBF** (`id 'cbf'`, clube oficial) nunca entra na lista. Nem com nem sem o filtro: a CBF só aparece em `GET /api/clubes/cbf` e como `clube` de posts. |
-| `GET /api/clubes/:id` 🔒 | `{id, nome, escudoUrl, bio\|null, capaUrl\|null, tecnico, liga: {posicao, ultimos, pontos, jogos}\|null, selos: [{titulo, createdAt}], historico: [{usuario:{id,nome}, inicio, fim\|null}]}`, do mais novo ao mais velho. `fim null` = técnico atual. `liga` é a posição na tabela, os pontos (P), os jogos (J) e os últimos resultados (`('V'\|'E'\|'D')[]`, até 5); **`null` para a CBF**. `selos`: os selos ganhos em votações, do mais novo ao mais velho. |
+| `GET /api/clubes/:id` 🔒 | `{id, nome, escudoUrl, bio\|null, capaUrl\|null, tecnico, liga: {posicao, ultimos, pontos, jogos}\|null, historico: [{usuario:{id,nome}, inicio, fim\|null}]}`, do mais novo ao mais velho. `fim null` = técnico atual. `liga` é a posição na tabela, os pontos (P), os jogos (J) e os últimos resultados (`('V'\|'E'\|'D')[]`, até 5); **`null` para a CBF**. |
 | `PATCH /api/clubes/:id` 🔒 | `{bio}` (≤ 300; vazio apaga) | o mesmo objeto do `GET`. Só o técnico atual ou o admin (`403 NAO_E_TECNICO`, ex-técnico inclusive); `400` se > 300. |
 | `PUT /api/clubes/:id/capa` 🔒 | multipart `capa` (JPEG ≤ 3 MB; o app manda 1500×500 comprimido) | o mesmo objeto do `GET`; apaga a capa antiga do disco. `IMAGEM_INVALIDA`, `413`, `403` como na bio. |
 
@@ -200,18 +198,6 @@ O resumo da CBF (prévia da rodada e `fechar` da fase) ganha, ao fim, a linha do
 
 Cada push respeita a sua chave: `posts` (post novo de clube), `comentarios` (comentário no seu clube), `mencoes`, `cbf` (post da CBF e "A CBF citou você"), `bolao` (lembrete), `trocas` (pedido de troca para o admin e a decisão para quem pediu).
 
-## 4c. Votações e selos (Task B2) 🔒
-
-`Votacao = {id, titulo, tipo: 'CLUBE'\|'TECNICO'\|'POST', prazo, aberta, encerrada, opcoes: [{id, rotulo}], meuVoto: string\|null, resultado?: [{opcao, rotulo, votos}]}`. As opções são ids: de clube (`CLUBE`, nunca a CBF), de técnico atual (`TECNICO`, id do usuário) ou de post visível (`POST`). `aberta` = não encerrada e dentro do prazo. **O voto é secreto:** `resultado` (do mais votado ao menos, empate na ordem das opções) só vem **depois de encerrada**; antes disso nenhuma contagem sai da API, nem para o admin.
-
-| Rota | Corpo | Resposta |
-|---|---|---|
-| `POST /api/admin/votacoes` 👑 | `{titulo (1–100), tipo, opcoes: string[] (2–10, sem repetir), prazo (ISO, futuro)}` | `201 Votacao`. `400 DADOS_INVALIDOS` para qualquer campo fora disso ou opção inexistente. |
-| `POST /api/admin/votacoes/:id/encerrar` 👑 | — | `201 Votacao` com `resultado`. Dá o **selo** ao clube com mais votos (`CLUBE`: o clube; `TECNICO`: o clube que a pessoa comanda hoje; `POST`: o clube do post); **empate = selo para todos os empatados; sem votos = sem selo**. Publica o resultado como post de texto da CBF. Pode encerrar antes do prazo. `409 VOTACAO_ENCERRADA` se já encerrada. |
-| `GET /api/votacoes` | — | `Votacao[]` das **não encerradas** (por prazo), com `meuVoto`; as que passaram do prazo e ainda esperam o admin vêm com `aberta: false`. Sem `resultado`. Com `?encerradas=1`: só as **encerradas** (as 50 mais recentes, da mais nova à mais velha), cada `Votacao` com `resultado` e mais `encerradaEm` e `vencedor` (rótulo; empate: rótulos juntos por " e "; sem votos: `null`). |
-| `GET /api/votacoes/:id` | — | `Votacao`; `resultado` só se encerrada. `404` se não existe. |
-| `POST /api/votacoes/:id/voto` | `{opcao}` | `204`. `409 JA_VOTOU` (1 voto por pessoa, garantido por chave no banco), `409 VOTACAO_ENCERRADA` (prazo vencido ou encerrada), `400 DADOS_INVALIDOS` se `opcao` não é uma das opções. |
-
 ## 4d. Prévia do WhatsApp e erros do app (Task B3)
 
 | Rota | Corpo | Resposta |
@@ -227,11 +213,11 @@ Cada push respeita a sua chave: `posts` (post novo de clube), `comentarios` (com
 
 | Rota | Corpo | Resposta |
 |---|---|---|
-| `GET /api/atividade?antes=` | — | `{itens, proximo}`, 20 por página, do mais novo ao mais velho (cursor como o do feed; `400` se malformado). Item: `{id, tipo, criadoEm, lida, ator: {id, nome, avatarUrl\|null}\|null, post: {id, miniUrl\|null, resumo}\|null, votacao: {id, titulo}\|null, troca?: {status: 'APROVADA'\|'RECUSADA', clube: ClubeMini\|null}\|null, comentario?: {id, resumo}\|null, conquista?: {tipo, nome}}` (`conquista` só nos itens `CONQUISTA`; `comentario` só nos itens `COMENTARIO` e `MENCAO`: `resumo` ≤ 80 caracteres do **comentário**, com a menção como `@Nome` do banco; `null` na menção feita em post; comentário ocultado pelo admin (ou, numa resposta, raiz ocultado), ou post indisponível → `resumo: "Comentário indisponível"`. `troca` só nos itens `TROCA_DECIDIDA`: `clube` é o que a pessoa pediu para assumir, `null` no pedido de sair). `resumo` ≤ 80 caracteres (menção vira `@Nome`). Post oculto pelo admin (para quem não é admin) → `{id, miniUrl: null, resumo: "Post indisponível"}`; post apagado → o item some. |
+| `GET /api/atividade?antes=` | — | `{itens, proximo}`, 20 por página, do mais novo ao mais velho (cursor como o do feed; `400` se malformado). Item: `{id, tipo, criadoEm, lida, ator: {id, nome, avatarUrl\|null}\|null, post: {id, miniUrl\|null, resumo}\|null, troca?: {status: 'APROVADA'\|'RECUSADA', clube: ClubeMini\|null}\|null, comentario?: {id, resumo}\|null, conquista?: {tipo, nome}}` (`conquista` só nos itens `CONQUISTA`; `comentario` só nos itens `COMENTARIO` e `MENCAO`: `resumo` ≤ 80 caracteres do **comentário**, com a menção como `@Nome` do banco; `null` na menção feita em post; comentário ocultado pelo admin (ou, numa resposta, raiz ocultado), ou post indisponível → `resumo: "Comentário indisponível"`. `troca` só nos itens `TROCA_DECIDIDA`: `clube` é o que a pessoa pediu para assumir, `null` no pedido de sair). `resumo` ≤ 80 caracteres (menção vira `@Nome`). Post oculto pelo admin (para quem não é admin) → `{id, miniUrl: null, resumo: "Post indisponível"}`; post apagado → o item some. |
 | `GET /api/atividade/nao-lidas` | — | `{total}` |
 | `POST /api/atividade/lidas` | — | `204`: marca todas como lidas. |
 | `GET /api/pessoas?q=` | — | até **8** `[{id, nome, avatarUrl\|null, clube: ClubeMini\|null}]` para o autocompletar do `@`: pedaço do nome, sem acento e sem diferenciar maiúsculas (quem começa com o texto vem primeiro); `%` e `_` valem como texto. `q` com menos de 2 caracteres (após `trim`, cortado em 60) → `[]`, não `400`. Sem e-mail. |
-| `GET /api/pessoas/:id?antes=` | — | Perfil público do técnico (Pack 3 · A3, IM-55): `{id, nome, avatarUrl\|null, clube: ClubeMini\|null, historico: [{clube: ClubeMini, inicio, fim\|null}], posts: Pagina<Post>, nivel: {xp, nome, min, proximo\|null}, conquistas: [{tipo, nome, vezes, ultimaEm}]}` (nível e conquistas: Pack 3 · B1, IM-61). `historico` do mais novo ao mais velho (o atual tem `fim: null`; torcedor sem passagem → `[]`). `posts`: os posts da pessoa, 12 por página (cursor `antes`, mesmo do feed), mais novos primeiro, **sem `fixados`**, com a mesma visibilidade do feed (oculto pelo admin só o admin vê; "ocultar para mim" some só para quem ocultou). **Posts da CBF não entram** (a CBF posta pelo admin sem mostrar o nome dele). **Sem e-mail** nem outro dado de conta. `404 NAO_ENCONTRADO` para id inexistente ou inválido. **`nivel`** é calculado na hora do histórico (sem tabela de XP): `xp`, `nome` (Estagiário 0 · Auxiliar 100 · Técnico 300 · Professor 700 · Lenda 1500), `min` (XP em que o nível começa) e `proximo` (XP do próximo nível, `null` na Lenda). XP: postar 5 (post não oculto, de clube não oficial); reação recebida 1 (até 50 por post, sem a do autor); vencer jogo 10; empatar 3; placar exato no bolão 5; selo do clube 20. O resultado de um clube é do técnico que o comandava no `fechadaEm` da rodada/fase (do selo, no `createdAt`); rodada ou fase reaberta não conta; na Copa, empate com decisão nos pênaltis vale empate (3) para os dois. **`conquistas`**: uma entrada por tipo, a mais recente primeiro: `tipo` (`PRIMEIRA_VITORIA`, `GOLEADA`, `INVICTO_5`, `LIDER`, `CAMPEAO_COPA`, `REI_BOLAO`, `PRIMEIRO_STORY`, `COMUNICADOR`), `nome` ("Primeira vitória", "Goleada", "Invicto", "Líder", "Campeão da Copa", "Rei do bolão", "Primeiro story", "Comunicador"), `vezes` (só o `REI_BOLAO` passa de 1) e `ultimaEm`. Conquista dada não é retirada (nem se a rodada for reaberta). |
+| `GET /api/pessoas/:id?antes=` | — | Perfil público do técnico (Pack 3 · A3, IM-55): `{id, nome, avatarUrl\|null, clube: ClubeMini\|null, historico: [{clube: ClubeMini, inicio, fim\|null}], posts: Pagina<Post>, nivel: {xp, nome, min, proximo\|null}, conquistas: [{tipo, nome, vezes, ultimaEm}]}` (nível e conquistas: Pack 3 · B1, IM-61). `historico` do mais novo ao mais velho (o atual tem `fim: null`; torcedor sem passagem → `[]`). `posts`: os posts da pessoa, 12 por página (cursor `antes`, mesmo do feed), mais novos primeiro, **sem `fixados`**, com a mesma visibilidade do feed (oculto pelo admin só o admin vê; "ocultar para mim" some só para quem ocultou). **Posts da CBF não entram** (a CBF posta pelo admin sem mostrar o nome dele). **Sem e-mail** nem outro dado de conta. `404 NAO_ENCONTRADO` para id inexistente ou inválido. **`nivel`** é calculado na hora do histórico (sem tabela de XP): `xp`, `nome` (Estagiário 0 · Auxiliar 100 · Técnico 300 · Professor 700 · Lenda 1500), `min` (XP em que o nível começa) e `proximo` (XP do próximo nível, `null` na Lenda). XP: postar 5 (post não oculto, de clube não oficial); reação recebida 1 (até 50 por post, sem a do autor); vencer jogo 10; empatar 3; placar exato no bolão 5. O resultado de um clube é do técnico que o comandava no `fechadaEm` da rodada/fase; rodada ou fase reaberta não conta; na Copa, empate com decisão nos pênaltis vale empate (3) para os dois. **`conquistas`**: uma entrada por tipo, a mais recente primeiro: `tipo` (`PRIMEIRA_VITORIA`, `GOLEADA`, `INVICTO_5`, `LIDER`, `CAMPEAO_COPA`, `REI_BOLAO`, `PRIMEIRO_STORY`, `COMUNICADOR`), `nome` ("Primeira vitória", "Goleada", "Invicto", "Líder", "Campeão da Copa", "Rei do bolão", "Primeiro story", "Comunicador"), `vezes` (só o `REI_BOLAO` passa de 1) e `ultimaEm`. Conquista dada não é retirada (nem se a rodada for reaberta). |
 
 **Tipos e quem recebe** (o push continua igual; a atividade é o histórico):
 
@@ -240,11 +226,10 @@ Cada push respeita a sua chave: `posts` (post novo de clube), `comentarios` (com
 - `MENCAO`: a pessoa mencionada (post, edição ou comentário).
 - `CBF_CITOU`: os técnicos citados no resumo da rodada (`ator: null`, `post` = o resumo).
 - `TROCA_DECIDIDA`: quem pediu a troca, aprovada ou recusada (`ator: null`, `troca` com o resultado).
-- `VOTACAO_RESULTADO`: todo mundo, menos o admin que encerrou (`ator: null`, `votacao` e `post` = o resultado).
 - `CONQUISTA`: o técnico que ganhou uma conquista nova (`ator: null`, `conquista: {tipo, nome}`). Junto saem um push (chave `cbf`, abre `/u/:id`) e um post de texto da CBF: "🏆 @[Nome](id) conquistou Nome da conquista!". Na **primeira execução** (deploy; `Setting` `conquistas.semeadas`) o histórico é gravado **em silêncio**: sem atividade, push nem post.
 - `RESPOSTA`: o autor do comentário raiz e o do comentário respondido, sem o próprio autor e sem repetir (`ator` = quem respondeu, `comentario.resumo`). Quem recebe `RESPOSTA` não recebe `COMENTARIO` nem `MENCAO` do mesmo texto; o técnico dono do post, se não for um deles, segue com `COMENTARIO`. Push (chave `comentarios`): "Nova resposta" para os respondidos, "Novo comentário" para o técnico.
 
-Itens com mais de **60 dias** são apagados na limpeza (que roda no boot do back e depois a cada hora, junto com sessões e stories vencidos). Eventos novos: `reacoes.reagida(postId, userId)` e `posts.editado(postId)`. As conquistas escutam `liga.rodadaFechada`, `copa.faseFechada(faseId)`, `posts.criado`, `stories.criado(storyId)` e `votacoes.encerrada(votacaoId)` (os três últimos novos) e recalculam; duas execuções ao mesmo tempo não repetem a conquista (chave `userId+tipo+refId`).
+Itens com mais de **60 dias** são apagados na limpeza (que roda no boot do back e depois a cada hora, junto com sessões e stories vencidos). Eventos novos: `reacoes.reagida(postId, userId)` e `posts.editado(postId)`. As conquistas escutam `liga.rodadaFechada`, `copa.faseFechada(faseId)`, `posts.criado`, `stories.criado(storyId)` (os dois últimos novos) e recalculam; duas execuções ao mesmo tempo não repetem a conquista (chave `userId+tipo+refId`).
 
 ## 4f. Busca (Task C2) 🔒
 
@@ -277,7 +262,7 @@ Story expirado não aparece em lista nenhuma e responde `404` em tudo; a limpeza
 
 ## 4h. CBF via MCP (Task C2)
 
-`POST /mcp` (fora do `/api`, sem filtro de Origin): servidor MCP em JSON-RPC, sem sessão (`GET`/`DELETE` → `405`). Chave `Authorization: Bearer <MCP_CHAVE>`; sem `MCP_CHAVE` no ambiente o endpoint não existe (`404`); chave ausente ou errada → `401` com erro JSON-RPC; 30 tentativas por IP em 15 min (`429`). 12 ferramentas (6 de leitura, 6 de escrita: 5 como CBF e `postar_no_clube`, que posta no clube do admin). O corpo do `/mcp` vai até 64 MB (`413` acima); só lê o corpo quem já mandou a chave certa; erro de negócio volta como resultado com `isError: true` e `"<codigo>: <mensagem>"`. Cada escrita deixa uma linha em `McpAcao`. Como conectar: `docs/mcp.md`.
+`POST /mcp` (fora do `/api`, sem filtro de Origin): servidor MCP em JSON-RPC, sem sessão (`GET`/`DELETE` → `405`). Chave `Authorization: Bearer <MCP_CHAVE>`; sem `MCP_CHAVE` no ambiente o endpoint não existe (`404`); chave ausente ou errada → `401` com erro JSON-RPC; 30 tentativas por IP em 15 min (`429`). 10 ferramentas (5 de leitura, 5 de escrita: 4 como CBF e `postar_no_clube`, que posta no clube do admin). O corpo do `/mcp` vai até 64 MB (`413` acima); só lê o corpo quem já mandou a chave certa; erro de negócio volta como resultado com `isError: true` e `"<codigo>: <mensagem>"`. Cada escrita deixa uma linha em `McpAcao`. Como conectar: `docs/mcp.md`.
 
 ## 5. Push (Task 7) 🔒
 
@@ -291,7 +276,7 @@ Ligar/desligar: `PATCH /api/me {pushEnabled}`. Mensagens (`titulo` / `corpo` →
 
 ## 6. Modelo de dados
 
-Ver `back/prisma/schema.prisma`: `User`, `Session`, `PasswordReset`, `Club` (`coachId @unique`, `oficial`: a CBF), `Rodada`, `Jogo`, `Votacao`, `Voto` (`@@id([votacaoId, userId])`), `Selo`, `CoachTenure`, `Post`, `PostImage`, `Like`, `Comment`, `Notificacao`, `Story`, `StoryVisto`, `PostVideo`, `TransferRequest`, `PushSubscription`, `Setting`. Apagar `Post` apaga `PostImage`, `Like` e `Comment`. `/health` fica fora do contrato (`GET /api/health`).
+Ver `back/prisma/schema.prisma`: `User`, `Session`, `PasswordReset`, `Club` (`coachId @unique`, `oficial`: a CBF), `Rodada`, `Jogo`, `CoachTenure`, `Post`, `PostImage`, `Like`, `Comment`, `Notificacao`, `Story`, `StoryVisto`, `PostVideo`, `TransferRequest`, `PushSubscription`, `Setting`. Apagar `Post` apaga `PostImage`, `Like` e `Comment`. `/health` fica fora do contrato (`GET /api/health`).
 
 ## 7. Variáveis de ambiente
 

@@ -39,7 +39,6 @@ describe('XP, níveis e conquistas (e2e)', () => {
     await prisma.notificacao.deleteMany({ where: { userId: { in: usuarios } } });
     await prisma.post.deleteMany({ where: { OR: [{ authorId: { in: usuarios } }, { clubId: 'cbf', texto: { contains: '@[' } }] } });
     await prisma.palpite.deleteMany({ where: { userId: { in: usuarios } } });
-    await prisma.selo.deleteMany({ where: { clubId: { in: c } } });
     await prisma.story.deleteMany({ where: { autorId: { in: usuarios } } });
     await prisma.jogo.deleteMany({ where: { rodadaNumero: { in: RODADAS } } });
     await prisma.rodada.updateMany({ where: { numero: { in: RODADAS } }, data: { fechadaEm: null, prazoPalpite: null } });
@@ -198,7 +197,7 @@ describe('XP, níveis e conquistas (e2e)', () => {
     expect((await perfil(carla)).nivel.xp).toBe(13);
   });
 
-  it('COMUNICADOR com 100 posts, PRIMEIRO_STORY e XP de posts, reações (teto 50 por post, sem a do autor) e selos', async () => {
+  it('COMUNICADOR com 100 posts, PRIMEIRO_STORY e XP de posts, reações (teto 50 por post, sem a do autor)', async () => {
     await tecnico(ana, c[0], d('2026-01-01'));
     await prisma.post.createMany({ data: Array.from({ length: 99 }, () => ({ clubId: c[0], authorId: ana.id, caption: 'x' })) });
     const cem = (await com('post', '/api/posts', ana).send({ texto: 'o centésimo' }).expect(201)).body.id as string;
@@ -213,15 +212,13 @@ describe('XP, níveis e conquistas (e2e)', () => {
     try {
       const [a, b] = await prisma.post.findMany({ where: { authorId: ana.id }, take: 2, orderBy: { id: 'asc' } });
       await prisma.like.createMany({ data: [...outros.slice(0, 60).map((userId) => ({ postId: a.id, userId })), { postId: a.id, userId: ana.id }, ...outros.slice(60).map((userId) => ({ postId: b.id, userId }))] });
-      await prisma.selo.create({ data: { clubId: c[0], titulo: 'Melhor', votacaoId: (await prisma.votacao.create({ data: { titulo: 'v', tipo: 'CLUBE', opcoes: [], prazo: new Date(), criadaPor: admin.id } })).id } });
-      expect((await perfil(ana)).nivel).toMatchObject({ xp: 100 * 5 + 50 + 3 + 20, nome: 'Técnico', min: 300, proximo: 700 });
+      expect((await perfil(ana)).nivel).toMatchObject({ xp: 100 * 5 + 50 + 3, nome: 'Técnico', min: 300, proximo: 700 });
 
       const story = await prisma.story.create({ data: { clubId: c[0], autorId: ana.id, tipo: 'IMAGEM', path: '/x.jpg', largura: 1, altura: 1, expiraEm: new Date(Date.now() + 3_600_000) } });
       app.get(StoriesEventos).emit('stories.criado', story.id);
       await vi.waitFor(async () => expect(await tipos(ana)).toEqual(['COMUNICADOR', 'PRIMEIRO_STORY']));
     } finally {
       await prisma.user.deleteMany({ where: { id: { in: outros } } });
-      await prisma.votacao.deleteMany({ where: { criadaPor: admin.id } });
     }
   });
 

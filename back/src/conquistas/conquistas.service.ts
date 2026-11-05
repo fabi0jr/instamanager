@@ -34,17 +34,16 @@ export class ConquistasService {
 
   /**
    * Tudo que conta para o XP e para as regras de jogo, calculado na hora. Só entra jogo de rodada/fase fechada, e o resultado é do técnico
-   * cujo `CoachTenure` cobria o `fechadaEm` (o selo, o `createdAt`). `exatosPorUsuario` evita reler os palpites a cada pessoa.
+   * cujo `CoachTenure` cobria o `fechadaEm`. `exatosPorUsuario` evita reler os palpites a cada pessoa.
    */
   async historico(userId: string, exatosPorUsuario?: Map<string, number>): Promise<{ hist: Historico; jogosPorClube: Map<string, JogoDoTecnico[]> }> {
     const tenures = await this.prisma.coachTenure.findMany({ where: { userId } });
     const clubIds = [...new Set(tenures.map((t) => t.clubId))];
     const meus = await this.prisma.post.findMany({ where: { authorId: userId, hiddenAt: null, club: { oficial: false } }, select: { id: true } });
-    const [curtidas, jogos, copas, selos] = await Promise.all([
+    const [curtidas, jogos, copas] = await Promise.all([
       this.prisma.like.groupBy({ by: ['postId'], where: { postId: { in: meus.map((p) => p.id) }, userId: { not: userId } }, _count: { _all: true } }),
       this.prisma.jogo.findMany({ where: { OR: [{ mandanteId: { in: clubIds } }, { visitanteId: { in: clubIds } }], golsMandante: { not: null }, rodada: { fechadaEm: { not: null } } }, include: { rodada: { select: { fechadaEm: true } } } }),
       this.prisma.copaJogo.findMany({ where: { OR: [{ mandanteId: { in: clubIds } }, { visitanteId: { in: clubIds } }], golsMandante: { not: null }, fase: { fechadaEm: { not: null } } }, include: { fase: { select: { fechadaEm: true } } } }),
-      this.prisma.selo.findMany({ where: { clubId: { in: clubIds } } }),
     ]);
 
     const jogosPorClube = new Map<string, JogoDoTecnico[]>();
@@ -68,7 +67,6 @@ export class ConquistasService {
       vitorias: todos.filter((j) => j.golsPro > j.golsContra).length,
       empates: todos.filter((j) => j.golsPro === j.golsContra).length,
       exatos,
-      selos: selos.filter((s) => tenures.some((t) => t.clubId === s.clubId && tecnicoNoMomento(t, s.createdAt))).length,
     };
     return { hist, jogosPorClube };
   }

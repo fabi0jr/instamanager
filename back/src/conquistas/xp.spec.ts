@@ -1,11 +1,11 @@
 import { nivelDe, xpDe } from './xp.js';
 
 describe('xpDe', () => {
-  it('soma posts, reações (teto 50 por post), vitórias, empates, placares exatos e selos', () => {
-    expect(xpDe({ posts: 2, reacoesPorPost: [60, 3], vitorias: 1, empates: 1, exatos: 1, selos: 1 })).toBe(10 + 53 + 10 + 3 + 5 + 20); // 101
+  it('soma posts, reações (teto 50 por post), vitórias, empates, placares exatos', () => {
+    expect(xpDe({ posts: 2, reacoesPorPost: [60, 3], vitorias: 1, empates: 1, exatos: 1 })).toBe(10 + 53 + 10 + 3 + 5); // 81
   });
   it('sem histórico vale 0', () => {
-    expect(xpDe({ posts: 0, reacoesPorPost: [], vitorias: 0, empates: 0, exatos: 0, selos: 0 })).toBe(0);
+    expect(xpDe({ posts: 0, reacoesPorPost: [], vitorias: 0, empates: 0, exatos: 0 })).toBe(0);
   });
 });
 

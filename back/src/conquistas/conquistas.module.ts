@@ -8,13 +8,12 @@ import { LigaModule } from '../liga/liga.module.js';
 import { PostsModule } from '../posts/posts.module.js';
 import { PushModule } from '../push/push.module.js';
 import { StoriesModule } from '../stories/stories.module.js';
-import { VotacoesModule } from '../votacoes/votacoes.module.js';
 import { ConquistasListeners } from './conquistas.listeners.js';
 import { ConquistasService } from './conquistas.service.js';
 
 // O PessoasController (perfil com nível e conquistas) mora aqui para a Atividade não importar as Conquistas (que já importam a Atividade).
 @Module({
-  imports: [AuthModule, AtividadeModule, BolaoModule, CopaModule, LigaModule, PostsModule, PushModule, StoriesModule, VotacoesModule],
+  imports: [AuthModule, AtividadeModule, BolaoModule, CopaModule, LigaModule, PostsModule, PushModule, StoriesModule],
   controllers: [PessoasController],
   providers: [ConquistasService, ConquistasListeners],
   exports: [ConquistasService],

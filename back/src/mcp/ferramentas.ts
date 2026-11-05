@@ -7,13 +7,11 @@ import type { LigaService } from '../liga/liga.service.js';
 import type { PostsService } from '../posts/posts.service.js';
 import type { PrismaService } from '../prisma.service.js';
 import type { StoriesService } from '../stories/stories.service.js';
-import type { VotacoesService } from '../votacoes/votacoes.service.js';
 
 export type Deps = {
   prisma: PrismaService;
   posts: PostsService;
   stories: StoriesService;
-  votacoes: VotacoesService;
   liga: LigaService;
   copa: CopaService;
   bolao: BolaoService;
@@ -196,18 +194,6 @@ export const FERRAMENTAS: Ferramenta[] = [
       })),
   },
   {
-    name: 'votacoes',
-    description:
-      'Votações abertas e as encerradas mais recentes (com o vencedor).',
-    inputSchema: semEntrada,
-    escrita: false,
-    resumo: () => '',
-    run: async (_a, d, admin) => ({
-      abertas: await d.votacoes.listar(admin),
-      encerradas: (await d.votacoes.encerradas()).slice(0, 10),
-    }),
-  },
-  {
     name: 'criar_post',
     description:
       'Publica um post de texto (até 500 caracteres) como CBF. Todo mundo recebe o aviso normal.',
@@ -321,28 +307,6 @@ export const FERRAMENTAS: Ferramenta[] = [
         fundo: a.fundo,
       });
       return { id: s.id };
-    },
-  },
-  {
-    name: 'criar_votacao',
-    description:
-      'Abre uma votação como CBF. tipo: CLUBE, TECNICO ou POST; opcoes: de 2 a 10 ids diferentes (de clube, técnico ou post conforme o tipo); prazo: data futura em ISO 8601.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        titulo: { type: 'string' },
-        tipo: { type: 'string', enum: ['CLUBE', 'TECNICO', 'POST'] },
-        opcoes: { type: 'array', items: { type: 'string' }, minItems: 2 },
-        prazo: { type: 'string', description: 'ISO 8601, no futuro' },
-      },
-      required: ['titulo', 'tipo', 'opcoes', 'prazo'],
-      additionalProperties: false,
-    },
-    escrita: true,
-    resumo: (a) => `votação: '${cortar(a.titulo)}'`,
-    run: async (a, d, admin) => {
-      const v = await d.votacoes.criar(admin, a);
-      return { id: v.id };
     },
   },
   {
