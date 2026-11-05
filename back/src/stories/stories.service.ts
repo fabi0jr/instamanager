@@ -41,7 +41,7 @@ export class StoriesService {
     if (!clubId) throw new ApiError(403, 'SEM_CLUBE', 'Só técnicos com clube podem postar story.');
     const comTexto = corpo.texto !== undefined;
     if (Number(!!imagem) + Number(!!video) + Number(comTexto) !== 1) throw invalido('Envie uma imagem, um vídeo ou um texto (só um).', comTexto ? 'texto' : imagem ? 'video' : 'imagem');
-    const texto = comTexto ? (typeof corpo.texto === 'string' ? corpo.texto.trim() : '') : '';
+    const texto = comTexto ? (typeof corpo.texto === 'string' ? corpo.texto.replace(/\r\n?/g, '\n').trim() : '') : '';
     if (comTexto && (texto.length < 1 || texto.length > MAX_TEXTO)) throw invalido(`O texto precisa ter de 1 a ${MAX_TEXTO} caracteres.`, 'texto');
     if (comTexto && texto.split('\n').length > MAX_LINHAS) throw invalido(`O texto cabe em até ${MAX_LINHAS} linhas.`, 'texto');
     const fundo = corpo.fundo === undefined || corpo.fundo === '' ? 'gramado' : corpo.fundo;
