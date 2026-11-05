@@ -13,6 +13,12 @@ export class AdminLigaController {
     await this.liga.lancarJogos(Number(n), body);
   }
 
+  @Put(':n/prazo')
+  @HttpCode(204)
+  async prazo(@Param('n') n: string, @Body() body: unknown) {
+    await this.liga.definirPrazo(Number(n), body);
+  }
+
   @Post(':n/fechar')
   @HttpCode(204)
   async fechar(@Param('n') n: string) {

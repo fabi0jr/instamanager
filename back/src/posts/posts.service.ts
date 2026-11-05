@@ -257,16 +257,18 @@ export class PostsService {
 
   /**
    * Sem `clube` e sem `tag`, os fixados vêm à parte (`fixados`, só na 1ª página) e nunca entram em `itens`, em página nenhuma.
-   * Com `tag`: mesma resposta do feed, só com os posts que têm a hashtag.
+   * Com `tag`: mesma resposta do feed, só com os posts que têm a hashtag. Com `autorId`: os posts da pessoa (sem fixados, sem os da CBF).
    */
-  async feed(user: UserComClube, antes?: string, clube?: string, tag?: string) {
+  async feed(user: UserComClube, antes?: string, clube?: string, tag?: string, autorId?: string) {
     const c = decodificarCursor(antes);
     const visivel = ondeVisivel(user.id, user.isAdmin);
-    const geral = !clube && tag === undefined;
+    const geral = !clube && tag === undefined && autorId === undefined;
     const posts = await this.prisma.post.findMany({
       where: {
         ...visivel,
         ...(clube && { clubId: clube }),
+        // perfil de pessoa: a CBF posta pelo admin sem mostrar o nome dele, então esses posts não entram
+        ...(autorId && { authorId: autorId, club: { oficial: false } }),
         ...(tag !== undefined && { id: { in: await this.idsComTag(tag) } }),
         ...(geral && { pinnedAt: null }),
         ...(c && { OR: [{ createdAt: { lt: c.criadoEm } }, { createdAt: c.criadoEm, id: { lt: c.id } }] }),
