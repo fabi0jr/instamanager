@@ -100,8 +100,14 @@ export function Liga({ me }: { me: Me }) {
     Promise.all([api<Linha[]>('/liga/tabela'), api<Rodada[]>('/liga/rodadas')]).then(([tabela, rodadas]) => setDados({ tabela, rodadas }), () => setDados('erro'));
   }
   useEffect(carregar, []);
-  // a aba ativa rola para dentro da vista (seis abas não cabem no celular)
-  useEffect(() => { document.querySelector('.abas-liga [aria-selected="true"]')?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); }, [aba]);
+  // a aba ativa entra na vista só na horizontal da faixa (scrollIntoView puxaria o #rolagem na vertical)
+  useEffect(() => {
+    const faixa = document.querySelector<HTMLElement>('.abas-liga');
+    const ativa = faixa?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!faixa || !ativa) return;
+    const f = faixa.getBoundingClientRect(), a = ativa.getBoundingClientRect();
+    faixa.scrollLeft += a.left < f.left ? a.left - f.left : a.right > f.right ? a.right - f.right : 0;
+  }, [aba]);
   const setas = (e: KeyboardEvent) => {
     const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
     if (d) setAba(ABAS[(ABAS.findIndex(([id]) => id === aba) + d + ABAS.length) % ABAS.length][0]);

@@ -1,7 +1,7 @@
 /* Liga (docs/design/onda-b.md §2) */
 .liga { max-width: 640px; margin: 0 auto; } .liga h1 { font: 800 28px/32px var(--im-fonte-display); } .liga .padrao { margin: var(--im-e3) 0; }
-.abas-liga { display: flex; gap: 2px; height: 40px; margin: var(--im-e3) 0; padding: 2px; overflow-x: auto; scrollbar-width: none; background: var(--im-superficie-alta); border-radius: 999px; }
-.abas-liga button { flex: 1 0 auto; padding: 0 var(--im-e3); min-height: 44px; margin: -2px 0; background: none; border: 1px solid transparent; border-radius: 999px; color: var(--im-giz-2); font: 500 15px var(--im-fonte-texto); cursor: pointer; }
+.abas-liga { display: flex; gap: 2px; height: 40px; margin: var(--im-e3) 0; padding: 2px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; touch-action: pan-x; scroll-snap-type: x proximity; scroll-padding-inline: var(--im-e3); scrollbar-width: none; background: var(--im-superficie-alta); border-radius: 999px; }
+.abas-liga button { scroll-snap-align: center; flex: 1 0 auto; padding: 0 var(--im-e3); min-height: 44px; margin: -2px 0; background: none; border: 1px solid transparent; border-radius: 999px; color: var(--im-giz-2); font: 500 15px var(--im-fonte-texto); cursor: pointer; }
 .abas-liga button[aria-selected='true'] { background: var(--im-superficie-alta); border-color: var(--im-linha); color: var(--im-giz); font-weight: 600; box-shadow: inset 0 0 0 1px var(--im-linha); }
 .linha-esq-liga { height: 27px; margin-bottom: 1px; }
 .legenda-zonas { display: flex; align-items: center; gap: var(--im-e2); font-size: 13px; margin: var(--im-e2) 0; } .zona { width: 3px; height: 14px; } .zona.topo { background: var(--im-gramado); } .zona.rebaixa { background: var(--im-vermelho); margin-left: var(--im-e3); }

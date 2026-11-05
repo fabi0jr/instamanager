@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
 import type { Me } from '../api/cliente';
@@ -61,4 +62,18 @@ test('rodadas listam resultados, com aviso de parcial na aberta e "Faltam jogos"
   expect(screen.getByText('Placar parcial. Só vale na tabela depois que o admin fechar a rodada.')).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: 'Rodada 3' }));
   expect(screen.getByText('Faltam jogos a lançar')).toBeTruthy();
+});
+
+test('faixa de abas: só rola na horizontal, sem puxar a página (estilos e #rolagem intactos)', async () => {
+  fetchFalso({ 'GET /liga/tabela': tabela, 'GET /liga/rodadas': rodadas, 'GET /copa': [], 'GET /bolao/meus?rodada=1': [], 'GET /votacoes': [] });
+  const css = readFileSync('src/liga/liga.css', 'utf8');
+  const regra = css.match(/\.abas-liga \{[^}]*\}/)![0];
+  for (const d of ['overflow-x: auto', 'overflow-y: hidden', 'overscroll-behavior-x: contain', 'touch-action: pan-x', 'scroll-snap-type: x proximity', 'scroll-padding-inline', 'scrollbar-width: none']) expect(regra).toContain(d);
+  expect(css).toMatch(/\.abas-liga button \{ scroll-snap-align: center;/);
+  const { container } = render(<div id="rolagem"><Liga me={me} /></div>);
+  const rolagem = container.querySelector('#rolagem') as HTMLElement;
+  rolagem.scrollTop = 120;
+  fireEvent.click(await screen.findByRole('tab', { name: 'Copa' }));
+  fireEvent.click(screen.getByRole('tab', { name: 'Bolão' }));
+  expect(rolagem.scrollTop).toBe(120);
 });
