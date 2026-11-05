@@ -4003,7 +4003,7 @@
       ],
       "depende": [],
       "responsavel": null,
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-04T22:28:27.208Z",
@@ -4023,6 +4023,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T04:01:34.684Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "deploy feito"
+        },
+        {
+          "quando": "2026-11-05T04:01:34.707Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "deploy feito"
+        },
+        {
+          "quando": "2026-11-05T04:01:34.730Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "deploy feito"
         }
       ]
     }
