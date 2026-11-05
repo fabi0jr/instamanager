@@ -5417,7 +5417,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T22:17:36.394Z",
@@ -5442,6 +5442,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T22:24:16.058Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T22:35:11.033Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou c0f53dd; sem tela"
+        },
+        {
+          "quando": "2026-11-05T22:35:11.058Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "VAR aprovou c0f53dd; sem tela"
         }
       ]
     },
@@ -5456,7 +5477,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "dev",
+      "coluna": "revisao",
       "historico": [
         {
           "quando": "2026-11-05T22:17:36.421Z",
@@ -5480,6 +5501,13 @@
           "quem": "Maestro",
           "de": "pronto",
           "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T22:19:59.289Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
           "nota": ""
         }
       ]
