@@ -56,3 +56,11 @@ button.linha-clube { cursor: pointer; }
 .nova-fase label { display: flex; flex-direction: column; gap: var(--im-e1); font: 600 14px var(--im-fonte-texto); } .nova-fase input { height: 48px; background: var(--im-superficie-alta); color: var(--im-giz); border: 1px solid var(--im-linha); border-radius: var(--im-r-btn); padding: 0 var(--im-e3); font: inherit; }
 .penaltis-ed { align-items: center; flex-wrap: wrap; } .penaltis-ed > span:first-child { font: 600 14px var(--im-fonte-texto); }
 .confrontos-fechados { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--im-e2); }
+
+/* log da CBF via MCP */
+.log-mcp { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.log-mcp li { padding: 12px; background: var(--im-superficie); border: 1px solid var(--im-linha); border-radius: 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.log-mcp .l1 { display: flex; justify-content: space-between; gap: 8px; font: 600 14px var(--im-fonte-texto); } .log-mcp .l1 code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log-mcp .selo-ok { display: inline-flex; align-items: center; gap: 4px; color: var(--im-gramado); } .log-mcp .selo-erro { display: inline-flex; align-items: center; gap: 4px; color: var(--im-vermelho-texto); }
+.log-mcp .icone { width: 16px; height: 16px; } .log-mcp .icone svg { width: 16px; height: 16px; }
+.log-mcp .entrada { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .log-mcp .msg-erro { color: var(--im-vermelho-texto); font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
