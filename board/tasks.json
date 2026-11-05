@@ -1,5 +1,5 @@
 {
-  "proximoId": 67,
+  "proximoId": 72,
   "tarefas": [
     {
       "id": "IM-1",
@@ -4585,6 +4585,149 @@
           "de": "qa",
           "para": "concluido",
           "nota": "deploy c72e879 ok: CI verde (verificar, safari, implantar); versão c3a6e66d4a19; 22 conquistas semeadas em silêncio (0 post/atividade nova); sem erro no log do back"
+        }
+      ]
+    },
+    {
+      "id": "IM-67",
+      "titulo": "Pack 3 C · design: story de texto e log MCP",
+      "tipo": "design",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-c.md"
+      ],
+      "depende": [],
+      "responsavel": "Prancheta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-05T13:13:01.609Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T13:13:01.871Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:13:01.929Z",
+          "quem": "PO",
+          "nota": "atribuída a Prancheta"
+        },
+        {
+          "quando": "2026-11-05T13:13:01.996Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-68",
+      "titulo": "Pack 3 C · back: story de texto",
+      "tipo": "back",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-c.md"
+      ],
+      "depende": [],
+      "responsavel": "Volante",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-05T13:13:01.664Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T13:13:01.902Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T13:13:01.964Z",
+          "quem": "PO",
+          "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-05T13:13:02.023Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-69",
+      "titulo": "Pack 3 C · back: CBF via MCP",
+      "tipo": "back",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-c.md"
+      ],
+      "depende": [
+        "IM-68"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-05T13:13:01.717Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-70",
+      "titulo": "Pack 3 C · front: story de texto e log MCP",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-c.md"
+      ],
+      "depende": [
+        "IM-67",
+        "IM-68"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-05T13:13:01.772Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-71",
+      "titulo": "Pack 3 C · QA, ensaio e deploy",
+      "tipo": "qa",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-c.md"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-05T13:13:01.825Z",
+          "quem": "PO",
+          "nota": "criada"
         }
       ]
     }
