@@ -10,11 +10,14 @@ import { StoriesEventos } from './stories.eventos.js';
 
 const DURACAO_MS = 24 * 3_600_000;
 const MAX_IMAGEM = 3 * 1024 * 1024;
+const MAX_TEXTO = 200;
+const MAX_LINHAS = 8;
+const FUNDOS = ['gramado', 'carvao', 'vermelho', 'azul'];
 type Arquivo = { buffer: Buffer };
 const naoEncontrado = () => new ApiError(404, 'NAO_ENCONTRADO', 'Não encontramos o que você procurou.');
 const invalido = (mensagem: string, campo: string) => new ApiError(400, 'DADOS_INVALIDOS', mensagem, [campo]);
 const clubeMini = (c: { id: string; name: string; crestPath: string }) => ({ id: c.id, nome: c.name, escudoUrl: c.crestPath });
-const itemJson = (s: Story, visto: boolean) => ({ id: s.id, tipo: s.tipo, url: s.path, capaUrl: s.capaPath, criadoEm: s.createdAt, visto });
+const itemJson = (s: Story, visto: boolean) => ({ id: s.id, tipo: s.tipo, url: s.path, capaUrl: s.capaPath, criadoEm: s.createdAt, visto, texto: s.texto, fundo: s.fundo });
 
 @Injectable()
 export class StoriesService {
@@ -30,18 +33,26 @@ export class StoriesService {
     return s;
   }
 
-  /** Imagem (JPEG ≤ 3 MB) ou vídeo (≤ 30 s, convertido) do clube do técnico atual; o admin posta como CBF. Some em 24 h. */
-  async criar(user: UserComClube, corpo: { comoCbf?: unknown }, imagem?: Arquivo, video?: Arquivo) {
+  /** Imagem (JPEG ≤ 3 MB), vídeo (≤ 30 s, convertido) ou texto (1–200, com fundo) do clube do técnico atual; o admin posta como CBF. Some em 24 h. */
+  async criar(user: UserComClube, corpo: { comoCbf?: unknown; texto?: unknown; fundo?: unknown }, imagem?: Arquivo, video?: Arquivo) {
     const comoCbf = corpo.comoCbf === true || corpo.comoCbf === 'true';
     if (comoCbf && !user.isAdmin) throw new ApiError(403, 'NAO_E_ADMIN', 'Só o admin posta story como CBF.');
     const clubId = comoCbf ? 'cbf' : user.club?.id;
     if (!clubId) throw new ApiError(403, 'SEM_CLUBE', 'Só técnicos com clube podem postar story.');
-    if (!imagem === !video) throw invalido('Envie uma imagem ou um vídeo.', imagem ? 'video' : 'imagem');
+    const comTexto = corpo.texto !== undefined;
+    if (Number(!!imagem) + Number(!!video) + Number(comTexto) !== 1) throw invalido('Envie uma imagem, um vídeo ou um texto (só um).', comTexto ? 'texto' : imagem ? 'video' : 'imagem');
+    const texto = comTexto ? (typeof corpo.texto === 'string' ? corpo.texto.replace(/\r\n?/g, '\n').trim() : '') : '';
+    if (comTexto && (texto.length < 1 || texto.length > MAX_TEXTO)) throw invalido(`O texto precisa ter de 1 a ${MAX_TEXTO} caracteres.`, 'texto');
+    if (comTexto && texto.split('\n').length > MAX_LINHAS) throw invalido(`O texto cabe em até ${MAX_LINHAS} linhas.`, 'texto');
+    const fundo = corpo.fundo === undefined || corpo.fundo === '' ? 'gramado' : corpo.fundo;
+    if (comTexto && (typeof fundo !== 'string' || !FUNDOS.includes(fundo))) throw invalido('Fundo inválido.', 'fundo');
 
     const base = { clubId, autorId: user.id, expiraEm: new Date(Date.now() + DURACAO_MS) };
     let gravados: string[] = [];
     let dados: Omit<Parameters<PrismaService['story']['create']>[0]['data'], 'club' | 'autor'>;
-    if (imagem) {
+    if (comTexto) {
+      dados = { ...base, tipo: 'TEXTO', texto, fundo: fundo as string };
+    } else if (imagem) {
       if (imagem.buffer.length > MAX_IMAGEM) throw new ApiError(413, 'ARQUIVO_GRANDE', 'A imagem passou de 3 MB.');
       const dims = ehJpeg(imagem.buffer) ? dimensoesJpeg(imagem.buffer) : null;
       if (!dims) throw new ApiError(400, 'IMAGEM_INVALIDA', 'Não consegui ler a imagem. Envie JPEG.');

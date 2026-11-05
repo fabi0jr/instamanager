@@ -12,7 +12,7 @@ import { montarJpeg } from './jpeg.js';
 
 // Clubes teste-stories-N são só deste arquivo.
 type U = { id: string; cookie: string[] };
-type Item = { id: string; tipo: string; url: string; capaUrl: string | null; criadoEm: string; visto: boolean };
+type Item = { id: string; tipo: string; url: string | null; capaUrl: string | null; criadoEm: string; visto: boolean; texto: string | null; fundo: string | null };
 type Faixa = { clube: { id: string; nome: string; escudoUrl: string }; stories: Item[]; todosVistos: boolean };
 
 describe('stories (e2e)', () => {
@@ -74,7 +74,7 @@ describe('stories (e2e)', () => {
     expect(Math.abs(exp - 24 * 3_600_000)).toBeLessThan(5_000);
     const faixa = (await lista(torcedor)).find((f) => f.clube.id === c[0])!;
     expect(faixa).toMatchObject({ todosVistos: false, clube: { id: c[0], nome: 'Teste stories 1', escudoUrl: '/escudos/generico.svg' } });
-    expect(faixa.stories).toEqual([{ id: r.body.id, tipo: 'IMAGEM', url: r.body.url, capaUrl: null, criadoEm: r.body.criadoEm, visto: false }]);
+    expect(faixa.stories).toEqual([{ id: r.body.id, tipo: 'IMAGEM', url: r.body.url, capaUrl: null, criadoEm: r.body.criadoEm, visto: false, texto: null, fundo: null }]);
     expect(existsSync(join(dir, r.body.url.replace('/uploads/', '')))).toBe(true);
   });
 
@@ -100,6 +100,55 @@ describe('stories (e2e)', () => {
     await enviar(tecnico0).expect(400);
     await enviar(tecnico0).attach('imagem', montarJpeg(10, 10), 's.jpg').attach('video', amostras.hevcMov, 'v.mov').expect(400);
     expect(arquivosEm(dir)).toEqual([]);
+  });
+
+  it('story de texto: 201 com fundo padrão, sem arquivo, na lista, expira em 24 h e conta como PRIMEIRO_STORY', async () => {
+    const antes = arquivosEm(dir).length;
+    const r = await guardar(enviar(tecnico1).field('texto', '  Bora, galera!\nJogo hoje.  '));
+    expect(r.status).toBe(201);
+    expect(r.body).toMatchObject({ tipo: 'TEXTO', url: null, capaUrl: null, texto: 'Bora, galera!\nJogo hoje.', fundo: 'gramado', visto: false, clube: { id: c[1] } });
+    const exp = new Date(r.body.expiraEm).getTime() - new Date(r.body.criadoEm).getTime();
+    expect(Math.abs(exp - 24 * 3_600_000)).toBeLessThan(5_000);
+    const item = (await lista(torcedor)).flatMap((f) => f.stories).find((x) => x.id === r.body.id);
+    expect(item).toEqual({ id: r.body.id, tipo: 'TEXTO', url: null, capaUrl: null, criadoEm: r.body.criadoEm, visto: false, texto: 'Bora, galera!\nJogo hoje.', fundo: 'gramado' });
+    expect(arquivosEm(dir).length).toBe(antes);
+    await vi.waitFor(async () => expect(await prisma.conquista.count({ where: { userId: tecnico1.id, tipo: 'PRIMEIRO_STORY' } })).toBe(1));
+    // vencido: limpeza apaga a linha sem tropeçar no path nulo; apagar um vivo também
+    await prisma.story.update({ where: { id: r.body.id }, data: { expiraEm: new Date(Date.now() - 1000) } });
+    await app.get(CleanupService).limpar();
+    expect(await prisma.story.count({ where: { id: r.body.id } })).toBe(0);
+    const outro = await guardar(enviar(tecnico1).field('texto', 'x').field('fundo', 'azul'));
+    expect(outro.body).toMatchObject({ fundo: 'azul' });
+    await com('delete', `/api/stories/${outro.body.id}`, tecnico1).expect(204);
+  });
+
+  it('story de texto: CRLF do navegador é normalizado para \\n (193 letras + 7 quebras = 200 passa)', async () => {
+    const r = await guardar(enviar(tecnico0).field('texto', ['a'.repeat(193), ...Array(7).fill('')].join('\r\n')));
+    expect(r.status).toBe(201);
+    expect((await prisma.story.findUnique({ where: { id: r.body.id } }))!.texto).toBe(['a'.repeat(193), ...Array(7).fill('')].join('\n').trim());
+    const dois = await guardar(enviar(tecnico0).field('texto', 'a\r\nb\rc'));
+    expect(dois.body.texto).toBe('a\nb\nc');
+    await enviar(tecnico0).field('texto', 'a'.repeat(194) + '\r\nb'.repeat(7)).expect(400); // 201 depois de normalizar
+  });
+
+  it('story de texto inválido → 400: 201 caracteres, vazio, fundo desconhecido, texto + imagem/vídeo', async () => {
+    await enviar(tecnico0).field('texto', 'a'.repeat(201)).expect(400);
+    await enviar(tecnico0).field('texto', '   ').expect(400);
+    expect((await enviar(tecnico0).field('texto', 'l\n'.repeat(8) + 'x').expect(400)).body).toMatchObject({ codigo: 'DADOS_INVALIDOS', campos: ['texto'] }); // 9 linhas
+    const oito = await guardar(enviar(tecnico0).field('texto', Array(8).fill('l').join('\n'))); // 8 linhas (7 quebras)
+    expect(oito.status).toBe(201);
+    await enviar(tecnico0).field('texto', 'oi').field('fundo', 'rosa').expect(400);
+    await enviar(tecnico0).field('texto', 'oi').attach('imagem', montarJpeg(10, 10), 's.jpg').expect(400);
+    await enviar(tecnico0).field('texto', 'oi').attach('video', amostras.hevcMov, 'v.mov').expect(400);
+    const ok = await guardar(enviar(tecnico0).field('texto', 'a'.repeat(200)));
+    expect(ok.status).toBe(201);
+  });
+
+  it('story de texto: sem clube → 403 SEM_CLUBE; como CBF só o admin', async () => {
+    expect((await enviar(torcedor).field('texto', 'oi').expect(403)).body.codigo).toBe('SEM_CLUBE');
+    expect((await enviar(tecnico0).field('texto', 'oi').field('comoCbf', 'true').expect(403)).body.codigo).toBe('NAO_E_ADMIN');
+    const r = await guardar(enviar(admin).field('texto', 'Aviso da CBF').field('comoCbf', 'true'));
+    expect(r.body).toMatchObject({ tipo: 'TEXTO', clube: { id: 'cbf' } });
   });
 
   it('torcedor posta story → 403; só o admin posta como CBF', async () => {
