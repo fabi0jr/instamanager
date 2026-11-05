@@ -10,5 +10,5 @@ export const ondeVisivel = (userId: string, isAdmin: boolean, { lista = true } =
   ...(lista && { hiddenBy: { none: { userId } } }),
 });
 
-/** Comentário ocultado pelo admin: só o admin vê. */
-export const comentariosVisiveis = (isAdmin: boolean): Prisma.CommentWhereInput => (isAdmin ? {} : { hiddenAt: null });
+/** Comentário ocultado pelo admin: só o admin vê. A resposta some junto com o raiz oculto. */
+export const comentariosVisiveis = (isAdmin: boolean): Prisma.CommentWhereInput => (isAdmin ? {} : { hiddenAt: null, OR: [{ parentId: null }, { parent: { hiddenAt: null } }] });

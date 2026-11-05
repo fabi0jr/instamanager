@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { UserComClube } from '../auth/auth.service.js';
-import type { NotificacaoTipo } from '../generated/prisma/client.js';
+import { NOMES } from '../conquistas/regras.js';
+import type { ConquistaTipo, NotificacaoTipo } from '../generated/prisma/client.js';
+import { avisadosDaResposta } from '../interacoes/respostas.js';
 import { escaparLike } from '../like.js';
 import { comNomes, extrairMencoes, resolverMencoes } from '../mencoes.js';
 import { ApiError } from '../http.js';
@@ -17,7 +19,7 @@ const INDISPONIVEL = 'Post indisponível';
 const INDISPONIVEL_COMENTARIO = 'Comentário indisponível';
 const curto = (t: string) => (t.length > RESUMO_MAX ? `${t.slice(0, RESUMO_MAX - 1)}…` : t);
 
-type Extra = { atorId?: string; postId?: string; comentarioId?: string; votacaoId?: string; trocaId?: string };
+type Extra = { atorId?: string; postId?: string; comentarioId?: string; votacaoId?: string; trocaId?: string; conquistaTipo?: ConquistaTipo };
 
 @Injectable()
 export class AtividadeService {
@@ -44,13 +46,17 @@ export class AtividadeService {
     ]);
   }
 
-  async comentario(comentarioId: string) {
+  /** `alvoId`: o comentário respondido, quando é resposta. Quem recebe RESPOSTA não ganha COMENTARIO nem MENCAO do mesmo texto. */
+  async comentario(comentarioId: string, alvoId?: string) {
     const c = await this.prisma.comment.findUnique({ where: { id: comentarioId }, include: { post: { select: { club: { select: { coachId: true } } } } } });
     if (!c) return;
     const tecnico = c.post.club.coachId;
-    if (tecnico) await this.criar([tecnico], 'COMENTARIO', { atorId: c.userId, postId: c.postId, comentarioId });
-    // o técnico já recebe o aviso de comentário (e o push); não ganha um segundo item por ser mencionado no mesmo texto
-    await this.mencionar(c.text, c.userId, c.postId, comentarioId, tecnico ? [tecnico] : []);
+    const respondidos = await avisadosDaResposta(this.prisma, c, alvoId);
+    const extra = { atorId: c.userId, postId: c.postId, comentarioId };
+    await this.criar(respondidos, 'RESPOSTA', extra);
+    if (tecnico && !respondidos.includes(tecnico)) await this.criar([tecnico], 'COMENTARIO', extra);
+    // quem já foi avisado por este texto (técnico, respondidos) não ganha um segundo item por ser mencionado nele
+    await this.mencionar(c.text, c.userId, c.postId, comentarioId, [...respondidos, ...(tecnico ? [tecnico] : [])]);
   }
 
   /** Menções do texto de um post (legenda ou texto) ou comentário. Quem já foi avisado por este mesmo texto não é avisado de novo (editar não repete). */
@@ -72,7 +78,7 @@ export class AtividadeService {
       where: { userId: user.id, ...(c && { OR: [{ createdAt: { lt: c.criadoEm } }, { createdAt: c.criadoEm, id: { lt: c.id } }] }) },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: POR_PAGINA + 1,
-      include: { ator: { select: { id: true, name: true, avatarPath: true } }, votacao: { select: { id: true, titulo: true } }, comentario: { select: { id: true, text: true, hiddenAt: true } }, troca: { select: { status: true, club: { select: { id: true, name: true, crestPath: true } } } } },
+      include: { ator: { select: { id: true, name: true, avatarPath: true } }, votacao: { select: { id: true, titulo: true } }, comentario: { select: { id: true, text: true, hiddenAt: true, parent: { select: { hiddenAt: true } } } }, troca: { select: { status: true, club: { select: { id: true, name: true, crestPath: true } } } } },
     });
     const pagina = itens.slice(0, POR_PAGINA);
     const ids = [...new Set(pagina.flatMap((n) => (n.postId ? [n.postId] : [])))];
@@ -80,9 +86,9 @@ export class AtividadeService {
       ? await this.prisma.post.findMany({ where: { id: { in: ids }, ...ondeVisivel(user.id, user.isAdmin, { lista: false }) }, include: { images: { orderBy: { position: 'asc' }, take: 1 }, video: { select: { capaPath: true } } } })
       : [];
     const textoDe = (p: (typeof visiveis)[number]) => p.texto ?? (p.caption || (p.images.length ? 'Post com imagem' : p.video ? 'Post com vídeo' : 'Post'));
-    // comentário só aparece se o post está visível e o comentário não foi ocultado pelo admin (o admin vê tudo)
-    const comentarioVisivel = (n: (typeof pagina)[number]) => n.comentario && visiveis.some((v) => v.id === n.postId) && (user.isAdmin || n.comentario.hiddenAt === null) ? n.comentario.text : null;
-    const comTexto = (n: (typeof pagina)[number]) => n.tipo === 'COMENTARIO' || n.tipo === 'MENCAO'; // MENCAO feita dentro de comentário também mostra o trecho
+    // comentário só aparece se o post está visível e nem ele nem o raiz (no caso de resposta) foram ocultados pelo admin (o admin vê tudo)
+    const comentarioVisivel = (n: (typeof pagina)[number]) => n.comentario && visiveis.some((v) => v.id === n.postId) && (user.isAdmin || (n.comentario.hiddenAt === null && n.comentario.parent?.hiddenAt == null)) ? n.comentario.text : null;
+    const comTexto = (n: (typeof pagina)[number]) => n.tipo === 'COMENTARIO' || n.tipo === 'MENCAO' || n.tipo === 'RESPOSTA'; // MENCAO feita dentro de comentário também mostra o trecho
     const textos = pagina.flatMap((n) => (comTexto(n) ? [comentarioVisivel(n) ?? ''] : []));
     const nomes = await resolverMencoes(this.prisma, [...new Set([...visiveis.map(textoDe), ...textos].flatMap(extrairMencoes))]);
     const resumoDe = (p: (typeof visiveis)[number]) => curto(comNomes(textoDe(p), nomes));
@@ -98,6 +104,7 @@ export class AtividadeService {
           ator: n.ator && { id: n.ator.id, nome: n.ator.name, avatarUrl: n.ator.avatarPath },
           post: n.postId ? { id: n.postId, miniUrl: p?.images[0]?.thumbPath ?? p?.video?.capaPath ?? null, resumo: p ? resumoDe(p) : INDISPONIVEL } : null,
           votacao: n.votacao,
+          ...(n.tipo === 'CONQUISTA' && n.conquistaTipo && { conquista: { tipo: n.conquistaTipo, nome: NOMES[n.conquistaTipo] } }),
           ...(comTexto(n) && { comentario: n.comentario && { id: n.comentario.id, resumo: curto(comentarioVisivel(n) !== null ? comNomes(comentarioVisivel(n)!, nomes) : INDISPONIVEL_COMENTARIO) } }),
           // clube = o que ela queria assumir (null no pedido de sair); itens antigos sem pedido ligado ficam com troca null
           ...(n.tipo === 'TROCA_DECIDIDA' && { troca: n.troca && n.troca.status !== 'PENDENTE' ? { status: n.troca.status, clube: n.troca.club && { id: n.troca.club.id, nome: n.troca.club.name, escudoUrl: n.troca.club.crestPath } } : null }),

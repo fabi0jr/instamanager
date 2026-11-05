@@ -4138,7 +4138,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T04:35:26.931Z",
@@ -4163,6 +4163,37 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-05T04:59:02.829Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:03:25.803Z",
+          "quem": "Maestro",
+          "nota": "VAR aprovou com ajuste: catch no verificar() do onModuleInit; notas menores 2 (reabrir regrava fechadaEm) e 3 (globais por post) anotadas"
+        },
+        {
+          "quando": "2026-11-05T05:09:54.701Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou; fix 9743118; sem tela"
+        },
+        {
+          "quando": "2026-11-05T05:09:54.757Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "VAR aprovou; fix 9743118; sem tela"
+        },
+        {
+          "quando": "2026-11-05T05:10:33.654Z",
+          "quem": "Maestro",
+          "nota": "pendência (não feita, 30 pessoas): posts.criado/stories.criado rodam o cálculo global; se pesar, checar só COMUNICADOR/PRIMEIRO_STORY e coalescer"
         }
       ]
     },
@@ -4177,7 +4208,7 @@
       ],
       "depende": [],
       "responsavel": "Volante",
-      "coluna": "pronto",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T04:35:26.962Z",
@@ -4195,6 +4226,39 @@
           "quando": "2026-11-05T04:35:48.306Z",
           "quem": "PO",
           "nota": "atribuída a Volante"
+        },
+        {
+          "quando": "2026-11-05T04:59:02.886Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:17:25.136Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:20:30.071Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou b95ac83; menor: trecho de RESPOSTA na atividade não olha o raiz oculto (baixo)"
+        },
+        {
+          "quando": "2026-11-05T05:20:30.099Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "VAR aprovou b95ac83; menor: trecho de RESPOSTA na atividade não olha o raiz oculto (baixo)"
+        },
+        {
+          "quando": "2026-11-05T05:25:04.465Z",
+          "quem": "Maestro",
+          "nota": "ajustes 94c169a (raiz oculto na atividade) e 5609863 (post sem asteriscos) na main; revisados pelo Maestro"
         }
       ]
     },
@@ -4211,13 +4275,63 @@
         "IM-60",
         "IM-61"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T04:35:26.991Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T04:59:24.819Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T04:59:24.874Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-05T05:02:41.366Z",
+          "quem": "Maestro",
+          "nota": "pronta 48ca0f7; aguardando IM-61 para revisão/QA"
+        },
+        {
+          "quando": "2026-11-05T05:05:25.301Z",
+          "quem": "Maestro",
+          "nota": "VAR aprovou 48ca0f7; esqueletos de carregamento ficam de fora (menor). QA depois do merge da IM-61"
+        },
+        {
+          "quando": "2026-11-05T05:09:54.813Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:09:54.870Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:09:54.923Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 48ca0f7"
+        },
+        {
+          "quando": "2026-11-05T05:21:03.902Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "QA aprovou; ressalvas: margem do card no /perfil e borda 1,5 (Ponta, na IM-64), asteriscos no post da CBF (Volante, no fix da IM-62)"
         }
       ]
     },
@@ -4234,13 +4348,123 @@
         "IM-60",
         "IM-62"
       ],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T04:35:27.020Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T05:17:33.871Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:17:33.921Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-05T05:20:30.124Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:23:01.629Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:24:53.747Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: ✕ apaga o texto; deve tirar só o @Nome do início"
+        },
+        {
+          "quando": "2026-11-05T05:26:03.998Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:26:04.062Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:27:21.093Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou 2dc9ee3; menor: remover(uid) tira todas as menções da pessoa (raro)"
+        },
+        {
+          "quando": "2026-11-05T05:38:36.627Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "correcao",
+          "nota": "QA: responder uma resposta manda parentId do raiz; deve mandar o id do comentário clicado (erro do plano, Task B4)"
+        },
+        {
+          "quando": "2026-11-05T05:40:16.835Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:40:16.897Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:41:48.447Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: Responder duas vezes na mesma pessoa perde a menção"
+        },
+        {
+          "quando": "2026-11-05T05:42:51.527Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "QA aprovou 33a7adc; fix2 d217b97 revisado pelo Maestro"
+        },
+        {
+          "quando": "2026-11-05T05:42:51.583Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "QA aprovou 33a7adc; fix2 d217b97 revisado pelo Maestro"
+        },
+        {
+          "quando": "2026-11-05T05:42:51.634Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "QA aprovou 33a7adc; fix2 d217b97 revisado pelo Maestro"
+        },
+        {
+          "quando": "2026-11-05T05:42:51.677Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "QA aprovou 33a7adc; fix2 d217b97 revisado pelo Maestro"
         }
       ]
     },
@@ -4254,13 +4478,32 @@
         "ver plano docs/superpowers/plans/2026-11-05-pack3-onda-b.md"
       ],
       "depende": [],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Ponta",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-05T04:35:27.048Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-05T05:02:41.223Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-05T05:02:41.270Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-05T05:02:41.317Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     },

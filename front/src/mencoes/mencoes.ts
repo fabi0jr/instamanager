@@ -30,6 +30,7 @@ export function useMencoes(inicial: Mencao[] = []) {
     cheio,
     registrar: (m: Mencao) => setMapa((l) => [...l, m]),
     limpar: () => setMapa([]),
+    remover: (id: string) => setMapa((l) => l.filter((x) => x.id !== id)),
     serializar(texto: string) {
       let saida = texto;
       for (const m of [...mapa].sort((a, b) => b.nome.length - a.nome.length)) {

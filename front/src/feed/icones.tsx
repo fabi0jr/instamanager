@@ -27,6 +27,9 @@ import play from '../icones/play.svg?raw';
 import video from '../icones/video.svg?raw';
 import volume from '../icones/volume.svg?raw';
 import volumeOff from '../icones/volume-off.svg?raw';
+import nivel from '../icones/nivel.svg?raw';
+import responder from '../icones/responder.svg?raw';
+import trofeu from '../icones/trofeu.svg?raw';
 import olho from '../icones/olho.svg?raw';
 import calendario from '../icones/calendario.svg?raw';
 import chave from '../icones/chave.svg?raw';
@@ -40,7 +43,7 @@ import fixar from '../icones/fixar.svg?raw';
 import compartilhar from '../icones/compartilhar.svg?raw';
 
 // Ícones oficiais do board Icones (docs/design/icones, copiados para src/icones): herdam a cor por currentColor.
-const OFICIAIS = { camera, comentar, copiar, curtido, curtir, escudo, galeria, inicio, mais, 'novo-post': novoPost, perfil, 'seta-voltar': setaVoltar, seta, editar, fechar, filtro, lixo, ok, compartilhar, fixar, estrela, bandeira, 'olho-off': olhoOff, texto, liga, selo, votacao, sortear, atividade, busca, play, video, volume, 'volume-off': volumeOff, olho, calendario, chave, bola, relogio, cadeado };
+const OFICIAIS = { camera, comentar, copiar, curtido, curtir, escudo, galeria, inicio, mais, 'novo-post': novoPost, perfil, 'seta-voltar': setaVoltar, seta, editar, fechar, filtro, lixo, ok, compartilhar, fixar, estrela, bandeira, 'olho-off': olhoOff, texto, liga, selo, votacao, sortear, atividade, busca, play, video, volume, 'volume-off': volumeOff, olho, calendario, chave, bola, relogio, cadeado, nivel, trofeu, responder };
 export function Icone({ nome, cheio }: { nome: keyof typeof OFICIAIS; cheio?: boolean }) {
   return <span className={cheio ? 'icone cheio' : 'icone'} aria-hidden="true" dangerouslySetInnerHTML={{ __html: OFICIAIS[nome] }} />;
 }
@@ -74,3 +77,6 @@ export const IcPlay = () => <Icone nome="play" cheio />;
 export const IcVideo = () => <Icone nome="video" />;
 export const IcVolume = ({ mudo }: { mudo?: boolean }) => <Icone nome={mudo ? 'volume-off' : 'volume'} />;
 export const IcOlho = () => <Icone nome="olho" />;
+export const IcNivel = () => <Icone nome="nivel" />;
+export const IcTrofeu = () => <Icone nome="trofeu" />;
+export const IcResponder = () => <Icone nome="responder" />;
