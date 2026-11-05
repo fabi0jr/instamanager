@@ -9,7 +9,6 @@ import { Denuncias } from './Denuncias';
 import { Pedidos } from './Pedidos';
 import { RodadaEditar, RodadasLista } from './Rodadas';
 import { Mcp } from './Mcp';
-import { NovaVotacao, VotacoesAdmin } from './Votacoes';
 
 export const Topo = ({ titulo, voltar }: { titulo: string; voltar?: boolean }) => (
   <>
@@ -52,7 +51,6 @@ function Inicio() {
           <span aria-hidden="true">›</span>
         </Link>
         <Link para="/admin/rodadas" className="linha-config"><span>Rodadas</span><span aria-hidden="true">›</span></Link>
-        <Link para="/admin/votacoes" className="linha-config"><span>Votações</span><span aria-hidden="true">›</span></Link>
         <Link para="/admin/copa" className="linha-config"><span>Copa do Brasil</span><span aria-hidden="true">›</span></Link>
         <Link para="/admin/clubes" className="linha-config">
           <span>Clubes e técnicos</span>
@@ -82,7 +80,5 @@ export function Admin({ me, caminho }: { me: Me; caminho: string }) {
   const fase = caminho.match(/^\/admin\/copa\/([^/]+)$/);
   if (fase) return <CopaFase id={decodeURIComponent(fase[1])} />;
   if (caminho === '/admin/mcp') return <Mcp />;
-  if (caminho === '/admin/votacoes') return <VotacoesAdmin />;
-  if (caminho === '/admin/votacoes/nova') return <NovaVotacao />;
   return <Inicio />;
 }

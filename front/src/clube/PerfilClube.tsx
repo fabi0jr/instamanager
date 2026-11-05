@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, type Me } from '../api/cliente';
 import { Escudo } from '../feed/Escudo';
-import { Folha } from '../feed/Folha';
-import { IcOk, IcSelo, IcSeta } from '../feed/icones';
+import { IcOk, IcSeta } from '../feed/icones';
 import { textoUltimos, type Resultado } from '../liga/tipos';
 import { Ultimos } from '../liga/Ultimos';
 import { GradeCapas } from '../feed/GradeCapas';
@@ -13,11 +12,9 @@ import { Link } from '../rotas';
 import './clube.css';
 
 type Historico = { usuario: { id: string; nome: string }; inicio: string; fim: string | null };
-export type Clube = { id: string; nome: string; escudoUrl: string; bio?: string | null; capaUrl?: string | null; tecnico: { id: string; nome: string } | null; historico: Historico[]; liga?: { posicao: number; ultimos: Resultado[]; pontos?: number; jogos?: number } | null; selos?: { titulo: string; createdAt: string }[] };
+export type Clube = { id: string; nome: string; escudoUrl: string; bio?: string | null; capaUrl?: string | null; tecnico: { id: string; nome: string } | null; historico: Historico[]; liga?: { posicao: number; ultimos: Resultado[]; pontos?: number; jogos?: number } | null; };
 type Troca = { id: string; tipo: string; status: string; clubeId: string | null };
 
-const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-const mesAno = (iso: string) => `${MESES[new Date(iso).getMonth()]}/${String(new Date(iso).getFullYear()).slice(2)}`;
 export const data = (iso: string) => new Date(iso).toLocaleDateString('pt-BR');
 export const Inicial = ({ nome, tam }: { nome: string; tam: number }) => (
   <span className="av-inicial" style={{ width: tam, height: tam, fontSize: tam * 0.4 }} aria-hidden="true">{nome[0]?.toUpperCase()}</span>
@@ -37,7 +34,6 @@ function Bio({ texto }: { texto: string }) {
 export function PerfilClube({ id, me }: { id: string; me: Me }) {
   const [clube, setClube] = useState<Clube | 'carregando' | 'erro'>('carregando');
   const [aba, setAba] = useState<'posts' | 'historico'>('posts');
-  const [todosSelos, setTodosSelos] = useState(false);
   const [pendente, setPendente] = useState<Troca | null>(null); // pedido pendente da pessoa, se houver
   const posts = usePaginado<Post>('/posts', { clube: id });
 
@@ -68,12 +64,8 @@ export function PerfilClube({ id, me }: { id: string; me: Me }) {
 
   const atual = clube.historico.find((h) => h.fim === null);
   const meu = me.clube?.id === clube.id;
-  const cbf = clube.id === 'cbf'; // clube oficial: sem técnico, posição, selos nem histórico (só Posts)
+  const cbf = clube.id === 'cbf'; // clube oficial: sem técnico, posição nem histórico (só Posts)
   const podePedir = !clube.tecnico && !meu && !cbf;
-  const selos = clube.selos ?? [];
-  const seloCartao = (x: { titulo: string; createdAt: string }, i: number) => (
-    <li key={i} className="selo-cartao"><IcSelo /><span><strong>{x.titulo}</strong><span className="giz2 legenda-s">{mesAno(x.createdAt)}</span></span></li>
-  );
   const souTecnico = clube.tecnico?.id === me.id; // técnico atual (ex-técnico não casa)
   const podeEditarClube = souTecnico || me.isAdmin;
 
@@ -126,19 +118,6 @@ export function PerfilClube({ id, me }: { id: string; me: Me }) {
         <Link para="/liga" className="cartao-liga" aria-label={`${clube.liga.posicao}º na Liga, ${textoUltimos(clube.liga.ultimos)}`}>
           <strong>{clube.liga.posicao}º</strong><span className="giz2">na Liga{clube.liga.pontos !== undefined && <span className="legenda-s giz3"> · {clube.liga.pontos} pontos · {clube.liga.jogos} jogos</span>}</span><Ultimos valores={clube.liga.ultimos} /><IcSeta />
         </Link>
-      )}
-      {!cbf && selos.length > 0 && (
-        <section className="selos" aria-label="Selos">
-          <p className="giz2 legenda-s">SELOS</p>
-          <ul>{selos.slice(0, 6).map(seloCartao)}</ul>
-          {selos.length > 6 && <button type="button" className="link giz2" onClick={() => setTodosSelos(true)}>Ver todos</button>}
-        </section>
-      )}
-      {todosSelos && (
-        <Folha titulo="Selos" aoFechar={() => setTodosSelos(false)}>
-          <h2 data-foco tabIndex={-1}>Selos</h2>
-          <ul className="selos-todos">{selos.map(seloCartao)}</ul>
-        </Folha>
       )}
 
       {cbf ? <h2 className="so-posts">Posts</h2> : <div role="tablist" className="abas" onKeyDown={(e) => (e.key === 'ArrowRight' || e.key === 'ArrowLeft') && setAba(aba === 'posts' ? 'historico' : 'posts')}>

@@ -16,7 +16,6 @@ import { TrocarSenha } from './conta/TrocarSenha';
 import { ListaClubes } from './clube/ListaClubes';
 import { EditarClube } from './clube/EditarClube';
 import { PerfilClube } from './clube/PerfilClube';
-import { AvisoVotacao, Votar } from './votacoes/Votacoes';
 import { Liga } from './liga/Liga';
 import { PalpitesDoJogo } from './liga/PalpitesDoJogo';
 import { PerfilPessoa } from './pessoa/PerfilPessoa';
@@ -76,7 +75,7 @@ export function App() {
             <button type="button" className="botao" onClick={() => voltar('/')}>Voltar</button>
           </div>
         )}
-        {caminho === '/' && <><AvisoVotacao /><Feed me={me} abaixoDoTopo={<FaixaStories me={me} />} /></>}
+        {caminho === '/' && <Feed me={me} abaixoDoTopo={<FaixaStories me={me} />} />}
         {params.id && /^\/p\/[^/]+$/.test(caminho) && <div className="post-pagina"><PostPagina id={params.id} me={me} /></div>}
         {params.id && /^\/p\/[^/]+\/editar$/.test(caminho) && <div className="post-pagina"><EditarPost id={params.id} /></div>}
         {params.id && /^\/c\/[^/]+$/.test(caminho) && <PerfilClube id={params.id} me={me} />}
@@ -85,7 +84,6 @@ export function App() {
         {params.id && /^\/u\/[^/]+$/.test(caminho) && <PerfilPessoa id={params.id} />}
         {params.tag && /^\/tag\/[^/]+$/.test(caminho) && <Tag tag={params.tag} />}
         {caminho === '/clubes' && <ListaClubes />}
-        {params.id && /^\/votacoes\/[^/]+$/.test(caminho) && <Votar id={params.id} />}
         {caminho === '/liga' && <Liga me={me} />}
         {caminho === '/atividade' && <Atividade meuId={me.id} />}
         {caminho === '/stories/novo' && <CriarStory me={me} />}

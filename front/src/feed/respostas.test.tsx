@@ -176,7 +176,7 @@ test('a folha continua um dialog no portal (<body>) com o campo dentro dela', as
 });
 
 test('atividade RESPOSTA: avatar de quem respondeu, selo responder, texto e leva ao post com a folha aberta', async () => {
-  const item = { id: 'r1', tipo: 'RESPOSTA', criadoEm: new Date().toISOString(), lida: false, ator: usuario('u9', 'Marcos'), post: { id: 'p1', miniUrl: '/m.jpg', resumo: 'x' }, votacao: null, comentario: { id: 'c1', resumo: 'Boa jogada' } };
+  const item = { id: 'r1', tipo: 'RESPOSTA', criadoEm: new Date().toISOString(), lida: false, ator: usuario('u9', 'Marcos'), post: { id: 'p1', miniUrl: '/m.jpg', resumo: 'x' }, comentario: { id: 'c1', resumo: 'Boa jogada' } };
   fetchFalso({ 'GET /atividade': { itens: [item], proximo: null }, 'POST /atividade/lidas': { status: 204 } });
   render(<Atividade meuId="u1" />);
   expect(await screen.findByText(/respondeu:/)).toBeTruthy();
