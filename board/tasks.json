@@ -1,5 +1,5 @@
 {
-  "proximoId": 82,
+  "proximoId": 83,
   "tarefas": [
     {
       "id": "IM-1",
@@ -5685,6 +5685,45 @@
           "de": "qa",
           "para": "concluido",
           "nota": "VAR aprovou os itens 1, 2, a, b; fix3 47f9e4c (mesma lógica da Liga) revisado pelo Maestro"
+        }
+      ]
+    },
+    {
+      "id": "IM-82",
+      "titulo": "Feed: carrossel usa a imagem cheia",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "Carrossel do feed com cheiaUrl, miniUrl como placeholder, lazy depois da primeira; grades, busca e atividade seguem com miniUrl; teste"
+      ],
+      "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-06T03:14:38.862Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-06T03:14:38.891Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T03:14:38.918Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-06T03:14:38.945Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     }
