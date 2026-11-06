@@ -1,8 +1,10 @@
 import { useState, type DragEvent } from 'react';
+import { ERROS_VIDEO, MAX_VIDEO_BYTES } from '../stories/tipos';
 
 export type Entrega = { modo: 'foto' | 'video'; arquivos: File[] };
 const MOUSE = '(hover: hover) and (pointer: fine)';
-const ehImagem = (a: File) => a.type.startsWith('image/') || /\.(jpe?g|png|webp|heic|heif)$/i.test(a.name); // HEIC às vezes chega sem type
+// mesma lista do accept do seletor (JPEG, PNG, WebP, HEIC/HEIF); GIF, BMP e SVG não passam. HEIC às vezes chega sem type
+const ehImagem = (a: File) => (a.type ? /^image\/(jpeg|png|webp|heic|heif)$/.test(a.type) : /\.(jpe?g|png|webp|heic|heif)$/i.test(a.name));
 const ehVideo = (a: File) => a.type.startsWith('video/') || /\.(mp4|mov)$/i.test(a.name);
 
 /** Decide a aba pelo que foi solto; o que não serve vira mensagem. */
@@ -12,7 +14,11 @@ export function classificar(arquivos: File[]): Entrega | string {
   if (imgs.length + vids.length < arquivos.length) return 'Esse tipo de arquivo não vale. Use imagens (JPEG, PNG, WebP ou HEIC) ou um vídeo (MP4 ou MOV).';
   if (imgs.length && vids.length) return 'Imagem e vídeo não vão juntos. Solte só imagens ou só um vídeo.';
   if (vids.length > 1) return 'Um post tem só um vídeo. Solte um de cada vez.';
-  if (vids.length) return { modo: 'video', arquivos: vids };
+  if (vids.length) {
+    // confere o tamanho antes de trocar de aba: o diálogo de descartar não pode custar a legenda por um arquivo que seria recusado
+    if (vids[0].size > MAX_VIDEO_BYTES) { const e = ERROS_VIDEO.VIDEO_GRANDE(); return `${e.titulo}. ${e.texto}`; }
+    return { modo: 'video', arquivos: vids };
+  }
   return imgs.length ? { modo: 'foto', arquivos: imgs } : 'Não encontrei nenhum arquivo para soltar.';
 }
 

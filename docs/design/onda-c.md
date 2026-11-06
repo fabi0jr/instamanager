@@ -136,10 +136,10 @@ O envio falho e a falta de permissão reaproveitam `envio-falhou` e `envio-sem-p
 ## 7. Card de post com vídeo
 
 Igual ao card de `fundamentos.md` (cabeçalho, ações, contagem, legenda), com a **capa** no lugar da imagem (390 × 390, a proporção quadrada do feed):
-- **Play** no centro: círculo de 64 `#000` a 55% com `play` de 28 preenchido em giz. Toque inicia o vídeo no lugar, **mudo** (autoplay só depois do toque; sem som até a pessoa ligar).
+- **Play** no centro: círculo de 64 `#000` a 55% com `play` de 28 preenchido em giz. Com o card ≥ 60% visível o vídeo toca sozinho, **mudo** e em loop (só um por vez: o mais visível, ou o que a pessoa tocou). Antes disso, só a capa. Sair da tela pausa, volta à capa e zera o som (som só com novo toque). Com economia de dados ou movimento reduzido, não toca sozinho: capa + play, e o toque inicia mudo.
 - **Duração** embaixo à esquerda: pílula de 28 `#000` a 65% com `video` (20) e “0:24” em Barlow 600 15. Quando toca, mostra o tempo que falta/passou (“0:11”).
 - **Som** embaixo à direita: círculo de 36 `#000` a 65% com `volume-off` (24); ligado vira `volume`. Alvo de 44.
-- Tocando: o play some e uma barra de progresso de 3 px (giz sobre `--im-superficie-alta`) corre na base da mídia. Toque no vídeo pausa/retoma; sair da tela do feed pausa.
+- Tocando: o play some e uma barra de progresso de 3 px (giz sobre `--im-superficie-alta`) corre na base da mídia. Toque no vídeo pausa/retoma (pausado fica pausado até sair e voltar).
 - Sem selo “Ver prompt” e sem contador “1/3”. Vídeo que falha ao tocar volta à capa com `alerta` e “Não deu para tocar. Toque para tentar de novo.”.
 
 | Tela | O que mostra |

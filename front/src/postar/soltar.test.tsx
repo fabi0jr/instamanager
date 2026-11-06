@@ -76,7 +76,31 @@ test('vídeo com limite estourado usa as mesmas validações do seletor', async 
   const grande = vid('g.mp4');
   Object.defineProperty(grande, 'size', { value: 61 * 1024 * 1024 });
   soltar(screen.getByText(CAIXA), [grande]);
-  expect(await screen.findByText('Esse arquivo passa de 60 MB')).toBeTruthy();
+  expect((await screen.findByRole('alert')).textContent).toContain('passa de 60 MB');
+});
+
+test('vídeo de 61 MB solto na aba Foto é recusado antes de trocar de aba (nada de diálogo de descartar)', () => {
+  mouse(true);
+  render(<Postar me={me} />);
+  const grande = vid('g.mp4');
+  Object.defineProperty(grande, 'size', { value: 61 * 1024 * 1024 });
+  soltar(screen.getByText(CAIXA), [grande]);
+  expect(screen.getByRole('alert').textContent).toContain('passa de 60 MB');
+  expect(screen.getByRole('radio', { name: 'Foto' }).getAttribute('aria-checked')).toBe('true');
+  expect(screen.queryByRole('dialog')).toBeNull();
+});
+
+test('só os tipos do seletor: GIF, BMP e SVG dão erro de tipo; HEIC sem type passa pela extensão', async () => {
+  mouse(true);
+  render(<Postar me={me} />);
+  const caixa = screen.getByText(CAIXA);
+  for (const f of [new File(['x'], 'a.gif', { type: 'image/gif' }), new File(['x'], 'a.bmp', { type: 'image/bmp' }), new File(['x'], 'a.svg', { type: 'image/svg+xml' })]) {
+    soltar(caixa, [f]);
+    expect(screen.getByRole('alert').textContent).toContain('tipo de arquivo não vale');
+  }
+  expect(screen.queryByText(/de 10 imagens/)).toBeNull();
+  soltar(caixa, [new File(['x'], 'a.heic')]);
+  expect(await screen.findByText(/1 de 10 imagens/)).toBeTruthy();
 });
 
 test('imagem + vídeo juntos, tipo não aceito e vários vídeos dão erro claro, sem trocar de aba', () => {

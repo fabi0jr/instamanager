@@ -94,3 +94,32 @@ test('saveData ou movimento reduzido: continua capa + play, sem autoplay', () =>
   ver(0, 1);
   expect(document.querySelector('video')).toBeNull();
 });
+
+test('play manual no cartão de baixo vira o ativo (o outro pausa e volta à capa) e rolar para longe pausa', () => {
+  render(<><VideoCard post={post('a')} /><VideoCard post={post('b')} /></>);
+  ver(0, 0.9);
+  ver(1, 0.4); // b aparece pouco: não é o mais visível
+  expect(document.querySelectorAll('video')).toHaveLength(1);
+  pause.mockClear();
+  fireEvent.click(screen.getAllByRole('button', { name: 'Tocar vídeo' })[1]);
+  expect([...document.querySelectorAll('video')].map((x) => x.getAttribute('src'))).toEqual(['/b.mp4']); // só um toca
+  expect(pause).toHaveBeenCalled();
+  pause.mockClear();
+  ver(1, 0.05); // rolou para longe
+  expect(document.querySelector('video[src="/b.mp4"]')).toBeNull(); // desmontou, voltou à capa
+  expect(pause).toHaveBeenCalled();
+});
+
+test('sair da tela zera o som: ao voltar toca mudo; som ligado na capa também zera', () => {
+  render(<VideoCard post={post('a')} />);
+  ver(0, 0.9);
+  fireEvent.click(screen.getByRole('button', { name: 'Ligar o som' }));
+  expect(document.querySelector('video')!.muted).toBe(false);
+  ver(0, 0.1);
+  ver(0, 0.9);
+  expect(document.querySelector('video')!.muted).toBe(true);
+  ver(0, 0.1);
+  fireEvent.click(screen.getByRole('button', { name: 'Ligar o som' })); // na capa
+  ver(0, 0.05); // continua fora: sair de novo zera
+  expect(screen.getByRole('button', { name: 'Ligar o som' })).toBeTruthy();
+});

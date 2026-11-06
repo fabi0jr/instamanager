@@ -5,15 +5,22 @@ import type { Post } from './tipos';
 import '../stories/stories.css';
 
 const VISIVEL = 0.6; // fração do cartão na tela para tocar sozinho
-// Só um vídeo por vez: cada cartão informa o quanto aparece; toca o mais visível (empate: o primeiro a chegar).
+const SAIU = 0.25; // abaixo disso o cartão saiu da tela
+// Só um vídeo por vez. Cada cartão informa o quanto aparece; a vez é de quem a pessoa tocou (enquanto estiver na tela)
+// ou, sem toque, do mais visível (empate: o primeiro a chegar).
 const razoes = new Map<symbol, number>();
 const ouvintes = new Set<() => void>();
+let manual: symbol | null = null;
+function avisar() { ouvintes.forEach((f) => f()); }
 function informar(id: symbol, r: number) {
   if (r > 0) razoes.set(id, r);
   else razoes.delete(id);
-  ouvintes.forEach((f) => f());
+  if (r < SAIU && manual === id) manual = null;
+  avisar();
 }
-function campeao() {
+function tocarManual(id: symbol) { manual = id; avisar(); }
+function vez() {
+  if (manual) return manual;
   let id: symbol | null = null;
   let melhor = VISIVEL - 1e-9;
   for (const [k, r] of razoes) if (r > melhor) { id = k; melhor = r; }
@@ -24,7 +31,8 @@ const semAutoplay = () =>
   (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true ||
   (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-// Capa até o cartão ficar >= 60% visível; aí o <video> monta e toca mudo em loop, e pausa ao sair. Quem pausou fica pausado até sair e voltar.
+// Capa até o cartão ficar >= 60% visível; aí o <video> monta e toca mudo em loop. Perdeu a vez ou saiu da tela: pausa,
+// desmonta, volta à capa e ao mudo (som só com novo toque). Quem pausou fica pausado até sair e voltar.
 export function VideoCard({ post }: { post: Post }) {
   const v = post.video!;
   const el = useRef<HTMLVideoElement>(null);
@@ -42,38 +50,45 @@ export function VideoCard({ post }: { post: Post }) {
   useEffect(() => {
     const alvo = caixa.current;
     const id = meuId.current;
-    if (!alvo || typeof IntersectionObserver === 'undefined') return;
-    const atualizar = () => setAtivo(campeao() === id);
+    const atualizar = () => setAtivo(vez() === id);
     ouvintes.add(atualizar);
+    const limpar = () => { ouvintes.delete(atualizar); informar(id, 0); };
+    if (!alvo || typeof IntersectionObserver === 'undefined') return limpar;
     const io = new IntersectionObserver(
       (es) => {
         for (const e of es) informar(id, e.isIntersecting ? e.intersectionRatio : 0);
-        if (!auto.current && es.some((e) => e.intersectionRatio < 0.25)) el.current?.pause(); // sem autoplay: só pausa ao sair
+        if (es.some((e) => e.intersectionRatio < SAIU)) setMudo(true); // som ligado na capa vale só para este toque
       },
       { root: document.getElementById('rolagem'), threshold: Array.from({ length: 21 }, (_, i) => i / 20) },
     );
     io.observe(alvo);
-    return () => { io.disconnect(); ouvintes.delete(atualizar); informar(id, 0); };
+    return () => { io.disconnect(); limpar(); };
   }, []);
 
   useEffect(() => {
-    if (!auto.current) return;
-    if (!ativo) { pausouEu.current = false; el.current?.pause(); return; }
-    if (pausouEu.current) return;
+    if (!ativo) {
+      pausouEu.current = false;
+      el.current?.pause();
+      setIniciou(false); setTocando(false); setTempo(0); setMudo(true);
+      return;
+    }
+    if (pausouEu.current || (!auto.current && manual !== meuId.current)) return; // sem autoplay: só com toque
     if (!iniciou) { setIniciou(true); return; } // o <video> monta agora; este efeito roda de novo
-    el.current?.play().catch(() => {}); // navegador barrou o autoplay: fica o botão de play, sem erro
+    el.current?.play().catch(() => { if (manual === meuId.current) setFalhou(true); }); // autoplay barrado: fica o botão de play, sem erro
   }, [ativo, iniciou]);
 
   function tocar() {
     setFalhou(false);
-    setIniciou(true);
-    requestAnimationFrame(() => el.current?.play().catch(() => setFalhou(true)));
+    tocarManual(meuId.current);
   }
   function alternar() {
     const x = el.current;
     if (!x) return;
-    if (x.paused) { pausouEu.current = false; x.play().catch(() => setFalhou(true)); }
-    else { pausouEu.current = true; x.pause(); }
+    if (x.paused) {
+      pausouEu.current = false;
+      tocarManual(meuId.current);
+      x.play().catch(() => setFalhou(true));
+    } else { pausouEu.current = true; x.pause(); }
   }
   return (
     <div className="video-card" ref={caixa}>
