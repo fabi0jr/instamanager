@@ -85,12 +85,13 @@ test('toque duplo na imagem curte, mas nunca descurte', async () => {
   expect(chamadas).toHaveLength(1);
 });
 
-test('carrossel usa cheiaUrl (mini só de placeholder), eager na 1ª e lazy nas outras', () => {
+test('carrossel usa só cheiaUrl (sem mini de fundo, que baixaria na hora), eager na 1ª e lazy nas outras', () => {
   const p = post('a', { imagens: [1, 2].map((n) => ({ id: 'i' + n, miniUrl: `/m${n}.jpg`, cheiaUrl: `/c${n}.jpg`, largura: 1000, altura: 1000, prompt: null })) });
   const { container } = render(<CardPost post={p} me={me} prioridade />);
   const imgs = [...container.querySelectorAll('.carrossel img')] as HTMLImageElement[];
   expect(imgs.map((i) => i.getAttribute('src'))).toEqual(['/c1.jpg', '/c2.jpg']);
-  expect(imgs.map((i) => i.style.backgroundImage)).toEqual(['url("/m1.jpg")', 'url("/m2.jpg")']);
+  expect(imgs.map((i) => i.style.backgroundImage)).toEqual(['', '']);
+  expect(container.innerHTML).not.toContain('/m1.jpg');
   expect(imgs.map((i) => i.getAttribute('loading'))).toEqual(['eager', 'lazy']);
   expect(imgs.map((i) => i.getAttribute('fetchpriority'))).toEqual(['high', null]);
 });
