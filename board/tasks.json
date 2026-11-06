@@ -1,5 +1,5 @@
 {
-  "proximoId": 83,
+  "proximoId": 84,
   "tarefas": [
     {
       "id": "IM-1",
@@ -5745,6 +5745,45 @@
           "de": "qa",
           "para": "concluido",
           "nota": "2 arquivos, revisado pelo Maestro; aguarda OK do Fabio para o deploy"
+        }
+      ]
+    },
+    {
+      "id": "IM-83",
+      "titulo": "Feed: carrossel sem miniatura de fundo (lazy de verdade)",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "sem background-image no carrossel, fundo em cor sólida; só a 1ª imagem do 1º post eager; medir bytes baixados ao abrir o feed, antes e depois"
+      ],
+      "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-06T13:39:09.253Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-06T13:39:09.284Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T13:39:09.308Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-06T13:39:09.336Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     }
