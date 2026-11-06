@@ -279,3 +279,29 @@ test('Copa fechada: placar 1×1, pênaltis 4 a 5, quem passou e pontos; faixa di
   expect(screen.getByText('Vasco passou nos pênaltis')).toBeTruthy();
   expect(screen.getByLabelText('4 pontos').textContent).toBe('+4');
 });
+
+test('chip ativo cortado: rola só a faixa (scrollLeft), nunca scrollIntoView', async () => {
+  const si = vi.fn();
+  Element.prototype.scrollIntoView = si;
+  const j = [placar(1, 1, 0)];
+  const rect = (left: number, right: number) => ({ left, right, top: 0, bottom: 0, width: right - left, height: 0, x: left, y: 0, toJSON() {} }) as DOMRect;
+  const orig = Element.prototype.getBoundingClientRect;
+  // faixa visível de 0 a 300; o chip ativo (Rodada 12) fica em 400–500
+  Element.prototype.getBoundingClientRect = function (this: Element) {
+    if (this.classList.contains('chips-escolha')) return rect(0, 300);
+    if (this.getAttribute('aria-pressed') === 'true') return this.textContent === 'Rodada 12' ? rect(400, 500) : rect(0, 100);
+    return orig.call(this);
+  };
+  try {
+    fetchFalso({ 'GET /liga/tabela': [], 'GET /liga/rodadas': [fech(12, passado(), j), ...rodada(amanha())], 'GET /copa': [], 'GET /bolao/meus?rodada=13': [], 'GET /bolao/meus?rodada=12': [] });
+    render(<Liga me={me} />);
+    await screen.findByText(/Palpite até/);
+    clica('Rodada 12');
+    const faixa = document.querySelector<HTMLElement>('.chips-escolha')!;
+    await waitFor(() => expect(faixa.scrollLeft).toBe(200));
+    expect(si).not.toHaveBeenCalled();
+  } finally {
+    Element.prototype.getBoundingClientRect = orig;
+    delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView;
+  }
+});

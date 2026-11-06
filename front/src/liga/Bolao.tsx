@@ -5,6 +5,7 @@ import { Escudo } from '../feed/Escudo';
 import { IcOk, Icone } from '../feed/icones';
 import { sigla } from '../feed/siglas';
 import { Link, navegar } from '../rotas';
+import { mostrarAtivo } from './rolagem';
 import type { FaseCopa } from './Copa';
 import { diaHora, emMenosDe24h, faltam } from './prazo';
 import type { Rodada } from './tipos';
@@ -117,7 +118,7 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
   useEffect(() => { if (alvo) { setAviso(''); setOk(''); carregarMeus(alvo); } }, [alvo?.chave]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // o chip ativo entra na vista (fechadas ficam no fim da fila; com ?fase= ele estava a 4199px)
-  useEffect(() => { document.querySelector('.chips-escolha [aria-pressed="true"]')?.scrollIntoView?.({ inline: 'nearest', block: 'nearest' }); }, [alvo?.chave]);
+  useEffect(() => { mostrarAtivo('.chips-escolha', '[aria-pressed="true"]'); }, [alvo?.chave]);
 
   if (alvos === 'carregando') return <div aria-busy="true"><div className="esqueleto" style={{ height: 52 }} />{[0, 1, 2].map((i) => <div key={i} className="esqueleto" style={{ height: 116, marginTop: 8 }} />)}</div>;
   if (alvos === 'erro') return <div className="caixa-info" role="alert"><h2>Não deu para carregar o bolão</h2><button type="button" className="botao secundario" onClick={carregar}>Tentar de novo</button></div>;
