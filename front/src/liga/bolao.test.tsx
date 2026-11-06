@@ -207,3 +207,101 @@ test('trocar de chip com o GET do anterior ainda no ar: a resposta velha é igno
   expect(screen.getByRole('spinbutton', { name: 'Gols do Santos, 2' })).toBeTruthy(); // não virou 7
   expect(screen.queryByRole('spinbutton', { name: 'Gols do Santos, 7' })).toBeNull();
 });
+
+// IM-81: fechadas continuam visíveis
+const placar = (n: number, gm: number | null, gv: number | null) => ({ id: 'j' + n, mandante: c('santos'), visitante: c('vasco'), golsMandante: gm, golsVisitante: gv });
+const fech = (numero: number, prazoPalpite: string | null, jogos: ReturnType<typeof placar>[]) => ({ numero, fechada: true, prazoPalpite, jogos });
+const passado = () => new Date(Date.now() - 86400_000).toISOString();
+
+test('chips: abertas como antes, depois as fechadas da mais recente à mais antiga; fase fechada entra por ordem', () => {
+  const j = [placar(1, 1, 0)];
+  const fase = (id: string, ordem: number) => ({ fase: { id, nome: 'F' + id, ordem, prazoPalpite: passado(), fechada: true }, jogos: [{ ...j[0], penaltisMandante: null, penaltisVisitante: null, vencedor: null }] });
+  const alvos = montarAlvos([fech(2, null, j), { numero: 9, fechada: false, prazoPalpite: amanha(), jogos: j }, fech(5, passado(), j), fech(3, passado(), j)], [fase('a', 1), fase('b', 3)] as never);
+  expect(alvos.map((a) => a.rotulo)).toEqual(['Rodada 9', 'Rodada 5', 'Rodada 3', 'Rodada 2', 'Copa · Fb', 'Copa · Fa']);
+});
+
+test('sem escolha na URL abre na próxima aberta; fechada mostra placar, meu palpite, pontos e "Você não palpitou"', async () => {
+  fetchFalso({
+    'GET /liga/tabela': [],
+    'GET /liga/rodadas': [fech(12, passado(), [placar(1, 2, 1), placar(2, 0, 0), placar(3, 1, 1)]), ...rodada(amanha())],
+    'GET /copa': [],
+    'GET /bolao/meus?rodada=13': [],
+    'GET /bolao/meus?rodada=12': [
+      { jogoId: 'j1', copaJogoId: null, golsMandante: 2, golsVisitante: 1, classificadoId: null, pontos: 3, exato: true },
+      { jogoId: 'j2', copaJogoId: null, golsMandante: 1, golsVisitante: 0, classificadoId: null, pontos: 0, exato: false },
+    ],
+  });
+  render(<Liga me={me} />);
+  expect(await screen.findByText(/Palpite até/)).toBeTruthy();
+  const chips = within(screen.getByRole('group', { name: 'Rodada ou fase' })).getAllByRole('button');
+  expect(chips.map((b) => b.textContent)).toEqual(['Rodada 13', 'Rodada 12']);
+  expect(chips[0].getAttribute('aria-pressed')).toBe('true');
+  clica('Rodada 12');
+  expect(await screen.findByText('Rodada encerrada')).toBeTruthy();
+  const cards = await screen.findAllByRole('listitem', { name: 'Santos contra Vasco' });
+  expect(within(cards[0]).getByText('Placar 2 × 1')).toBeTruthy();
+  expect(within(cards[0]).getByLabelText('3 pontos').textContent).toBe('+3');
+  expect(within(cards[1]).getByLabelText('0 pontos').textContent).toBe('0');
+  expect(within(cards[2]).getByText('Você não palpitou')).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Salvar palpites' })).toBeNull();
+  expect(screen.queryByRole('button', { name: /Mais um gol/ })).toBeNull();
+  expect(screen.getAllByRole('link', { name: 'Palpites dos outros' })).toHaveLength(3);
+});
+
+test('rodada fechada sem prazo: "Sem bolão nesta rodada", sem link e sem botão', async () => {
+  fetchFalso({ 'GET /liga/tabela': [], 'GET /liga/rodadas': [fech(1, null, [placar(1, 2, 1)])], 'GET /copa': [], 'GET /bolao/meus?rodada=1': [] });
+  render(<Liga me={me} />);
+  expect(await screen.findByText('Sem bolão nesta rodada')).toBeTruthy();
+  await cartoes();
+  expect(screen.queryByRole('link', { name: 'Palpites dos outros' })).toBeNull();
+  expect(screen.queryByRole('button', { name: /palpites dos outros/i })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Salvar palpites' })).toBeNull();
+  expect(screen.queryByText('Você não palpitou')).toBeNull();
+});
+
+test('GET /bolao/meus falha (500) numa rodada fechada: não diz "Você não palpitou" e mantém o aviso', async () => {
+  fetchFalso({ 'GET /liga/tabela': [], 'GET /liga/rodadas': [fech(12, passado(), [placar(1, 2, 1)])], 'GET /copa': [], 'GET /bolao/meus?rodada=12': { status: 500 } });
+  render(<Liga me={me} />);
+  expect(await screen.findByText('Não deu para carregar seus palpites. Tente de novo.')).toBeTruthy();
+  expect(await screen.findByText('Placar 2 × 1')).toBeTruthy();
+  expect(screen.queryByText('Você não palpitou')).toBeNull();
+});
+
+test('Copa fechada: placar 1×1, pênaltis 4 a 5, quem passou e pontos; faixa diz "Fase encerrada"', async () => {
+  const jogo = { id: 'cj1', mandante: c('santos'), visitante: c('vasco'), golsMandante: 1, golsVisitante: 1, penaltisMandante: 4, penaltisVisitante: 5, vencedor: c('vasco') };
+  fetchFalso({
+    'GET /liga/tabela': [], 'GET /liga/rodadas': [], 'GET /copa': [{ fase: { id: 'f1', nome: 'Quartas', ordem: 2, prazoPalpite: passado(), fechada: true }, jogos: [jogo] }],
+    'GET /bolao/meus?fase=f1': [{ jogoId: null, copaJogoId: 'cj1', golsMandante: 1, golsVisitante: 1, classificadoId: 'vasco', pontos: 4, exato: true }],
+  });
+  render(<Liga me={me} />);
+  expect(await screen.findByText('Fase encerrada')).toBeTruthy();
+  expect(await screen.findByText('Placar 1 × 1 (pênaltis 4 a 5)')).toBeTruthy();
+  expect(screen.getByText('Vasco passou nos pênaltis')).toBeTruthy();
+  expect(screen.getByLabelText('4 pontos').textContent).toBe('+4');
+});
+
+test('chip ativo cortado: rola só a faixa (scrollLeft), nunca scrollIntoView', async () => {
+  const si = vi.fn();
+  Element.prototype.scrollIntoView = si;
+  const j = [placar(1, 1, 0)];
+  const rect = (left: number, right: number) => ({ left, right, top: 0, bottom: 0, width: right - left, height: 0, x: left, y: 0, toJSON() {} }) as DOMRect;
+  const orig = Element.prototype.getBoundingClientRect;
+  // faixa visível de 0 a 300; o chip ativo (Rodada 12) fica em 400–500
+  Element.prototype.getBoundingClientRect = function (this: Element) {
+    if (this.classList.contains('chips-escolha')) return rect(0, 300);
+    if (this.getAttribute('aria-pressed') === 'true') return this.textContent === 'Rodada 12' ? rect(400, 500) : rect(0, 100);
+    return orig.call(this);
+  };
+  try {
+    fetchFalso({ 'GET /liga/tabela': [], 'GET /liga/rodadas': [fech(12, passado(), j), ...rodada(amanha())], 'GET /copa': [], 'GET /bolao/meus?rodada=13': [], 'GET /bolao/meus?rodada=12': [] });
+    render(<Liga me={me} />);
+    await screen.findByText(/Palpite até/);
+    clica('Rodada 12');
+    const faixa = document.querySelector<HTMLElement>('.chips-escolha')!;
+    await waitFor(() => expect(faixa.scrollLeft).toBe(200));
+    expect(si).not.toHaveBeenCalled();
+  } finally {
+    Element.prototype.getBoundingClientRect = orig;
+    delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView;
+  }
+});
