@@ -1,5 +1,5 @@
 {
-  "proximoId": 84,
+  "proximoId": 86,
   "tarefas": [
     {
       "id": "IM-1",
@@ -5805,6 +5805,77 @@
           "de": "qa",
           "para": "concluido",
           "nota": "medido: 5100 KB -> 2400 KB ao abrir; 28 -> 8 imagens"
+        }
+      ]
+    },
+    {
+      "id": "IM-84",
+      "titulo": "Feed: autoplay de vídeo mudo",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "toca com 60% visível, pausa fora; mudo, só um por vez, loop; pausa do usuário respeitada; carrega só ao aparecer; economia de dados e reduzir movimento mantêm capa com play"
+      ],
+      "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-06T13:55:14.486Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-06T13:55:14.536Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T13:55:14.559Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-06T13:55:14.628Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        }
+      ]
+    },
+    {
+      "id": "IM-85",
+      "titulo": "Postar: arrastar e soltar no computador",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "caixa em foto e vídeo, destaque ao arrastar, troca de aba pelo tipo, erro claro, celular igual; regras de tamanho iguais"
+      ],
+      "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "pronto",
+      "historico": [
+        {
+          "quando": "2026-11-06T13:55:14.511Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-06T13:55:14.583Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T13:55:14.606Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
         }
       ]
     }
