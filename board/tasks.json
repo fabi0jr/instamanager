@@ -5699,7 +5699,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-06T03:14:38.862Z",
@@ -5724,6 +5724,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-06T03:16:27.260Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "2 arquivos, revisado pelo Maestro; aguarda OK do Fabio para o deploy"
+        },
+        {
+          "quando": "2026-11-06T03:16:27.282Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "2 arquivos, revisado pelo Maestro; aguarda OK do Fabio para o deploy"
+        },
+        {
+          "quando": "2026-11-06T03:16:27.307Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "2 arquivos, revisado pelo Maestro; aguarda OK do Fabio para o deploy"
         }
       ]
     }
