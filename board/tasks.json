@@ -5536,13 +5536,32 @@
         "ensaio no dump, backup, deploy"
       ],
       "depende": [],
-      "responsavel": null,
-      "coluna": "backlog",
+      "responsavel": "Maestro",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-05T22:17:36.447Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-06T02:21:34.839Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T02:21:34.860Z",
+          "quem": "PO",
+          "nota": "atribuída a Maestro"
+        },
+        {
+          "quando": "2026-11-06T02:21:34.880Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": "contagem 0/0/0 e ensaio ok: só as 3 tabelas saem; Post, Jogo, Palpite, Notificacao, Conquista, McpAcao iguais"
         }
       ]
     },
