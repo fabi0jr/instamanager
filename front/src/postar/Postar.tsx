@@ -14,6 +14,7 @@ import { enviarPost } from './enviar';
 import { Contador, LIMITE_LEGENDA, LIMITE_PROMPT, LinhasPrompt } from './LinhasPrompt';
 import { PostarTexto } from './PostarTexto';
 import { PostarVideo } from './PostarVideo';
+import { AreaSoltar, bloquearSoltarFora, classificar, type Entrega } from './AreaSoltar';
 import './postar.css';
 
 const MAX = 10;
@@ -23,7 +24,8 @@ type Envio = { estado: 'enviando' | 'falhou'; carregado: number; total: number; 
 const mb = (n: number) => (n / 1048576).toFixed(1).replace('.', ',');
 
 let seq = 0;
-function PostarFoto({ me, seletor, aoConteudo }: { me: Me; seletor: ReactNode; aoConteudo?: (tem: boolean) => void }) {
+type Filha = { me: Me; seletor: ReactNode; aoConteudo?: (tem: boolean) => void; entrega: Entrega | null; aoReceber: () => void; aoSoltar: (arquivos: File[]) => string | void };
+function PostarFoto({ me, seletor, aoConteudo, entrega, aoReceber, aoSoltar }: Filha) {
   const [passo, setPasso] = useState(1);
   const [itens, setItens] = useState<Item[]>([]);
   const [legenda, setLegenda] = useState('');
@@ -71,6 +73,10 @@ function PostarFoto({ me, seletor, aoConteudo }: { me: Me; seletor: ReactNode; a
   async function escolher(e: ChangeEvent<HTMLInputElement>) {
     const arquivos = [...(e.target.files ?? [])];
     e.target.value = '';
+    await adicionar(arquivos);
+  }
+
+  async function adicionar(arquivos: File[]) {
     const cabem = arquivos.slice(0, MAX - itens.length);
     const fora = arquivos.length - cabem.length;
     setAviso(fora > 0 ? `O limite é ${MAX} imagens. ${fora === 1 ? 'A última ficou' : `As ${fora} últimas ficaram`} de fora.` : '');
@@ -85,6 +91,12 @@ function PostarFoto({ me, seletor, aoConteudo }: { me: Me; seletor: ReactNode; a
     setItens((l) => l.filter((i) => i.id !== id));
     setPrompts(({ [id]: _, ...resto }) => resto);
   }
+
+  useEffect(() => { // arquivos soltos (aqui ou em outra aba)
+    if (entrega?.modo !== 'foto') return;
+    aoReceber();
+    void adicionar(entrega.arquivos);
+  }, [entrega]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const prontas = itens.filter((i) => i.estado === 'ok');
   const preparando = itens.filter((i) => i.estado === 'preparando').length;
@@ -215,7 +227,7 @@ function PostarFoto({ me, seletor, aoConteudo }: { me: Me; seletor: ReactNode; a
           {itens.length < MAX && (
             <input id="arquivos-postar" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple className="sr" aria-label="Escolher imagens" onChange={escolher} />
           )}
-          {itens.length === 0 && <label htmlFor="arquivos-postar" className="botao secundario">Escolher imagens</label>}
+          {itens.length === 0 && <AreaSoltar para="arquivos-postar" rotulo="Escolher imagens" aoSoltar={aoSoltar} />}
           <div className="acao-fixa">
             <Botao disabled={prontas.length === 0 || preparando > 0} onClick={() => setPasso(2)}>
               {preparando > 0 ? `Preparando ${itens.length - preparando} de ${itens.length}…` : 'Continuar'}
@@ -260,6 +272,8 @@ export function Postar({ me }: { me: Me }) {
   const [modo, setModo] = useState<Modo>(() => ((['texto', 'video'] as const).find((m) => m === localStorage.getItem(CHAVE_MODO)) ?? 'foto'));
   const [tem, setTem] = useState(false);
   const [pendente, setPendente] = useState<Modo | null>(null);
+  const [entrega, setEntrega] = useState<Entrega | null>(null);
+  useEffect(bloquearSoltarFora, []);
   const trocar = (m: Modo) => {
     setModo(m);
     setTem(false);
@@ -271,6 +285,14 @@ export function Postar({ me }: { me: Me }) {
     if (tem) setPendente(m);
     else trocar(m);
   };
+  // soltar: valida o tipo, troca de aba se preciso e entrega os arquivos à aba certa (mesmo caminho do seletor)
+  const soltar = (arquivos: File[]) => {
+    const r = classificar(arquivos);
+    if (typeof r === 'string') return r;
+    setEntrega(r);
+    escolher(r.modo);
+  };
+  const filha = { entrega, aoReceber: () => setEntrega(null), aoSoltar: soltar };
   const seletor = (
     <div className="alternancia" role="radiogroup" aria-label="Tipo de post">
       {(['foto', 'texto', 'video'] as const).map((m) => (
@@ -279,17 +301,17 @@ export function Postar({ me }: { me: Me }) {
     </div>
   );
   const tela =
-    modo === 'foto' || (!me.clube && !me.isAdmin) ? <PostarFoto me={me} seletor={seletor} aoConteudo={setTem} /> :
-    modo === 'video' ? <PostarVideo me={me} seletor={seletor} aoConteudo={setTem} /> :
+    modo === 'foto' || (!me.clube && !me.isAdmin) ? <PostarFoto me={me} seletor={seletor} aoConteudo={setTem} {...filha} /> :
+    modo === 'video' ? <PostarVideo me={me} seletor={seletor} aoConteudo={setTem} {...filha} /> :
     <PostarTexto me={me} seletor={seletor} aoConteudo={setTem} />;
   return (
     <>
       {tela}
       {pendente && (
-        <Folha titulo="Descartar este post?" aoFechar={() => setPendente(null)}>
+        <Folha titulo="Descartar este post?" aoFechar={() => { setPendente(null); setEntrega(null); }}>
           <h2>Descartar este post?</h2>
           <p className="giz2">Trocar para {pendente === 'foto' ? 'Foto' : pendente === 'texto' ? 'Texto' : 'Vídeo'} apaga o que você já escolheu ou escreveu. Um post tem só imagens, só texto ou só um vídeo.</p>
-          <button type="button" className="botao" onClick={() => setPendente(null)}>Continuar editando</button>
+          <button type="button" className="botao" onClick={() => { setPendente(null); setEntrega(null); }}>Continuar editando</button>
           <button type="button" className="botao fantasma" onClick={() => trocar(pendente)}>Descartar</button>
         </Folha>
       )}

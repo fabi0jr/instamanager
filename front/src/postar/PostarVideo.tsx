@@ -11,9 +11,10 @@ import { navegar } from '../rotas';
 import { ComoCbf, quemPosta } from './ComoCbf';
 import { enviarPost } from './enviar';
 import { Contador, LIMITE_LEGENDA } from './LinhasPrompt';
+import { AreaSoltar, type Entrega } from './AreaSoltar';
 
 // Aba Vídeo: 1 vídeo por post (sem prompt, fora da galeria). Passo 1 escolhe, passo 2 legenda, passo 3 envia e converte.
-export function PostarVideo({ me, seletor, aoConteudo }: { me: Me; seletor: ReactNode; aoConteudo?: (tem: boolean) => void }) {
+export function PostarVideo({ me, seletor, aoConteudo, entrega, aoReceber, aoSoltar }: { me: Me; seletor: ReactNode; aoConteudo?: (tem: boolean) => void; entrega?: Entrega | null; aoReceber?: () => void; aoSoltar?: (arquivos: File[]) => string | void }) {
   const [passo, setPasso] = useState(1);
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [duracao, setDuracao] = useState<number | null>(null);
@@ -33,7 +34,16 @@ export function PostarVideo({ me, seletor, aoConteudo }: { me: Me; seletor: Reac
   async function escolher(e: ChangeEvent<HTMLInputElement>) {
     const a = e.target.files?.[0];
     e.target.value = '';
-    if (!a) return;
+    if (a) await receber(a);
+  }
+
+  useEffect(() => { // vídeo solto (aqui ou na aba Foto)
+    if (entrega?.modo !== 'video') return;
+    aoReceber?.();
+    void receber(entrega.arquivos[0]);
+  }, [entrega]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function receber(a: File) {
     setErro(null);
     if (a.size > MAX_VIDEO_BYTES) return setErro(ERROS_VIDEO.VIDEO_GRANDE());
     const d = await duracaoDoArquivo(a);
@@ -112,7 +122,7 @@ export function PostarVideo({ me, seletor, aoConteudo }: { me: Me; seletor: Reac
           ) : (
             <>
               <p className="giz2">MP4 ou MOV, até 30 s e 60 MB. O iPhone grava em MOV: tudo bem, o app converte.</p>
-              <label htmlFor="video-postar" className="botao secundario">Escolher vídeo</label>
+              {aoSoltar ? <AreaSoltar para="video-postar" rotulo="Escolher vídeo" aoSoltar={aoSoltar} /> : <label htmlFor="video-postar" className="botao secundario">Escolher vídeo</label>}
             </>
           )}
           <input id="video-postar" type="file" accept="video/*" className="sr" aria-label="Escolher vídeo" onChange={escolher} />
