@@ -1,5 +1,5 @@
 {
-  "proximoId": 81,
+  "proximoId": 82,
   "tarefas": [
     {
       "id": "IM-1",
@@ -5543,6 +5543,45 @@
           "quando": "2026-11-05T22:17:36.447Z",
           "quem": "PO",
           "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-81",
+      "titulo": "Bolão: rodadas e fases fechadas continuam visíveis",
+      "tipo": "front",
+      "prioridade": "alta",
+      "descricao": "",
+      "criterios": [
+        "chips fechados depois dos abertos, mais recente primeiro; abre na próxima aberta; jogo encerrado mostra placar real, meu palpite e pontos; link dos outros mantido"
+      ],
+      "depende": [],
+      "responsavel": "Ponta",
+      "coluna": "dev",
+      "historico": [
+        {
+          "quando": "2026-11-06T02:20:37.464Z",
+          "quem": "PO",
+          "nota": "criada"
+        },
+        {
+          "quando": "2026-11-06T02:20:37.490Z",
+          "quem": "Maestro",
+          "de": "backlog",
+          "para": "pronto",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T02:20:37.513Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-06T02:20:37.534Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
         }
       ]
     }
