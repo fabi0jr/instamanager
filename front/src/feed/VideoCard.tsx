@@ -71,7 +71,7 @@ export function VideoCard({ post }: { post: Post }) {
     if (!ativo) {
       pausouEu.current = false;
       el.current?.pause();
-      setIniciou(false); setTocando(false); setTempo(0); setMudo(true);
+      setIniciou(false); setTocando(false); setTempo(0); setMudo(true); setFalhou(false);
       return;
     }
     if (!auto.current || manual === meuId.current || pausouEu.current) return; // toque manual toca pelo efeito de `pedidos`

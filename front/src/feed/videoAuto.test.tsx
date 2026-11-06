@@ -173,3 +173,17 @@ test('som ligado na capa só vale se o vídeo começar pelo toque em play, não 
   fireEvent.click(screen.getByRole('button', { name: 'Tocar vídeo' })); // começou pelo toque
   expect(document.querySelector('video')!.muted).toBe(false);
 });
+
+test('o aviso de falha some ao perder a vez: ao voltar não toca com "Não deu para tocar" por cima', async () => {
+  semAuto();
+  play.mockRejectedValueOnce(new Error('x'));
+  render(<VideoCard post={post('a')} />);
+  ver(0, 1);
+  fireEvent.click(screen.getByRole('button', { name: 'Tocar vídeo' }));
+  await act(async () => {});
+  expect(screen.getByRole('button', { name: /Não deu para tocar/ })).toBeTruthy();
+  ver(0, 0.05); // saiu
+  expect(screen.queryByText(/Não deu para tocar/)).toBeNull();
+  ver(0, 1); // voltou
+  expect(screen.queryByText(/Não deu para tocar/)).toBeNull();
+});
