@@ -11,7 +11,7 @@ import type { Rodada } from './tipos';
 
 type Alvo = {
   chave: string; rotulo: string; prazo: string | null; copa: boolean; query: string; fechada: boolean;
-  jogos: { id: string; mandante: ClubeMini; visitante: ClubeMini; gm: number | null; gv: number | null; semPlacar: boolean }[];
+  jogos: { id: string; mandante: ClubeMini; visitante: ClubeMini; gm: number | null; gv: number | null; pen: { m: number; v: number; passou: string } | null; semPlacar: boolean }[];
 };
 type Meu = { jogoId: string | null; copaJogoId: string | null; golsMandante: number; golsVisitante: number; classificadoId: string | null; pontos: number | null; exato: boolean };
 type Rascunho = { gm: number | null; gv: number | null; cl: string | null };
@@ -21,11 +21,11 @@ export function montarAlvos(rodadas: Rodada[], fases: FaseCopa[], agora = Date.n
   const alvos: Alvo[] = [
     ...rodadas.filter((r) => r.jogos.length).map((r): Alvo => ({
       chave: `r${r.numero}`, rotulo: `Rodada ${r.numero}`, prazo: r.prazoPalpite ?? null, copa: false, query: `rodada=${r.numero}`, fechada: r.fechada,
-      jogos: r.jogos.map((j) => ({ id: j.id, mandante: j.mandante, visitante: j.visitante, gm: j.golsMandante, gv: j.golsVisitante, semPlacar: j.golsMandante === null || j.golsVisitante === null })),
+      jogos: r.jogos.map((j) => ({ id: j.id, mandante: j.mandante, visitante: j.visitante, gm: j.golsMandante, gv: j.golsVisitante, pen: null, semPlacar: j.golsMandante === null || j.golsVisitante === null })),
     })),
     ...fases.filter(({ jogos }) => jogos.length).map(({ fase, jogos }): Alvo => ({
       chave: `f${fase.id}`, rotulo: `Copa · ${fase.nome}`, prazo: fase.prazoPalpite, copa: true, query: `fase=${fase.id}`, fechada: fase.fechada,
-      jogos: jogos.map((j) => ({ id: j.id, mandante: j.mandante, visitante: j.visitante, gm: j.golsMandante, gv: j.golsVisitante, semPlacar: j.golsMandante === null || j.golsVisitante === null })),
+      jogos: jogos.map((j) => ({ id: j.id, mandante: j.mandante, visitante: j.visitante, gm: j.golsMandante, gv: j.golsVisitante, pen: j.penaltisMandante !== null && j.penaltisVisitante !== null && j.vencedor ? { m: j.penaltisMandante, v: j.penaltisVisitante, passou: j.vencedor.nome } : null, semPlacar: j.golsMandante === null || j.golsVisitante === null })),
     })),
   ];
   const faixa = (a: Alvo) => (!a.prazo ? 1 : new Date(a.prazo).getTime() > agora ? 0 : 2);
@@ -39,8 +39,8 @@ export function montarAlvos(rodadas: Rodada[], fases: FaseCopa[], agora = Date.n
   return [...abertas, ...fechadas];
 }
 
-function Faixa({ prazo, agora, encerradoPorErro, fechada }: { prazo: string | null; agora: number; encerradoPorErro: boolean; fechada: boolean }) {
-  if (fechada) return <p className="faixa-prazo" role="status"><Icone nome="cadeado" />{prazo ? 'Rodada encerrada' : 'Sem bolão nesta rodada'}</p>;
+function Faixa({ prazo, agora, encerradoPorErro, fechada, copa }: { prazo: string | null; agora: number; encerradoPorErro: boolean; fechada: boolean; copa: boolean }) {
+  if (fechada) return <p className="faixa-prazo" role="status"><Icone nome="cadeado" />{prazo ? (copa ? 'Fase encerrada' : 'Rodada encerrada') : (copa ? 'Sem bolão nesta fase' : 'Sem bolão nesta rodada')}</p>;
   if (encerradoPorErro) return <p className="faixa-prazo erro" role="alert"><Alerta tam={24} />O prazo acabou. Nenhum palpite foi salvo.</p>;
   if (!prazo) return <p className="faixa-prazo" role="status"><Icone nome="cadeado" />O admin ainda não definiu o prazo. Dá para palpitar quando ele definir.</p>;
   const resta = faltam(prazo, agora);
@@ -68,6 +68,7 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
   const [escolhido, setEscolhido] = useState<string | null>(inicial.rodada ? `r${inicial.rodada}` : inicial.fase ? `f${inicial.fase}` : null);
   const [rasc, setRasc] = useState<Record<string, Rascunho>>({});
   const [salvos, setSalvos] = useState<Record<string, Meu>>({});
+  const [meusFalhou, setMeusFalhou] = useState(false); // sem a resposta de /bolao/meus a tela não afirma nada sobre o palpite
   const [carregandoMeus, setCarregandoMeus] = useState(true); // esqueleto até o GET /bolao/meus responder
   const pedido = useRef(0); // resposta de um chip antigo (troca rápida) é ignorada
   const editou = useRef(false); // a pessoa mexeu depois do pedido: a resposta não sobrescreve o rascunho
@@ -91,6 +92,7 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
 
   const carregarMeus = useCallback((a: Alvo) => {
     setCarregandoMeus(true);
+    setMeusFalhou(false);
     editou.current = false;
     const meu = ++pedido.current;
     setSujo(false);
@@ -109,10 +111,13 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
         if (!editou.current) setRasc(r);
         setCarregandoMeus(false);
       },
-      () => { if (meu !== pedido.current) return; setAviso('Não deu para carregar seus palpites. Tente de novo.'); setCarregandoMeus(false); },
+      () => { if (meu !== pedido.current) return; setAviso('Não deu para carregar seus palpites. Tente de novo.'); setMeusFalhou(true); setCarregandoMeus(false); },
     );
   }, []);
   useEffect(() => { if (alvo) { setAviso(''); setOk(''); carregarMeus(alvo); } }, [alvo?.chave]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // o chip ativo entra na vista (fechadas ficam no fim da fila; com ?fase= ele estava a 4199px)
+  useEffect(() => { document.querySelector('.chips-escolha [aria-pressed="true"]')?.scrollIntoView?.({ inline: 'nearest', block: 'nearest' }); }, [alvo?.chave]);
 
   if (alvos === 'carregando') return <div aria-busy="true"><div className="esqueleto" style={{ height: 52 }} />{[0, 1, 2].map((i) => <div key={i} className="esqueleto" style={{ height: 116, marginTop: 8 }} />)}</div>;
   if (alvos === 'erro') return <div className="caixa-info" role="alert"><h2>Não deu para carregar o bolão</h2><button type="button" className="botao secundario" onClick={carregar}>Tentar de novo</button></div>;
@@ -155,7 +160,7 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
       <div className="chips-escolha" role="group" aria-label="Rodada ou fase">
         {alvos.map((a) => <button key={a.chave} type="button" aria-pressed={a.chave === alvo.chave} onClick={() => setEscolhido(a.chave)}>{a.rotulo}</button>)}
       </div>
-      <Faixa prazo={alvo.prazo} agora={agora} encerradoPorErro={aviso409} fechada={alvo.fechada} />
+      <Faixa prazo={alvo.prazo} agora={agora} encerradoPorErro={aviso409} fechada={alvo.fechada} copa={alvo.copa} />
       {aviso && <div className="aviso" role="alert">{aviso}</div>}
       {carregandoMeus ? <div aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="esqueleto" style={{ height: 116, marginTop: 8 }} />)}</div> : (
         <ul className="cartoes-palpite">
@@ -184,8 +189,9 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
                 )}
                 {!aberto && (
                   <div className="rodape-palpite">
-                    {j.gm !== null && j.gv !== null && <span className="giz2 legenda-s">Placar {j.gm} × {j.gv}</span>}
-                    {j.gm !== null && alvo.prazo && !salvos[j.id] && <span className="giz2 legenda-s">Você não palpitou</span>}
+                    {j.gm !== null && j.gv !== null && <span className="giz2 legenda-s">Placar {j.gm} × {j.gv}{j.pen && ` (pênaltis ${j.pen.m} a ${j.pen.v})`}</span>}
+                    {j.pen && <span className="giz2 legenda-s">{j.pen.passou} passou nos pênaltis</span>}
+                    {j.gm !== null && alvo.prazo && !meusFalhou && !salvos[j.id] && <span className="giz2 legenda-s">Você não palpitou</span>}
                     {pts !== null && pts !== undefined && <span className={`chip-pontos ${pts > 0 ? 'ganhou' : ''}`} aria-label={`${pts} ${pts === 1 ? 'ponto' : 'pontos'}`}>{pts > 0 ? `+${pts}` : pts}</span>}
                     {!alvo.prazo ? null : <Link para={`/bolao/jogo/${alvo.copa ? 'copa' : 'brasileirao'}/${j.id}`} className="link-outros">Palpites dos outros</Link>}
                   </div>

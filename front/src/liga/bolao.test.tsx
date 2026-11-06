@@ -258,3 +258,24 @@ test('rodada fechada sem prazo: "Sem bolão nesta rodada", sem link e sem botão
   expect(screen.queryByRole('button', { name: 'Salvar palpites' })).toBeNull();
   expect(screen.queryByText('Você não palpitou')).toBeNull();
 });
+
+test('GET /bolao/meus falha (500) numa rodada fechada: não diz "Você não palpitou" e mantém o aviso', async () => {
+  fetchFalso({ 'GET /liga/tabela': [], 'GET /liga/rodadas': [fech(12, passado(), [placar(1, 2, 1)])], 'GET /copa': [], 'GET /bolao/meus?rodada=12': { status: 500 } });
+  render(<Liga me={me} />);
+  expect(await screen.findByText('Não deu para carregar seus palpites. Tente de novo.')).toBeTruthy();
+  expect(await screen.findByText('Placar 2 × 1')).toBeTruthy();
+  expect(screen.queryByText('Você não palpitou')).toBeNull();
+});
+
+test('Copa fechada: placar 1×1, pênaltis 4 a 5, quem passou e pontos; faixa diz "Fase encerrada"', async () => {
+  const jogo = { id: 'cj1', mandante: c('santos'), visitante: c('vasco'), golsMandante: 1, golsVisitante: 1, penaltisMandante: 4, penaltisVisitante: 5, vencedor: c('vasco') };
+  fetchFalso({
+    'GET /liga/tabela': [], 'GET /liga/rodadas': [], 'GET /copa': [{ fase: { id: 'f1', nome: 'Quartas', ordem: 2, prazoPalpite: passado(), fechada: true }, jogos: [jogo] }],
+    'GET /bolao/meus?fase=f1': [{ jogoId: null, copaJogoId: 'cj1', golsMandante: 1, golsVisitante: 1, classificadoId: 'vasco', pontos: 4, exato: true }],
+  });
+  render(<Liga me={me} />);
+  expect(await screen.findByText('Fase encerrada')).toBeTruthy();
+  expect(await screen.findByText('Placar 1 × 1 (pênaltis 4 a 5)')).toBeTruthy();
+  expect(screen.getByText('Vasco passou nos pênaltis')).toBeTruthy();
+  expect(screen.getByLabelText('4 pontos').textContent).toBe('+4');
+});
