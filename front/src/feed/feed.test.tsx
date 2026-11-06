@@ -85,13 +85,14 @@ test('toque duplo na imagem curte, mas nunca descurte', async () => {
   expect(chamadas).toHaveLength(1);
 });
 
-test('card usa miniUrl e lazy, nunca cheiaUrl', () => {
+test('carrossel usa cheiaUrl (mini só de placeholder), eager na 1ª e lazy nas outras', () => {
   const p = post('a', { imagens: [1, 2].map((n) => ({ id: 'i' + n, miniUrl: `/m${n}.jpg`, cheiaUrl: `/c${n}.jpg`, largura: 1000, altura: 1000, prompt: null })) });
   const { container } = render(<CardPost post={p} me={me} prioridade />);
   const imgs = [...container.querySelectorAll('.carrossel img')] as HTMLImageElement[];
-  expect(imgs.map((i) => i.getAttribute('src'))).toEqual(['/m1.jpg', '/m2.jpg']);
+  expect(imgs.map((i) => i.getAttribute('src'))).toEqual(['/c1.jpg', '/c2.jpg']);
+  expect(imgs.map((i) => i.style.backgroundImage)).toEqual(['url("/m1.jpg")', 'url("/m2.jpg")']);
   expect(imgs.map((i) => i.getAttribute('loading'))).toEqual(['eager', 'lazy']);
-  expect(container.innerHTML).not.toContain('/c1.jpg');
+  expect(imgs.map((i) => i.getAttribute('fetchpriority'))).toEqual(['high', null]);
 });
 
 test('escudo com erro cai no escudo genérico; proporção segue a 1ª imagem dentro de 4:5 e 1,91:1', () => {
