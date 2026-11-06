@@ -10,30 +10,37 @@ import { diaHora, emMenosDe24h, faltam } from './prazo';
 import type { Rodada } from './tipos';
 
 type Alvo = {
-  chave: string; rotulo: string; prazo: string | null; copa: boolean; query: string;
-  jogos: { id: string; mandante: ClubeMini; visitante: ClubeMini; semPlacar: boolean }[];
+  chave: string; rotulo: string; prazo: string | null; copa: boolean; query: string; fechada: boolean;
+  jogos: { id: string; mandante: ClubeMini; visitante: ClubeMini; gm: number | null; gv: number | null; semPlacar: boolean }[];
 };
 type Meu = { jogoId: string | null; copaJogoId: string | null; golsMandante: number; golsVisitante: number; classificadoId: string | null; pontos: number | null; exato: boolean };
 type Rascunho = { gm: number | null; gv: number | null; cl: string | null };
 
-// um chip por rodada ou fase com palpite aberto (docs/design/pack3-onda-a.md §4): prazo futuro mais próximo primeiro, depois sem prazo, depois os já travados
+// um chip por rodada ou fase (docs/design/pack3-onda-a.md §4): abertas (prazo futuro mais próximo primeiro, depois sem prazo, depois as travadas) e, por último, as fechadas, da mais recente à mais antiga
 export function montarAlvos(rodadas: Rodada[], fases: FaseCopa[], agora = Date.now()): Alvo[] {
   const alvos: Alvo[] = [
-    ...rodadas.filter((r) => !r.fechada && r.jogos.length).map((r): Alvo => ({
-      chave: `r${r.numero}`, rotulo: `Rodada ${r.numero}`, prazo: r.prazoPalpite ?? null, copa: false, query: `rodada=${r.numero}`,
-      jogos: r.jogos.map((j) => ({ id: j.id, mandante: j.mandante, visitante: j.visitante, semPlacar: j.golsMandante === null || j.golsVisitante === null })),
+    ...rodadas.filter((r) => r.jogos.length).map((r): Alvo => ({
+      chave: `r${r.numero}`, rotulo: `Rodada ${r.numero}`, prazo: r.prazoPalpite ?? null, copa: false, query: `rodada=${r.numero}`, fechada: r.fechada,
+      jogos: r.jogos.map((j) => ({ id: j.id, mandante: j.mandante, visitante: j.visitante, gm: j.golsMandante, gv: j.golsVisitante, semPlacar: j.golsMandante === null || j.golsVisitante === null })),
     })),
-    ...fases.filter(({ fase, jogos }) => !fase.fechada && jogos.length).map(({ fase, jogos }): Alvo => ({
-      chave: `f${fase.id}`, rotulo: `Copa · ${fase.nome}`, prazo: fase.prazoPalpite, copa: true, query: `fase=${fase.id}`,
-      jogos: jogos.map((j) => ({ id: j.id, mandante: j.mandante, visitante: j.visitante, semPlacar: j.golsMandante === null || j.golsVisitante === null })),
+    ...fases.filter(({ jogos }) => jogos.length).map(({ fase, jogos }): Alvo => ({
+      chave: `f${fase.id}`, rotulo: `Copa · ${fase.nome}`, prazo: fase.prazoPalpite, copa: true, query: `fase=${fase.id}`, fechada: fase.fechada,
+      jogos: jogos.map((j) => ({ id: j.id, mandante: j.mandante, visitante: j.visitante, gm: j.golsMandante, gv: j.golsVisitante, semPlacar: j.golsMandante === null || j.golsVisitante === null })),
     })),
   ];
   const faixa = (a: Alvo) => (!a.prazo ? 1 : new Date(a.prazo).getTime() > agora ? 0 : 2);
   const t = (a: Alvo) => (a.prazo ? new Date(a.prazo).getTime() : 0);
-  return alvos.sort((a, b) => faixa(a) - faixa(b) || (faixa(a) === 2 ? t(b) - t(a) : t(a) - t(b)));
+  const ordem = (a: Alvo) => Number(a.chave.slice(1).replace(/\D/g, '')) || 0;
+  const ordemFase = new Map(fases.map(({ fase }) => [`f${fase.id}`, fase.ordem]));
+  const n = (a: Alvo) => ordemFase.get(a.chave) ?? ordem(a);
+  const abertas = alvos.filter((a) => !a.fechada).sort((a, b) => faixa(a) - faixa(b) || (faixa(a) === 2 ? t(b) - t(a) : t(a) - t(b)));
+  // rodadas fechadas antes das fases fechadas (sort estável); dentro de cada grupo, número/ordem maior primeiro
+  const fechadas = alvos.filter((a) => a.fechada).sort((a, b) => Number(a.copa) - Number(b.copa) || n(b) - n(a));
+  return [...abertas, ...fechadas];
 }
 
-function Faixa({ prazo, agora, encerradoPorErro }: { prazo: string | null; agora: number; encerradoPorErro: boolean }) {
+function Faixa({ prazo, agora, encerradoPorErro, fechada }: { prazo: string | null; agora: number; encerradoPorErro: boolean; fechada: boolean }) {
+  if (fechada) return <p className="faixa-prazo" role="status"><Icone nome="cadeado" />{prazo ? 'Rodada encerrada' : 'Sem bolão nesta rodada'}</p>;
   if (encerradoPorErro) return <p className="faixa-prazo erro" role="alert"><Alerta tam={24} />O prazo acabou. Nenhum palpite foi salvo.</p>;
   if (!prazo) return <p className="faixa-prazo" role="status"><Icone nome="cadeado" />O admin ainda não definiu o prazo. Dá para palpitar quando ele definir.</p>;
   const resta = faltam(prazo, agora);
@@ -80,7 +87,7 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
     Promise.all([api<Rodada[]>('/liga/rodadas'), api<FaseCopa[]>('/copa')]).then(([r, f]) => setAlvos(montarAlvos(r, Array.isArray(f) ? f : [])), () => setAlvos('erro'));
   }
   useEffect(carregar, []);
-  const alvo = Array.isArray(alvos) ? (alvos.find((a) => a.chave === escolhido) ?? alvos[0]) : undefined;
+  const alvo = Array.isArray(alvos) ? (alvos.find((a) => a.chave === escolhido) ?? alvos.find((a) => !a.fechada) ?? alvos[0]) : undefined;
 
   const carregarMeus = useCallback((a: Alvo) => {
     setCarregandoMeus(true);
@@ -111,7 +118,7 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
   if (alvos === 'erro') return <div className="caixa-info" role="alert"><h2>Não deu para carregar o bolão</h2><button type="button" className="botao secundario" onClick={carregar}>Tentar de novo</button></div>;
   if (!alvo) return <div className="caixa-info"><Icone nome="bola" /><h2>Nenhum palpite aberto</h2><p className="giz2">Quando o admin lançar a próxima rodada ou uma fase da Copa, os jogos aparecem aqui.</p></div>;
 
-  const travadoPorPrazo = !alvo.prazo || new Date(alvo.prazo).getTime() <= agora;
+  const travadoPorPrazo = alvo.fechada || !alvo.prazo || new Date(alvo.prazo).getTime() <= agora;
   const travado = travadoPorPrazo || aviso409;
   const pode = (j: Alvo['jogos'][number]) => !travado && j.semPlacar;
   const ver = (id: string): Rascunho => rasc[id] ?? { gm: null, gv: null, cl: null };
@@ -148,7 +155,7 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
       <div className="chips-escolha" role="group" aria-label="Rodada ou fase">
         {alvos.map((a) => <button key={a.chave} type="button" aria-pressed={a.chave === alvo.chave} onClick={() => setEscolhido(a.chave)}>{a.rotulo}</button>)}
       </div>
-      <Faixa prazo={alvo.prazo} agora={agora} encerradoPorErro={aviso409} />
+      <Faixa prazo={alvo.prazo} agora={agora} encerradoPorErro={aviso409} fechada={alvo.fechada} />
       {aviso && <div className="aviso" role="alert">{aviso}</div>}
       {carregandoMeus ? <div aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="esqueleto" style={{ height: 116, marginTop: 8 }} />)}</div> : (
         <ul className="cartoes-palpite">
@@ -177,6 +184,8 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
                 )}
                 {!aberto && (
                   <div className="rodape-palpite">
+                    {j.gm !== null && j.gv !== null && <span className="giz2 legenda-s">Placar {j.gm} × {j.gv}</span>}
+                    {j.gm !== null && alvo.prazo && !salvos[j.id] && <span className="giz2 legenda-s">Você não palpitou</span>}
                     {pts !== null && pts !== undefined && <span className={`chip-pontos ${pts > 0 ? 'ganhou' : ''}`} aria-label={`${pts} ${pts === 1 ? 'ponto' : 'pontos'}`}>{pts > 0 ? `+${pts}` : pts}</span>}
                     {!alvo.prazo ? null : <Link para={`/bolao/jogo/${alvo.copa ? 'copa' : 'brasileirao'}/${j.id}`} className="link-outros">Palpites dos outros</Link>}
                   </div>
@@ -188,11 +197,13 @@ export function Palpitar({ inicial }: { inicial: { rodada?: string | null; fase?
       )}
       {!travado && faltaClassificado && <p className="faixa-prazo" role="status"><Alerta tam={24} />Empate no palpite: escolha quem passa. Acertar quem passa vale +1.</p>}
       <div role="status" className={ok ? 'toast' : 'sr'}>{ok}</div>
-      <div className="acao-fixa">
-        {travado
-          ? <button type="button" className="botao secundario" disabled={!alvo.prazo || !primeiro} onClick={() => navegar(`/bolao/jogo/${alvo.copa ? 'copa' : 'brasileirao'}/${primeiro.id}`)}>Ver palpites dos outros</button>
-          : <button type="button" className={`botao ${ok ? 'secundario' : ''}`} disabled={!podeSalvar} onClick={salvar}>{ocupado ? 'Salvando…' : 'Salvar palpites'}</button>}
-      </div>
+      {!(alvo.fechada && !alvo.prazo) && (
+        <div className="acao-fixa">
+          {travado
+            ? <button type="button" className="botao secundario" disabled={!alvo.prazo || !primeiro} onClick={() => navegar(`/bolao/jogo/${alvo.copa ? 'copa' : 'brasileirao'}/${primeiro.id}`)}>Ver palpites dos outros</button>
+            : <button type="button" className={`botao ${ok ? 'secundario' : ''}`} disabled={!podeSalvar} onClick={salvar}>{ocupado ? 'Salvando…' : 'Salvar palpites'}</button>}
+        </div>
+      )}
     </div>
   );
 }
