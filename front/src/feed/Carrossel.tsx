@@ -40,7 +40,6 @@ export function Carrossel({ post, prioridade, aoDuploToque }: { post: Post; prio
           <img
             key={im.id}
             src={im.cheiaUrl}
-            style={{ backgroundImage: `url(${im.miniUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} // mini de placeholder até a cheia carregar
             alt={`Imagem ${i + 1} de ${total}: ${post.legenda.slice(0, 80)}`}
             loading={prioridade && i === 0 ? 'eager' : 'lazy'}
             fetchPriority={prioridade && i === 0 ? 'high' : undefined}
