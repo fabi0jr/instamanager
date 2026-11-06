@@ -33,9 +33,9 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      # espelho do Ubuntu às vezes trava: limite de tempo e novas tentativas em vez de prender o CI por horas
-      - run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends ffmpeg # os testes de vídeo usam o ffmpeg/ffprobe do sistema
-        timeout-minutes: 8
+      # o espelho do Azure às vezes fica lentíssimo: usa o oficial, com limite de tempo e novas tentativas
+      - run: sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/' /etc/apt/sources.list.d/ubuntu.sources && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends ffmpeg # os testes de vídeo usam o ffmpeg/ffprobe do sistema
+        timeout-minutes: 12
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter back db:deploy
       - run: pnpm --filter back db:seed # os e2e precisam dos 20 clubes e do convite
@@ -78,9 +78,9 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      # espelho do Ubuntu às vezes trava: limite de tempo e novas tentativas em vez de prender o CI por horas
-      - run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends ffmpeg
-        timeout-minutes: 8
+      # o espelho do Azure às vezes fica lentíssimo: usa o oficial, com limite de tempo e novas tentativas
+      - run: sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/' /etc/apt/sources.list.d/ubuntu.sources && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends ffmpeg
+        timeout-minutes: 12
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter back db:deploy
       - run: pnpm --filter back db:seed
