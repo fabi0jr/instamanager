@@ -133,7 +133,7 @@ export function gerar(formato, dados, { base = join(AQUI, 'saidas') } = {}) {
     const completo = join(dir, '_completo.png');
     foto(html, completo, dir);
     const jpg = (de, para) => ffmpeg(['-i', de, '-frames:v', '1', '-update', '1', '-vf', 'scale=1080:1350', '-q:v', '2', para]);
-    const mini = (de, para) => ffmpeg(['-i', de, '-frames:v', '1', '-update', '1', '-vf', 'scale=400:400:force_original_aspect_ratio=decrease', '-q:v', '3', para]);
+    const mini = (de, para) => ffmpeg(['-i', de, '-frames:v', '1', '-update', '1', '-vf', 'scale=800:800:force_original_aspect_ratio=decrease', '-q:v', '3', para]);
     if (!VIDEO(formato)) {
       jpg(completo, join(dir, 'arte.jpg')); mini(join(dir, 'arte.jpg'), join(dir, 'mini.jpg'));
       Object.assign(saidas, { arte: join(dir, 'arte.jpg'), mini: join(dir, 'mini.jpg') });

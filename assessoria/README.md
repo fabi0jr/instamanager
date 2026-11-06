@@ -9,7 +9,7 @@ node assessoria/gerar.mjs exemplos      # foto de teste (ffmpeg) + um exemplo de
 node --test assessoria/gerar.test.mjs
 ```
 Saída em `assessoria/saidas/<AAAA-MM-DD>-<formato>[-2…]/` (nunca sobrescreve) e os caminhos saem em JSON:
-- imagem: `arte.jpg` (1080×1350) e `mini.jpg` (400 px no lado maior);
+- imagem: `arte.jpg` (1080×1350) e `mini.jpg` (800 px no lado maior, igual à miniatura do app);
 - vídeo: `video.mp4` e `capa.jpg`.
 
 ## Formatos e dados

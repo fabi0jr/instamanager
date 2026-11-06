@@ -71,11 +71,11 @@ test('foto fora de assessoria/fotos/ é recusada (../ e caminho absoluto)', () =
   assert.ok(preencher('despedida', { nome: 'X', foto: join(AQUI, '..', foto) }).includes('fotos/_teste/foto.jpg'));
 });
 
-test('fim-de-jogo gera arte 1080x1350 e mini de 400 px no lado maior', () => {
+test('fim-de-jogo gera arte 1080x1350 e mini de 800 px no lado maior', () => {
   const r = gerar('fim-de-jogo', exemplo('fim-de-jogo'), { base: tmp });
   assert.match(sonda(r.arte, 'stream=width,height,codec_name'), /codec_name=mjpeg\s+width=1080\s+height=1350/);
   const m = sonda(r.mini, 'stream=width,height');
-  assert.equal(Math.max(...[...m.matchAll(/=(\d+)/g)].map((x) => +x[1])), 400);
+  assert.equal(Math.max(...[...m.matchAll(/=(\d+)/g)].map((x) => +x[1])), 800);
 });
 
 test('contratacao-video gera MP4 H.264 1080x1350, até 30 s, sem áudio', () => {
