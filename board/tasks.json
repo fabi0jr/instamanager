@@ -5537,7 +5537,7 @@
       ],
       "depende": [],
       "responsavel": "Maestro",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-05T22:17:36.447Z",
@@ -5562,6 +5562,27 @@
           "de": "pronto",
           "para": "dev",
           "nota": "contagem 0/0/0 e ensaio ok: só as 3 tabelas saem; Post, Jogo, Palpite, Notificacao, Conquista, McpAcao iguais"
+        },
+        {
+          "quando": "2026-11-06T03:03:50.945Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "deploy e831c59 ok: tabelas fora, 72 palpites intactos, MCP com 10 ferramentas, sem erro no back; CI no espelho oficial"
+        },
+        {
+          "quando": "2026-11-06T03:03:50.971Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "deploy e831c59 ok: tabelas fora, 72 palpites intactos, MCP com 10 ferramentas, sem erro no back; CI no espelho oficial"
+        },
+        {
+          "quando": "2026-11-06T03:03:50.993Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "deploy e831c59 ok: tabelas fora, 72 palpites intactos, MCP com 10 ferramentas, sem erro no back; CI no espelho oficial"
         }
       ]
     },
