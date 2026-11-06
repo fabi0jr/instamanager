@@ -19,6 +19,7 @@ function informar(id: symbol, r: number) {
   avisar();
 }
 function tocarManual(id: symbol) { manual = id; avisar(); }
+function soltarVez(id: symbol) { if (manual === id) { manual = null; avisar(); } } // pausou: o mais visível volta a tocar
 function vez() {
   if (manual) return manual;
   let id: symbol | null = null;
@@ -46,6 +47,7 @@ export function VideoCard({ post }: { post: Post }) {
   const [tempo, setTempo] = useState(0);
   const [falhou, setFalhou] = useState(false);
   const [ativo, setAtivo] = useState(false);
+  const [pedidos, setPedidos] = useState(0); // cada toque em play: monta e toca direto, mesmo que o estado de 'ativo' não mude
 
   useEffect(() => {
     const alvo = caixa.current;
@@ -72,13 +74,20 @@ export function VideoCard({ post }: { post: Post }) {
       setIniciou(false); setTocando(false); setTempo(0); setMudo(true);
       return;
     }
-    if (pausouEu.current || (!auto.current && manual !== meuId.current)) return; // sem autoplay: só com toque
-    if (!iniciou) { setIniciou(true); return; } // o <video> monta agora; este efeito roda de novo
-    el.current?.play().catch(() => { if (manual === meuId.current) setFalhou(true); }); // autoplay barrado: fica o botão de play, sem erro
+    if (!auto.current || manual === meuId.current || pausouEu.current) return; // toque manual toca pelo efeito de `pedidos`
+    if (!iniciou) { setMudo(true); setIniciou(true); return; } // começou sozinho: sempre mudo. O <video> monta agora e este efeito roda de novo
+    el.current?.play().catch(() => {}); // autoplay barrado: fica o botão de play, sem erro
   }, [ativo, iniciou]);
+
+  useEffect(() => {
+    if (pedidos) el.current?.play().catch(() => setFalhou(true)); // o <video> já montou nesta renderização
+  }, [pedidos]);
 
   function tocar() {
     setFalhou(false);
+    pausouEu.current = false;
+    setIniciou(true);
+    setPedidos((n) => n + 1);
     tocarManual(meuId.current);
   }
   function alternar() {
@@ -88,7 +97,7 @@ export function VideoCard({ post }: { post: Post }) {
       pausouEu.current = false;
       tocarManual(meuId.current);
       x.play().catch(() => setFalhou(true));
-    } else { pausouEu.current = true; x.pause(); }
+    } else { pausouEu.current = true; x.pause(); soltarVez(meuId.current); }
   }
   return (
     <div className="video-card" ref={caixa}>

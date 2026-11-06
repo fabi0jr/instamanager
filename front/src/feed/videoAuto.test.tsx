@@ -123,3 +123,53 @@ test('sair da tela zera o som: ao voltar toca mudo; som ligado na capa também z
   ver(0, 0.05); // continua fora: sair de novo zera
   expect(screen.getByRole('button', { name: 'Ligar o som' })).toBeTruthy();
 });
+
+const semAuto = () => vi.stubGlobal('navigator', Object.assign(Object.create(navigator), { connection: { saveData: true } }));
+
+test('saveData: um toque em play monta o vídeo e chama play uma vez', () => {
+  semAuto();
+  render(<VideoCard post={post('a')} />);
+  ver(0, 1); // já é o mais visível (ativo), mas sem autoplay
+  expect(document.querySelector('video')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Tocar vídeo' }));
+  expect(document.querySelector('video')).not.toBeNull();
+  expect(play).toHaveBeenCalledTimes(1);
+});
+
+test('falha ao tocar: "toque para tentar de novo" chama play com um toque', async () => {
+  semAuto();
+  play.mockRejectedValueOnce(new Error('x'));
+  render(<VideoCard post={post('a')} />);
+  ver(0, 1);
+  fireEvent.click(screen.getByRole('button', { name: 'Tocar vídeo' }));
+  await act(async () => {});
+  const tentar = screen.getByRole('button', { name: /Não deu para tocar/ });
+  play.mockClear();
+  fireEvent.click(tentar);
+  expect(play).toHaveBeenCalledTimes(1);
+  expect(screen.queryByText(/Não deu para tocar/)).toBeNull();
+});
+
+test('pausar o vídeo tocado à mão solta a vez: o mais visível volta a tocar', () => {
+  render(<><VideoCard post={post('a')} /><VideoCard post={post('b')} /></>);
+  ver(0, 0.9);
+  ver(1, 0.4);
+  fireEvent.click(screen.getAllByRole('button', { name: 'Tocar vídeo' })[1]);
+  expect([...document.querySelectorAll('video')].map((x) => x.getAttribute('src'))).toEqual(['/b.mp4']);
+  const b = document.querySelector('video')!;
+  Object.defineProperty(b, 'paused', { configurable: true, value: false });
+  fireEvent.click(b); // pausa
+  expect([...document.querySelectorAll('video')].map((x) => x.getAttribute('src'))).toEqual(['/a.mp4']);
+});
+
+test('som ligado na capa só vale se o vídeo começar pelo toque em play, não ao chegar a 60%', () => {
+  render(<VideoCard post={post('a')} />);
+  ver(0, 0.3);
+  fireEvent.click(screen.getByRole('button', { name: 'Ligar o som' }));
+  ver(0, 0.9); // começou sozinho
+  expect(document.querySelector('video')!.muted).toBe(true);
+  ver(0, 0.05);
+  fireEvent.click(screen.getByRole('button', { name: 'Ligar o som' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Tocar vídeo' })); // começou pelo toque
+  expect(document.querySelector('video')!.muted).toBe(false);
+});
