@@ -39,3 +39,11 @@
 .como-cbf.ligado { border: 2px solid var(--im-giz); }
 .como-cbf .interruptor { width: 44px; min-width: 44px; height: 24px; padding: 2px; } .como-cbf .interruptor span { width: 18px; height: 18px; } .como-cbf .interruptor.ligado span { transform: translateX(20px); }
 .cbf-frase { font-weight: 600; }
+
+/* caixa de soltar arquivos: só aparece em computador (o componente decide por hover/pointer) */
+@media (hover: hover) and (pointer: fine) {
+  .soltar { display: grid; place-items: center; min-height: 160px; padding: var(--im-e6); text-align: center; cursor: pointer; color: var(--im-giz-2);
+    border: 2px dashed var(--im-linha); border-radius: var(--im-r-midia); background: var(--im-superficie); }
+  .soltar.sobre { border-color: var(--im-giz); color: var(--im-giz); background: var(--im-superficie-alta); }
+}
+.erro-soltar { color: var(--im-vermelho-texto); margin: 0; }
