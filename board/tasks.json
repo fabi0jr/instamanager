@@ -5819,7 +5819,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-06T13:55:14.486Z",
@@ -5844,6 +5844,69 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-06T13:58:31.064Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T14:08:23.881Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: play manual fora do ativo não pausa; som volta a mudo ao sair"
+        },
+        {
+          "quando": "2026-11-06T14:10:08.315Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T14:10:08.340Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T14:15:42.752Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: play não monta o vídeo quando o cartão já é ativo (saveData/reduced-motion e tentar de novo)"
+        },
+        {
+          "quando": "2026-11-06T14:16:45.631Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T14:16:45.660Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T14:21:36.387Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou com medição no Chromium; arrasto nativo e WebKit real não medidos"
+        },
+        {
+          "quando": "2026-11-06T14:21:36.411Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "VAR aprovou com medição no Chromium; arrasto nativo e WebKit real não medidos"
         }
       ]
     },
@@ -5858,7 +5921,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "pronto",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-06T13:55:14.511Z",
@@ -5876,6 +5939,55 @@
           "quando": "2026-11-06T13:55:14.606Z",
           "quem": "PO",
           "nota": "atribuída a Ponta"
+        },
+        {
+          "quando": "2026-11-06T13:58:31.088Z",
+          "quem": "Maestro",
+          "de": "pronto",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T13:58:31.111Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T14:08:23.913Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: drop aceita image/*; usar a lista do accept"
+        },
+        {
+          "quando": "2026-11-06T14:10:08.364Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T14:10:08.389Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T14:21:36.434Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou com medição no Chromium; arrasto nativo e WebKit real não medidos"
+        },
+        {
+          "quando": "2026-11-06T14:21:36.458Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "VAR aprovou com medição no Chromium; arrasto nativo e WebKit real não medidos"
         }
       ]
     }
