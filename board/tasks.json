@@ -5576,7 +5576,7 @@
       ],
       "depende": [],
       "responsavel": "Ponta",
-      "coluna": "dev",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-06T02:20:37.464Z",
@@ -5601,6 +5601,69 @@
           "de": "pronto",
           "para": "dev",
           "nota": ""
+        },
+        {
+          "quando": "2026-11-06T02:24:29.674Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T02:27:44.610Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: erro de /bolao/meus dizia 'não palpitou'; Copa fechada sem pênaltis"
+        },
+        {
+          "quando": "2026-11-06T02:28:36.136Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T02:28:36.162Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-06T02:31:08.164Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "VAR: scrollIntoView rola também o #rolagem"
+        },
+        {
+          "quando": "2026-11-06T02:32:33.402Z",
+          "quem": "Maestro",
+          "de": "correcao",
+          "para": "dev",
+          "nota": "VAR aprovou os itens 1, 2, a, b; fix3 47f9e4c (mesma lógica da Liga) revisado pelo Maestro"
+        },
+        {
+          "quando": "2026-11-06T02:32:33.423Z",
+          "quem": "Maestro",
+          "de": "dev",
+          "para": "revisao",
+          "nota": "VAR aprovou os itens 1, 2, a, b; fix3 47f9e4c (mesma lógica da Liga) revisado pelo Maestro"
+        },
+        {
+          "quando": "2026-11-06T02:32:33.446Z",
+          "quem": "Maestro",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "VAR aprovou os itens 1, 2, a, b; fix3 47f9e4c (mesma lógica da Liga) revisado pelo Maestro"
+        },
+        {
+          "quando": "2026-11-06T02:32:33.469Z",
+          "quem": "Maestro",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "VAR aprovou os itens 1, 2, a, b; fix3 47f9e4c (mesma lógica da Liga) revisado pelo Maestro"
         }
       ]
     }
