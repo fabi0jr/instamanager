@@ -23,6 +23,7 @@ O Fabio agora é técnico do Botafogo na liga. Ele quer que o perfil do clube no
 ## Não-metas
 - **Não é para os outros técnicos.** É só o Botafogo e só o Fabio. Se outro técnico quiser, isso vira outro projeto.
 - **Não gera imagem com IA.** As fotos são reais, buscadas na internet.
+  - **Mudou em 2026-11-07, por decisão do Fabio:** a assessoria pode fazer montagens ("jogadores se abraçando com a camisa") no app do Gemini dele, por portal no Maestri. O Fabio escolhe a versão. O app continua sem IA. Plano: `docs/superpowers/plans/2026-11-07-assessoria-montagem.md`.
 - O app muda numa coisa só, por decisão do Fabio: o **feed passa a mostrar vídeo em 4:5** (hoje é quadrado e corta). Isso vale para todos os vídeos do app, como o Instagram faz com reels no feed. Fora isso, o post aparece como qualquer post do Botafogo.
 - **Sem botão no app**, porque tudo acontece no terminal.
 
