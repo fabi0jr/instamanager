@@ -54,7 +54,7 @@ test('preparar: pedido.txt = texto do Fabio + parte fixa', () => {
   const r = preparar(pedido({ texto: 'Dois jogadores se abraçando.' }), { base });
   const t = readFileSync(r.pedido, 'utf8');
   assert.ok(t.startsWith('Dois jogadores se abraçando.'));
-  assert.ok(t.includes('Gere uma foto realista, estilo fotojornalismo esportivo, formato vertical 4:5. Mantenha os rostos exatamente como nas fotos de referência das pessoas. Todos vestem a camisa idêntica à imagem de referência da camisa. Sem texto, letras ou logotipos inventados na imagem.'));
+  assert.ok(t.includes('Gere uma foto realista, estilo fotojornalismo esportivo, formato vertical 4:5. Mantenha os rostos exatamente como nas fotos de referência das pessoas. Todos vestem a camisa da imagem de referência da camisa: mesmas listras verticais pretas e brancas e o mesmo escudo, mas no modelo moderno de jogo, gola redonda, sem assinatura e sem número. Sem texto, letras ou logotipos inventados na imagem.'));
 });
 
 test('preparar: foto fora de assessoria/fotos, 0 ou 5 fotos, versoes 5, camisa padrão ausente: erro claro e nenhuma pasta criada', () => {
