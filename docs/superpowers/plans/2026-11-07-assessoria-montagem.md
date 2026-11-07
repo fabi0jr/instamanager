@@ -39,7 +39,7 @@
   A pasta segue a regra de nunca sobrescrever do `gerar.mjs` (`pastaSaida`, que passa a ser exportada).
 - **Pedido** (`pedido.txt`): o texto do Fabio vai inteiro, seguido desta parte fixa:
 
-  > "Gere uma foto realista, estilo fotojornalismo esportivo, formato vertical 4:5. Mantenha os rostos exatamente como nas fotos de referência das pessoas. Todos vestem a camisa da imagem de referência da camisa: mesmas listras verticais pretas e brancas e o mesmo escudo, mas no modelo moderno de jogo, gola redonda, sem assinatura e sem número. Sem texto, letras ou logotipos inventados na imagem."
+  > "Gere uma foto realista, estilo fotojornalismo esportivo, formato vertical 4:5. Mantenha os rostos exatamente como nas fotos de referência das pessoas. Todos vestem a camisa idêntica à imagem de referência da camisa. Sem texto, letras ou logotipos inventados na imagem."
 - **`receber`:**
   - aceita só JPEG, PNG ou WebP de verdade, conferido com o ffprobe;
   - recusa imagem com **menos de 1000 px no lado menor**, que provavelmente é miniatura ou captura de tela;

@@ -12,7 +12,7 @@ import { ACEITOS, sondaImagem } from './imagem.mjs';
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MAX_REF = 1536; // lado maior da referência subida
 const MIN_LADO = 800; // abaixo disso é miniatura ou captura de tela
-const FIXO = 'Gere uma foto realista, estilo fotojornalismo esportivo, formato vertical 4:5. Mantenha os rostos exatamente como nas fotos de referência das pessoas. Todos vestem a camisa da imagem de referência da camisa: mesmas listras verticais pretas e brancas e o mesmo escudo, mas no modelo moderno de jogo, gola redonda, sem assinatura e sem número. Sem texto, letras ou logotipos inventados na imagem.';
+const FIXO = 'Gere uma foto realista, estilo fotojornalismo esportivo, formato vertical 4:5. Mantenha os rostos exatamente como nas fotos de referência das pessoas. Todos vestem a camisa idêntica à imagem de referência da camisa. Sem texto, letras ou logotipos inventados na imagem.';
 const CAMISA = 'assessoria/fotos/genericas/camisa.jpg';
 
 export class ErroMontagem extends Error {}
