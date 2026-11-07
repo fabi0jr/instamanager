@@ -67,7 +67,7 @@ export function quando(iso) {
 function variaveis(formato, d) {
   const v = { foto: d.foto ? fotoUrl(d.foto) : '', escudoMandante: escudo('botafogo', 'botafogo') };
   if (formato === 'fim-de-jogo') {
-    Object.assign(v, { escudoMandante: escudo(d.mandante, 'mandante'), escudoVisitante: escudo(d.visitante, 'visitante'), golsMandante: d.golsMandante, golsVisitante: d.golsVisitante,
+    Object.assign(v, { escudoMandante: escudo(d.mandante, 'mandante'), escudoVisitante: escudo(d.visitante, 'visitante'), golsMandante: d.golsMandante, golsVisitante: d.golsVisitante, fundo: d.colorido ? 'colorido' : 'escuro',
       gols: d.gols.map((g) => `<div><img src="${escudo(g.clube, `gols.clube`)}">${esc(g.minuto)}’ ${esc(g.jogador)}</div>`).join('') });
   } else if (formato === 'nossos-onze') {
     Object.assign(v, { escudoVisitante: escudo(d.adversario, 'adversario'), tecnico: d.tecnico,
