@@ -5993,13 +5993,13 @@
     },
     {
       "id": "IM-86",
-      "titulo": "Assessoria: montagem com o Gemini e formato foto",
+      "titulo": "Assessoria: montagem (preparar/receber) e formato foto",
       "tipo": "infra",
       "prioridade": "media",
       "descricao": "Plano: docs/superpowers/plans/2026-11-07-assessoria-montagem.md (Task 1)",
       "criterios": [
-        "montagem.mjs gera 3 versões 1080×1350 a partir das fotos aprovadas e da camisa",
-        "recusa, 403/429 e chave ausente dão erro claro sem vazar a chave",
+        "preparar reduz referências a 1536 px e grava pedido.txt",
+        "receber recusa miniatura/arquivo inválido e grava vN.jpg 1080×1350",
         "gerar.mjs foto transforma a versão escolhida em arte+mini"
       ],
       "depende": [],
@@ -6010,17 +6010,23 @@
           "quando": "2026-11-07T15:38:52.093Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-07T17:54:13.076Z",
+          "quem": "PO",
+          "nota": "editado: titulo, criterios"
         }
       ]
     },
     {
       "id": "IM-87",
-      "titulo": "Assessoria: regras do terminal para montagem e teste de fumaça",
+      "titulo": "Assessoria: portal do Gemini, regras do terminal e teste de fumaça",
       "tipo": "infra",
       "prioridade": "media",
       "descricao": "Plano: docs/superpowers/plans/2026-11-07-assessoria-montagem.md (Task 2)",
       "criterios": [
-        "CLAUDE.md da assessoria com o fluxo de montagem e a escolha do Fabio",
+        "receita do portal testada com o Fabio e escrita no CLAUDE.md da assessoria",
+        "modo manual documentado para quando a receita falhar",
         "uma montagem real postada com OK do Fabio"
       ],
       "depende": [
@@ -6033,6 +6039,11 @@
           "quando": "2026-11-07T15:38:52.134Z",
           "quem": "PO",
           "nota": "criada"
+        },
+        {
+          "quando": "2026-11-07T17:54:13.129Z",
+          "quem": "PO",
+          "nota": "editado: titulo, criterios"
         }
       ]
     }
