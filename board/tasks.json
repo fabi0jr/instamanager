@@ -6004,7 +6004,7 @@
       ],
       "depende": [],
       "responsavel": "VAR",
-      "coluna": "revisao",
+      "coluna": "concluido",
       "historico": [
         {
           "quando": "2026-11-07T15:38:52.093Z",
@@ -6077,6 +6077,20 @@
           "quando": "2026-11-07T18:04:25.648Z",
           "quem": "PO",
           "nota": "atribuída a VAR"
+        },
+        {
+          "quando": "2026-11-07T18:07:36.546Z",
+          "quem": "VAR",
+          "de": "revisao",
+          "para": "qa",
+          "nota": "aprovado 8dac22a"
+        },
+        {
+          "quando": "2026-11-07T18:07:36.577Z",
+          "quem": "Claude",
+          "de": "qa",
+          "para": "concluido",
+          "nota": "29/29 no andar e na main; CLI real testado pelo VAR"
         }
       ]
     },
