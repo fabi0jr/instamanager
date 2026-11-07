@@ -44,7 +44,7 @@ const escudo = (id, campo) => {
 const nomeClube = (id) => CLUBES[id].nome;
 
 function validar(formato, d) {
-  if (!OBRIGATORIOS[formato]) throw new ErroDados(`formato "${formato}" não existe. Formatos: ${FORMATOS.join(', ')}`);
+  if (!OBRIGATORIOS[formato]) throw new ErroDados(`formato "${formato}" não existe. Formatos: ${FORMATOS.join(', ')}, foto`);
   for (const c of OBRIGATORIOS[formato]) if (falta(d[c])) throw new ErroDados(`campo "${c}" é obrigatório em ${formato}`);
   if (formato === 'nossos-onze' && d.titulares.length !== 11) throw new ErroDados(`campo "titulares" precisa de 11 jogadores (veio ${d.titulares.length})`);
   if (formato === 'fim-de-jogo')
@@ -113,7 +113,7 @@ function foto(html, saida, dir, transparente = false) {
   ffmpeg(['-i', bruto, '-vf', 'crop=1080:1350:0:0', '-frames:v', '1', '-update', '1', saida]); // a captura tem 87 px de barra no topo: fica só a viewport
 }
 
-function pastaSaida(formato, base) {
+export function pastaSaida(formato, base) {
   const d = new Date();
   const dia = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   let n = 1, dir;
@@ -122,7 +122,21 @@ function pastaSaida(formato, base) {
   return dir;
 }
 
+// formato `foto`: a montagem escolhida vira arte e mini, sem modelo HTML (por isso não está em FORMATOS)
+function gerarFoto(dados, base) {
+  if (falta(dados.foto)) throw new ErroDados('campo "foto" é obrigatório em foto');
+  const abs = dentroDe(FOTOS, dados.foto, REPO) ?? dentroDe(join(AQUI, 'saidas'), dados.foto, REPO);
+  if (!abs) throw new ErroDados(`campo "foto": só aceita imagem dentro de assessoria/fotos/ ou assessoria/saidas/ (veio "${dados.foto}")`);
+  if (!existsSync(abs)) throw new ErroDados(`campo "foto": arquivo não existe: ${dados.foto}`);
+  const dir = pastaSaida('foto', base);
+  const arte = join(dir, 'arte.jpg'), mini = join(dir, 'mini.jpg');
+  ffmpeg(['-i', abs, '-vf', 'scale=1080:1350:force_original_aspect_ratio=increase,crop=1080:1350', '-frames:v', '1', '-update', '1', '-q:v', '2', arte]);
+  ffmpeg(['-i', arte, '-vf', 'scale=800:800:force_original_aspect_ratio=decrease', '-frames:v', '1', '-update', '1', '-q:v', '3', mini]);
+  return { arte, mini };
+}
+
 export function gerar(formato, dados, { base = join(AQUI, 'saidas') } = {}) {
+  if (formato === 'foto') return gerarFoto(dados, base);
   const f = dados.foto ?? (formato === 'coletiva' ? TORCIDA.find(existsSync) : undefined);
   const html = preencher(formato, dados);
   if (f && !existsSync(resolve(REPO, f))) throw new ErroDados(`campo "foto": arquivo não existe: ${f}`);
