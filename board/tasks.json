@@ -6003,8 +6003,8 @@
         "gerar.mjs foto transforma a versão escolhida em arte+mini"
       ],
       "depende": [],
-      "responsavel": "VAR",
-      "coluna": "revisao",
+      "responsavel": "Ponta",
+      "coluna": "dev",
       "historico": [
         {
           "quando": "2026-11-07T15:38:52.093Z",
@@ -6046,6 +6046,25 @@
           "quando": "2026-11-07T17:57:54.602Z",
           "quem": "PO",
           "nota": "atribuída a VAR"
+        },
+        {
+          "quando": "2026-11-07T18:02:30.456Z",
+          "quem": "VAR",
+          "de": "revisao",
+          "para": "correcao",
+          "nota": "HTML com extensão de imagem; testes não pegam deformação nem vazio"
+        },
+        {
+          "quando": "2026-11-07T18:02:30.493Z",
+          "quem": "Claude",
+          "de": "correcao",
+          "para": "dev",
+          "nota": ""
+        },
+        {
+          "quando": "2026-11-07T18:02:30.533Z",
+          "quem": "PO",
+          "nota": "atribuída a Ponta"
         }
       ]
     },
