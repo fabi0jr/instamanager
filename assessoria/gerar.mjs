@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dentroDe } from './caminhos.mjs';
+import { ACEITOS, sondaImagem } from './imagem.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(AQUI, '..');
@@ -128,6 +129,9 @@ function gerarFoto(dados, base) {
   const abs = dentroDe(FOTOS, dados.foto, REPO) ?? dentroDe(join(AQUI, 'saidas'), dados.foto, REPO);
   if (!abs) throw new ErroDados(`campo "foto": só aceita imagem dentro de assessoria/fotos/ ou assessoria/saidas/ (veio "${dados.foto}")`);
   if (!existsSync(abs)) throw new ErroDados(`campo "foto": arquivo não existe: ${dados.foto}`);
+  const s = sondaImagem(abs);
+  if (!s) throw new ErroDados(`campo "foto": o arquivo não é uma imagem: ${dados.foto}`);
+  if (!ACEITOS.includes(s.codec)) throw new ErroDados(`campo "foto": só aceita JPEG, PNG ou WebP (veio ${s.codec})`);
   const dir = pastaSaida('foto', base);
   const arte = join(dir, 'arte.jpg'), mini = join(dir, 'mini.jpg');
   ffmpeg(['-i', abs, '-vf', 'scale=1080:1350:force_original_aspect_ratio=increase,crop=1080:1350', '-frames:v', '1', '-update', '1', '-q:v', '2', arte]);

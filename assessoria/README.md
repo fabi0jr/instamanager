@@ -33,7 +33,7 @@ node assessoria/montagem.mjs preparar <pedido.json>
 node assessoria/montagem.mjs receber <pasta-da-montagem> <arquivo>
 ```
 - `preparar`: `pedido = {texto, fotos:[1 a 4], camisa?, versoes? (1 a 4, padrão 3)}`. Fotos e camisa (padrão `fotos/genericas/camisa.jpg`) precisam estar em `assessoria/fotos/`. Cria `saidas/<AAAA-MM-DD>-montagem[-2…]/` com `ref-1.jpg…`, `camisa.jpg` (até 1536 px no lado maior) e `pedido.txt` (seu texto + a parte fixa). Imprime `{pasta, referencias, pedido, versoes}`.
-- `receber`: pega a imagem que veio do Gemini (JPEG, PNG ou WebP, mínimo 1000 px no lado menor) e grava o próximo `vN.jpg` em 1080×1350, recortado sem deformar. Recusa miniatura, HTML de erro e arquivo vazio, sem gravar nada. Imprime `{versao}`.
+- `receber`: pega a imagem que veio do Gemini (caminho relativo vale a partir de onde o comando roda) (JPEG, PNG ou WebP, mínimo 800 px no lado menor) e grava o próximo `vN.jpg` em 1080×1350, recortado sem deformar. Recusa miniatura, HTML de erro e arquivo vazio, sem gravar nada. Imprime `{versao}`.
 - Formato `foto`: `node assessoria/gerar.mjs foto <dados.json>` com `{foto}` (em `assessoria/fotos/` ou `assessoria/saidas/`) grava `arte.jpg` (1080×1350, recortada) e `mini.jpg`, sem modelo HTML.
 
 ## Postar

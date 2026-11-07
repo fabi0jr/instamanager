@@ -7,22 +7,17 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dentroDe } from './caminhos.mjs';
 import { pastaSaida } from './gerar.mjs';
+import { ACEITOS, sondaImagem } from './imagem.mjs';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MAX_REF = 1536; // lado maior da referência subida
-const MIN_LADO = 1000; // abaixo disso é miniatura ou captura de tela
+const MIN_LADO = 800; // abaixo disso é miniatura ou captura de tela
 const FIXO = 'Gere uma foto realista, estilo fotojornalismo esportivo, formato vertical 4:5. Mantenha os rostos exatamente como nas fotos de referência das pessoas. Todos vestem a camisa idêntica à imagem de referência da camisa. Sem texto, letras ou logotipos inventados na imagem.';
 const CAMISA = 'assessoria/fotos/genericas/camisa.jpg';
 
 export class ErroMontagem extends Error {}
 
 const ffmpeg = (args) => execFileSync('/usr/bin/ffmpeg', ['-y', '-v', 'error', ...args], { stdio: ['ignore', 'ignore', 'pipe'] });
-const sonda = (arq) => {
-  try {
-    const [codec, w, h] = execFileSync('/usr/bin/ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=codec_name,width,height', '-of', 'csv=p=0', arq], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim().split(',');
-    return { codec, w: +w, h: +h };
-  } catch { return null; }
-};
 const fotosDe = (base) => join(base, 'assessoria/fotos');
 const saidasDe = (base) => join(base, 'assessoria/saidas');
 
@@ -38,6 +33,12 @@ export function preparar(pedido, { base = REPO } = {}) {
     return abs;
   };
   const origens = [...fotos.map((f, i) => confere(`fotos[${i}]`, f)), confere('camisa', camisa)]; // tudo conferido antes de criar a pasta
+  origens.forEach((o, i) => {
+    const s = sondaImagem(o);
+    const campo = i < fotos.length ? `fotos[${i}]` : 'camisa';
+    if (!s) throw new ErroMontagem(`campo "${campo}": o arquivo não é uma imagem`);
+    if (!ACEITOS.includes(s.codec)) throw new ErroMontagem(`campo "${campo}": só aceito imagem parada JPEG, PNG ou WebP (veio ${s.codec})`);
+  });
   const pasta = pastaSaida('montagem', saidasDe(base));
   try {
     const nomes = [...fotos.map((_, i) => `ref-${i + 1}.jpg`), 'camisa.jpg'];
@@ -53,12 +54,12 @@ export function preparar(pedido, { base = REPO } = {}) {
 export function receber(pasta, arquivo, { base = REPO } = {}) {
   const dir = dentroDe(saidasDe(base), pasta, base);
   if (!dir || !existsSync(dir) || !statSync(dir).isDirectory()) throw new ErroMontagem(`a pasta da montagem precisa existir dentro de assessoria/saidas/ (veio "${pasta}")`);
-  const arq = resolve(base, String(arquivo));
+  const arq = resolve(String(arquivo)); // relativo vale a partir de onde o comando roda
   if (!existsSync(arq) || !statSync(arq).isFile()) throw new ErroMontagem(`arquivo não existe: ${arquivo}`);
   if (statSync(arq).size === 0) throw new ErroMontagem(`arquivo vazio: ${arquivo}`);
-  const s = sonda(arq);
+  const s = sondaImagem(arq);
   if (!s) throw new ErroMontagem(`o arquivo não é uma imagem (HTML de erro?): ${arquivo}`);
-  if (!['mjpeg', 'png', 'webp'].includes(s.codec)) throw new ErroMontagem(`só aceito JPEG, PNG ou WebP (veio ${s.codec})`);
+  if (!ACEITOS.includes(s.codec)) throw new ErroMontagem(`só aceito JPEG, PNG ou WebP (veio ${s.codec})`);
   if (Math.min(s.w, s.h) < MIN_LADO) throw new ErroMontagem(`imagem pequena demais (${s.w}×${s.h}, mínimo ${MIN_LADO} px no lado menor): parece miniatura ou captura de tela`);
   const n = Math.max(0, ...readdirSync(dir).map((f) => +(/^v(\d+)\.jpg$/.exec(f)?.[1] ?? 0))) + 1;
   const versao = join(dir, `v${n}.jpg`);

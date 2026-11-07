@@ -17,6 +17,18 @@ after(() => rmSync(base, { recursive: true, force: true }));
 const img = (arq, tam, extra = []) => execFileSync('/usr/bin/ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', `testsrc2=s=${tam}`, ...extra, '-frames:v', '1', '-update', '1', arq]);
 const dim = (arq) => execFileSync('/usr/bin/ffprobe', ['-v', 'error', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', arq]).toString().trim();
 const lado = (arq) => Math.max(...dim(arq).split(',').map(Number));
+// imagem azul com um quadrado vermelho no centro; devolve a largura e a altura do vermelho depois de processada
+const comQuadrado = (arq, tam) => execFileSync('/usr/bin/ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', `color=c=blue:s=${tam},drawbox=x=iw/2-100:y=ih/2-100:w=200:h=200:color=red:t=fill`, '-frames:v', '1', '-update', '1', arq]);
+const caixaVermelha = (arq) => {
+  const [w, h] = dim(arq).split(',').map(Number);
+  const raw = execFileSync('/usr/bin/ffmpeg', ['-v', 'error', '-i', arq, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], { maxBuffer: 64e6 });
+  let x0 = w, x1 = -1, y0 = h, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 3;
+    if (raw[i] > 160 && raw[i + 1] < 90 && raw[i + 2] < 90) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  }
+  return { w: x1 - x0 + 1, h: y1 - y0 + 1 };
+};
 const pastas = () => readdirSync(saidas);
 
 img(join(fotos, 'grande.jpg'), '5000x3000');
@@ -85,16 +97,48 @@ test('receber: 2048×2048 vira v1.jpg 1080×1350; o segundo vira v2.jpg', () => 
   assert.equal(dim(join(pasta, 'v2.jpg')), '1080,1350');
 });
 
-test('receber: imagem com 800 px no lado menor, arquivo de texto e arquivo vazio são recusados e nada é gravado', () => {
+test('receber: imagem com 700 px no lado menor, arquivo de texto e arquivo vazio são recusados e nada é gravado', () => {
   const { pasta } = preparar(pedido(), { base });
   const antes = readdirSync(pasta).sort();
-  const peq = join(base, 'peq.jpg'); img(peq, '800x1600');
-  const txt = join(base, 'erro.html'); writeFileSync(txt, '<html>erro 403</html>');
-  const vazio = join(base, 'vazio.png'); writeFileSync(vazio, '');
+  const peq = join(base, 'peq.jpg'); img(peq, '700x1600');
+  const vazio = join(base, 'x.dat'); writeFileSync(vazio, '');
   const gif = join(base, 'a.gif'); img(gif, '1200x1200');
-  for (const [f, re] of [[peq, /1000/], [txt, /imagem/], [vazio, /vazio/], [gif, /JPEG, PNG ou WebP/], [join(base, 'nao-existe.png'), /não existe/]])
-    assert.throws(() => receber(pasta, f, { base }), (e) => e instanceof ErroMontagem && re.test(e.message), f);
+  const casos = [[peq, /800 px/], [vazio, /arquivo vazio/], [gif, /JPEG, PNG ou WebP/], [join(base, 'nao-existe.png'), /não existe/]];
+  // HTML de erro salvo com qualquer extensão de imagem: o ffprobe diz png,0,0 e não pode virar "pequena demais"
+  for (const ext of ['html', 'png', 'jpg', 'webp']) { const f = join(base, `erro.${ext}`); writeFileSync(f, '<html>erro 403</html>'); casos.push([f, /não é uma imagem/]); }
+  for (const [f, re] of casos) assert.throws(() => receber(pasta, f, { base }), (e) => e instanceof ErroMontagem && re.test(e.message) && !(/pequena/.test(e.message) && /não é uma imagem/.test(re.source)), f);
   assert.deepEqual(readdirSync(pasta).sort(), antes);
+});
+
+test('receber: 896×1152 (4:5 do Gemini) é aceita', () => {
+  const { pasta } = preparar(pedido(), { base });
+  const f = join(base, 'g.png'); img(f, '896x1152');
+  assert.equal(dim(receber(pasta, f, { base }).versao), '1080,1350');
+});
+
+test('receber: recorta sem deformar (o quadrado continua quadrado)', () => {
+  const { pasta } = preparar(pedido(), { base });
+  const f = join(base, 'quad.png'); comQuadrado(f, '2000x1000');
+  const { w, h } = caixaVermelha(receber(pasta, f, { base }).versao);
+  assert.ok(Math.abs(w - h) <= 2 && w > 200, `${w}x${h}`);
+});
+
+test('receber: arquivo relativo resolve pelo cwd, não pela raiz do repo', () => {
+  const { pasta } = preparar(pedido(), { base });
+  const dir = mkdtempSync(join(tmpdir(), 'cwd-'));
+  const antes = process.cwd();
+  try {
+    img(join(dir, 'rel.png'), '1200x1200');
+    process.chdir(dir);
+    assert.equal(dim(receber(pasta, 'rel.png', { base }).versao), '1080,1350');
+  } finally { process.chdir(antes); rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('preparar: referência que não é imagem parada (mp4) é recusada e nenhuma pasta fica', () => {
+  const antes = pastas();
+  execFileSync('/usr/bin/ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=s=400x400:d=0.3', '-c:v', 'libx264', join(fotos, 'v.mp4')]);
+  assert.throws(() => preparar(pedido({ fotos: ['assessoria/fotos/v.mp4'] }), { base }), (e) => e instanceof ErroMontagem && /JPEG, PNG ou WebP/.test(e.message));
+  assert.deepEqual(pastas(), antes);
 });
 
 test('receber: pasta fora de assessoria/saidas é recusada', () => {
