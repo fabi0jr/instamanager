@@ -1,5 +1,5 @@
 {
-  "proximoId": 86,
+  "proximoId": 88,
   "tarefas": [
     {
       "id": "IM-1",
@@ -5988,6 +5988,51 @@
           "de": "qa",
           "para": "concluido",
           "nota": "VAR aprovou com medição no Chromium; arrasto nativo e WebKit real não medidos"
+        }
+      ]
+    },
+    {
+      "id": "IM-86",
+      "titulo": "Assessoria: montagem com o Gemini e formato foto",
+      "tipo": "infra",
+      "prioridade": "media",
+      "descricao": "Plano: docs/superpowers/plans/2026-11-07-assessoria-montagem.md (Task 1)",
+      "criterios": [
+        "montagem.mjs gera 3 versões 1080×1350 a partir das fotos aprovadas e da camisa",
+        "recusa, 403/429 e chave ausente dão erro claro sem vazar a chave",
+        "gerar.mjs foto transforma a versão escolhida em arte+mini"
+      ],
+      "depende": [],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-07T15:38:52.093Z",
+          "quem": "PO",
+          "nota": "criada"
+        }
+      ]
+    },
+    {
+      "id": "IM-87",
+      "titulo": "Assessoria: regras do terminal para montagem e teste de fumaça",
+      "tipo": "infra",
+      "prioridade": "media",
+      "descricao": "Plano: docs/superpowers/plans/2026-11-07-assessoria-montagem.md (Task 2)",
+      "criterios": [
+        "CLAUDE.md da assessoria com o fluxo de montagem e a escolha do Fabio",
+        "uma montagem real postada com OK do Fabio"
+      ],
+      "depende": [
+        "IM-86"
+      ],
+      "responsavel": null,
+      "coluna": "backlog",
+      "historico": [
+        {
+          "quando": "2026-11-07T15:38:52.134Z",
+          "quem": "PO",
+          "nota": "criada"
         }
       ]
     }
